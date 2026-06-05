@@ -57,6 +57,10 @@ const notesRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/notes",
 	component: NotesPage,
+	validateSearch: (search: Record<string, unknown>): { new?: boolean; edit?: string } => ({
+		new: search.new === true || search.new === "true" ? true : undefined,
+		edit: typeof search.edit === "string" ? search.edit : undefined,
+	}),
 })
 
 const settingsRoute = createRoute({
