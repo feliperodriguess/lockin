@@ -6,6 +6,7 @@ import {
 	Outlet,
 	useRouterState,
 } from "@tanstack/react-router"
+import { lazy, Suspense } from "react"
 
 import { Sidebar } from "./components/app/sidebar"
 import { WindowFrame } from "./components/app/window-frame"
@@ -13,6 +14,11 @@ import { useLcuStatus, usePhase } from "./hooks/use-lcu"
 import { HomePage } from "./pages/home"
 import { NotesPage } from "./pages/notes"
 import { SettingsPage } from "./pages/settings"
+
+// DEV only — lazy-loaded so the fake-bridge import graph never enters prod bundles
+const StateSwitcher = import.meta.env.DEV
+	? lazy(() => import("./components/dev/state-switcher"))
+	: null
 
 const rootRoute = createRootRoute({
 	component: RootLayout,
@@ -30,9 +36,13 @@ function RootLayout(): React.JSX.Element {
 					<div key={`${routePath}:${phase}`} className="ccp-screen absolute inset-0 p-4">
 						<Outlet />
 					</div>
+					{import.meta.env.DEV && StateSwitcher && (
+						<Suspense fallback={null}>
+							<StateSwitcher />
+						</Suspense>
+					)}
 				</main>
 			</div>
-			{/* dev switcher mounts here (Task 8) */}
 		</WindowFrame>
 	)
 }
