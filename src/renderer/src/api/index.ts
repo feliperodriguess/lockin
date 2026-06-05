@@ -6,7 +6,7 @@ export const FORCE_FAKE_KEY = "lockin:forceFake"
    Top-level await is fine — Vite renderer targets modern Chromium. */
 const fake = import.meta.env.DEV ? (await import("./fake/bridge")).fakeBridge : undefined
 
-const forceFake = import.meta.env.DEV && window.localStorage.getItem(FORCE_FAKE_KEY) === "1"
+const forceFake = import.meta.env.DEV && window.localStorage.getItem(FORCE_FAKE_KEY) === "1" // read once at init — toggling requires a page reload
 
 /* Real preload channels win key-by-key; unimplemented ones answer from the fake.
    NOTE: production builds need the real bridge complete (Phase 7) — until then

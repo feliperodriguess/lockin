@@ -58,6 +58,7 @@ let subPhase: "ban" | "pick" = "ban"
 let csMsLeft: number = PHASE_LEN_MS.ban
 let readyElapsedS = 0
 let readyResponse: ReadyCheck["playerResponse"] = "None"
+let readyTimedOut = false
 let tick: ReturnType<typeof setInterval> | undefined
 
 function emitAll() {
@@ -87,13 +88,18 @@ function startTicker() {
 				csMsLeft = PHASE_LEN_MS[subPhase]
 			}
 			champCh.emit(buildSession(scenario, subPhase, csMsLeft))
-		} else if (scenario.phase === "ready" && effectiveReadyResponse() === "None") {
+		} else if (
+			scenario.phase === "ready" &&
+			!readyTimedOut &&
+			effectiveReadyResponse() === "None"
+		) {
 			readyElapsedS += 1
 			if (readyElapsedS >= READY_CHECK_TOTAL_S) {
 				// missed — LCU flips state to Invalid
+				readyTimedOut = true
 				readyCh.emit({
 					state: "Invalid",
-					playerResponse: "None",
+					playerResponse: effectiveReadyResponse(),
 					timer: readyElapsedS,
 					declinerIds: [],
 				})
@@ -105,6 +111,7 @@ function startTicker() {
 }
 function stopTicker() {
 	if (tick) clearInterval(tick)
+	tick = undefined
 }
 
 /* --------------------------------------------------------- switcher contract */
@@ -118,6 +125,7 @@ export function setScenario(next: Partial<ScenarioState>): void {
 		// entering a phase resets its ticker state
 		readyElapsedS = 0
 		readyResponse = "None"
+		readyTimedOut = false
 		subPhase = scenario.csSubPhase ?? "ban"
 		csMsLeft = PHASE_LEN_MS[subPhase]
 	}
@@ -189,8 +197,10 @@ export const fakeBridge: Api = {
 		// "Ranks N/A" still keeps YOUR rank — the prototype always shows the local player's
 		// rank (champ-select-parts.jsx:517 showRank = ranksAvailable || p.you)
 		const out: Record<string, RankInfo | null> = {}
-		for (const p of puuids)
+		for (const p of puuids) {
+			if (!p) continue // LCU hides enemy identity — blank puuid means unknown player
 			out[p] = scenario.ranksAvailable || p === "p-me" ? (FIXTURE_RANKS[p] ?? null) : null
+		}
 		return out
 	},
 	onLcuStatus: (cb) => {
@@ -219,4 +229,6 @@ export const fakeBridge: Api = {
 	},
 }
 
+// Called once at module init. Edits to this module trigger a full page reload
+// (no hot.accept), so intervals can't accumulate under HMR.
 startTicker()
