@@ -4,7 +4,6 @@ import { AfterLine, Eyebrow } from "./app/eyebrow"
 import { Pill } from "./app/pill"
 import { SearchField } from "./app/search-field"
 import { Segmented } from "./app/segmented"
-import { TextInput } from "./app/text-input"
 import { Accordion } from "./ui/accordion"
 import { Avatar } from "./ui/avatar"
 import { Badge } from "./ui/badge"
@@ -26,5 +25,4 @@ export {
 	SearchField,
 	Segmented,
 	Switch,
-	TextInput,
 }

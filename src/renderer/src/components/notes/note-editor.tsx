@@ -5,11 +5,12 @@
 
 import { ChampionPicker } from "@renderer/components/app/champion-picker"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
-import { TextInput } from "@renderer/components/app/text-input"
 import { SpellIcon } from "@renderer/components/game/spell-icon"
 import { Field } from "@renderer/components/notes/note-field"
 import { Button } from "@renderer/components/ui/button"
+import { Textarea } from "@renderer/components/ui/textarea"
 import { useDeleteNote, useUpsertNote } from "@renderer/hooks/use-data"
+import { cn } from "@renderer/lib/utils"
 import { Check, Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -99,14 +100,7 @@ export function NoteEditor({
 			{/* biome-ignore lint/a11y/useKeyWithClickEvents: same */}
 			<div
 				onClick={onClose}
-				className="ccp-fade"
-				style={{
-					position: "absolute",
-					inset: 0,
-					background: "rgba(0,0,0,0.55)",
-					backdropFilter: "blur(2px)",
-					zIndex: 60,
-				}}
+				className="ccp-fade absolute inset-0 z-[60] bg-[rgba(0,0,0,0.55)] backdrop-blur-[2px]"
 			/>
 
 			{/* drawer panel */}
@@ -114,44 +108,22 @@ export function NoteEditor({
 				role="dialog"
 				aria-modal
 				aria-label={isNew ? "New note" : "Edit note"}
-				className="ccp-drawer"
-				style={{
-					position: "absolute",
-					top: 0,
-					right: 0,
-					bottom: 0,
-					width: 392,
-					maxWidth: "92%",
-					zIndex: 61,
-					background: "var(--bg-surface)",
-					borderLeft: "1px solid var(--stroke-strong)",
-					boxShadow: "var(--shadow-lg)",
-					display: "flex",
-					flexDirection: "column",
-				}}
+				className={cn(
+					"ccp-drawer absolute inset-y-0 right-0 z-[61]",
+					"flex flex-col",
+					"bg-ink-900 border-l border-[var(--stroke-strong)] shadow-[var(--shadow-lg)]",
+					"max-w-[92%]",
+				)}
+				// dynamic: 392px is a specific design-token drawer width
+				style={{ width: 392 }}
 			>
 				{/* header */}
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						padding: "16px 18px",
-						borderBottom: "1px solid var(--stroke-default)",
-					}}
-				>
+				<div className="flex items-center justify-between border-b border-[var(--stroke-default)] px-[18px] py-4">
 					<Eyebrow line={20}>{isNew ? "New note" : "Edit note"}</Eyebrow>
 					<button
 						type="button"
 						onClick={onClose}
-						style={{
-							background: "none",
-							border: "none",
-							cursor: "pointer",
-							color: "var(--fg-3)",
-							display: "flex",
-							padding: 4,
-						}}
+						className="flex cursor-pointer border-none bg-transparent p-1 text-paper-300"
 					>
 						<X size={18} />
 					</button>
@@ -163,17 +135,10 @@ export function NoteEditor({
 						e.preventDefault()
 						handleSave()
 					}}
-					style={{
-						flex: 1,
-						overflowY: "auto",
-						padding: 18,
-						display: "flex",
-						flexDirection: "column",
-						gap: 18,
-					}}
+					className="flex flex-1 flex-col gap-[18px] overflow-y-auto p-[18px]"
 				>
 					{/* champion + opponent row */}
-					<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+					<div className="grid grid-cols-2 gap-3">
 						<Field label="Champion" req>
 							<ChampionPicker
 								value={championId}
@@ -197,19 +162,19 @@ export function NoteEditor({
 
 					{/* note textarea */}
 					<Field label="Note">
-						<TextInput
+						<Textarea
 							rows={7}
 							value={body}
-							onChange={setBody}
+							onChange={(e) => setBody(e.target.value)}
 							autoFocus
 							placeholder="What wins this matchup? Trades, timings, what to respect…"
-							className="text-[14px] leading-[1.6] text-[var(--fg-1)]"
+							className="text-[14px] leading-[1.6] text-paper-100"
 						/>
 					</Field>
 
 					{/* pinned spells */}
 					<Field label="Pinned spells" hint="Overrides the suggestion in the header">
-						<div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+						<div className="flex flex-wrap gap-2">
 							{allSpells.map((s) => {
 								const on = spells.includes(s.key)
 								const order = spells.indexOf(s.key)
@@ -227,24 +192,21 @@ export function NoteEditor({
 										key={s.key}
 										type="button"
 										onClick={() => toggleSpell(s.key)}
-										style={{
-											display: "flex",
-											alignItems: "center",
-											gap: 7,
-											padding: "5px 9px 5px 6px",
-											borderRadius: "var(--radius-sm)",
-											cursor: "pointer",
-											background: on ? "var(--accent-bg)" : "var(--color-ink-950)",
-											border: `1px solid ${on ? "var(--color-accent)" : "var(--stroke-default)"}`,
-											color: on ? "var(--color-accent)" : "var(--fg-2)",
-											font: "500 12px/1 var(--font-ui)",
-											position: "relative",
-										}}
+										className={cn(
+											"relative flex cursor-pointer items-center gap-[7px] rounded-sm px-[9px] py-[5px] pl-[6px]",
+											"border text-[12px] font-medium leading-none",
+											"transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+											on
+												? "border-accent bg-[var(--accent-bg)] text-accent"
+												: "border-[var(--stroke-default)] bg-ink-950 text-paper-200",
+										)}
 									>
 										<SpellIcon spell={s} version={version} size={22} />
 										{s.name}
 										{on && label && (
-											<span style={{ font: "600 9px/1 var(--font-mono)" }}>{label}</span>
+											<span className="font-mono text-[9px] font-semibold leading-none">
+												{label}
+											</span>
 										)}
 									</button>
 								)
@@ -254,16 +216,7 @@ export function NoteEditor({
 				</form>
 
 				{/* footer */}
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						padding: "14px 18px",
-						borderTop: "1px solid var(--stroke-default)",
-						gap: 10,
-					}}
-				>
+				<div className="flex items-center justify-between gap-[10px] border-t border-[var(--stroke-default)] px-[18px] py-[14px]">
 					{!isNew ? (
 						<Button variant="destructive" disabled={isPending} onClick={handleDelete}>
 							<Trash2 size={14} />
@@ -272,7 +225,7 @@ export function NoteEditor({
 					) : (
 						<span />
 					)}
-					<div style={{ display: "flex", gap: 8 }}>
+					<div className="flex gap-2">
 						<Button variant="ghost" type="button" onClick={onClose}>
 							Cancel
 						</Button>

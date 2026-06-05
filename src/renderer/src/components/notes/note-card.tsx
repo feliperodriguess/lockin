@@ -1,10 +1,11 @@
 // components.jsx:8-253 — NoteTitle + NoteCard (full/compact variants).
 // bundle/version passed as props — no internal useDDragon (anti-pattern).
 
-import { TextInput } from "@renderer/components/app/text-input"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { SpellPair } from "@renderer/components/game/spell-pair"
+import { Textarea } from "@renderer/components/ui/textarea"
 import { timeAgo } from "@renderer/lib/time"
+import { cn } from "@renderer/lib/utils"
 import { Check, SquarePen } from "lucide-react"
 import { useState } from "react"
 
@@ -30,26 +31,23 @@ export function NoteTitle({
 		? (bundle.championsByKey[note.opponentChampionId] ?? null)
 		: null
 	return (
-		<div className="flex min-w-0 items-center" style={{ gap: 8 }}>
+		<div className="flex min-w-0 items-center gap-2">
 			<ChampionPortrait champion={champ} version={version} size={size} />
 			<span
-				className="shrink-0 whitespace-nowrap"
-				style={{ font: `600 ${fs}px/1 var(--font-ui)`, color: "var(--fg-1)" }}
+				className="shrink-0 whitespace-nowrap font-semibold leading-none text-paper-100"
+				// dynamic: font-size driven by `fs` prop (variable, not static)
+				style={{ fontSize: fs }}
 			>
 				{champ?.name}
 			</span>
 			{opp && (
 				<>
-					<span
-						className="shrink-0"
-						style={{ font: "400 11px/1 var(--font-mono)", color: "var(--fg-4)" }}
-					>
-						vs
-					</span>
+					<span className="shrink-0 font-mono text-[11px] leading-none text-paper-400">vs</span>
 					<ChampionPortrait champion={opp} version={version} size={size} />
 					<span
-						className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
-						style={{ font: `500 ${fs}px/1 var(--font-ui)`, color: "var(--fg-2)" }}
+						className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium leading-none text-paper-200"
+						// dynamic: font-size driven by `fs` prop (variable, not static)
+						style={{ fontSize: fs }}
 					>
 						{opp.name}
 					</span>
@@ -135,43 +133,29 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 			onClick={onClick}
 			onMouseEnter={() => setHover(true)}
 			onMouseLeave={() => setHover(false)}
-			style={{
-				background: hover ? "var(--bg-hover)" : "var(--bg-raised)",
-				border: "1px solid var(--stroke-default)",
-				borderRadius: "var(--radius-md)",
-				padding: 16,
-				cursor: "pointer",
-				display: "flex",
-				flexDirection: "column",
-				gap: 11,
-				overflow: "hidden",
-				transition: "background 160ms var(--ease-standard)",
-				height: "100%",
-				boxSizing: "border-box",
-				width: "100%",
-				textAlign: "left",
-			}}
+			className={cn(
+				"flex h-full w-full cursor-pointer flex-col gap-[11px] overflow-hidden rounded-md p-4 text-left",
+				"border border-[var(--stroke-default)]",
+				"transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+				hover ? "bg-ink-800" : "bg-ink-850",
+			)}
 		>
-			<div className="flex items-start justify-between" style={{ gap: 8 }}>
+			<div className="flex items-start justify-between gap-2">
 				<div className="min-w-0 flex-1">
 					<NoteTitle note={note} bundle={bundle} version={version} size={26} fs={14} />
 				</div>
 				<SquarePen
 					size={14}
-					style={{
-						color: hover ? "var(--fg-2)" : "var(--fg-4)",
-						flexShrink: 0,
-						marginTop: 2,
-						transition: "color 160ms",
-					}}
+					className={cn(
+						"mt-[2px] shrink-0 transition-colors duration-[160ms]",
+						hover ? "text-paper-200" : "text-paper-400",
+					)}
 				/>
 			</div>
 			<p
+				className="m-0 flex-1 overflow-hidden text-[13px] leading-[1.55] text-paper-200"
+				// dynamic: -webkit-line-clamp requires vendor-prefixed CSS not available as Tailwind utility
 				style={{
-					margin: 0,
-					font: "400 13px/1.55 var(--font-ui)",
-					color: "var(--color-paper-200)",
-					flex: 1,
 					display: "-webkit-box",
 					WebkitLineClamp: 3,
 					WebkitBoxOrient: "vertical",
@@ -181,8 +165,8 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 			>
 				{note.body}
 			</p>
-			<div className="flex items-center justify-between" style={{ gap: 8 }}>
-				<div className="flex items-center" style={{ gap: 8 }}>
+			<div className="flex items-center justify-between gap-2">
+				<div className="flex items-center gap-2">
 					{spellPair && (
 						<SpellPair
 							pair={spellPair}
@@ -193,15 +177,12 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 						/>
 					)}
 				</div>
-				<span
-					style={{
-						font: "400 10.5px/1 var(--font-mono)",
-						color: "var(--fg-4)",
-						whiteSpace: "nowrap",
-					}}
+				<time
+					dateTime={note.updatedAt}
+					className="whitespace-nowrap font-mono text-[10.5px] leading-none text-paper-400"
 				>
 					{timeAgo(note.updatedAt)}
-				</span>
+				</time>
 			</div>
 		</button>
 	)
@@ -234,52 +215,49 @@ function CompactCard({ note, bundle, version, onSaveBody, saving = false }: Comp
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: mouse-enter/leave for hover-reveal only (no keyboard action needed)
 		<div
-			className="flex h-full flex-col"
-			style={{ gap: 10 }}
+			className="flex h-full flex-col gap-[10px]"
 			onMouseEnter={() => setHover(true)}
 			onMouseLeave={() => setHover(false)}
 		>
-			<div className="flex items-center justify-between" style={{ gap: 8 }}>
+			<div className="flex items-center justify-between gap-2">
 				<NoteTitle note={note} bundle={bundle} version={version} size={24} fs={14} />
 				<button
 					type="button"
 					onClick={toggle}
 					disabled={saving}
 					title="Edit note"
-					className="inline-flex items-center"
-					style={{
-						gap: 5,
-						background: editing ? "var(--accent-bg)" : "transparent",
-						border: "1px solid",
-						borderColor: editing ? "transparent" : hover ? "var(--stroke-default)" : "transparent",
-						color: editing ? "var(--color-accent)" : "var(--fg-3)",
-						borderRadius: "var(--radius-sm)",
-						padding: "4px 8px",
-						cursor: saving ? "not-allowed" : "pointer",
-						font: "500 11px/1 var(--font-ui)",
-						transition: "all var(--dur-base) var(--ease-standard)",
-						opacity: saving ? 0.5 : 1,
-					}}
+					className={cn(
+						"inline-flex items-center gap-[5px]",
+						"rounded-sm px-2 py-1",
+						"border text-[11px] font-medium leading-none",
+						"transition-all duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+						editing
+							? "border-transparent bg-[var(--accent-bg)] text-accent"
+							: hover
+								? "border-[var(--stroke-default)] bg-transparent text-paper-300"
+								: "border-transparent bg-transparent text-paper-300",
+						saving && "cursor-not-allowed opacity-50",
+					)}
 				>
 					{editing ? <Check size={12} /> : <SquarePen size={12} />}
 					{editing ? "Done" : "Edit"}
 				</button>
 			</div>
 			{editing ? (
-				<TextInput
+				<Textarea
 					rows={5}
 					value={draft}
-					onChange={setDraft}
+					onChange={(e) => setDraft(e.target.value)}
 					autoFocus
-					className="min-h-0 flex-1 resize-none text-[14px] leading-[1.6] text-[var(--fg-1)]"
+					className="min-h-0 flex-1 resize-none text-[14px] leading-[1.6] text-paper-100"
 				/>
 			) : (
 				<p
-					className="min-h-0 flex-1 overflow-y-auto"
+					className="m-0 min-h-0 flex-1 overflow-y-auto text-paper-100"
+					// dynamic: 14.5px/1.62/0.005em are sub-pixel design tokens with no Tailwind scale entry
 					style={{
-						margin: 0,
-						font: "400 14.5px/1.62 var(--font-ui)",
-						color: "var(--color-paper-100)",
+						fontSize: "14.5px",
+						lineHeight: 1.62,
 						letterSpacing: "0.005em",
 						textWrap: "pretty",
 						whiteSpace: "pre-wrap",

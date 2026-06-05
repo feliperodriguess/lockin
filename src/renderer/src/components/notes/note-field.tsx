@@ -1,3 +1,5 @@
+import { cn } from "@renderer/lib/utils"
+
 interface FieldProps {
 	label: string
 	hint?: string
@@ -8,30 +10,15 @@ interface FieldProps {
 export function Field({ label, hint, req, children }: FieldProps) {
 	return (
 		// Using div so biome's noLabelWithoutControl doesn't fire on dynamic children
-		<div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-			<span
-				style={{
-					display: "flex",
-					alignItems: "center",
-					gap: 6,
-					font: "500 11px/1 var(--font-mono)",
-					letterSpacing: "0.06em",
-					textTransform: "uppercase",
-					color: "var(--fg-3)",
-				}}
-			>
+		<div className="flex flex-col gap-[7px]">
+			<span className="flex items-center gap-[6px] font-mono text-[11px] font-medium leading-none tracking-[0.06em] uppercase text-paper-300">
 				{label}
-				{req && <span style={{ color: "var(--color-accent)" }}>*</span>}
+				{req && <span className="text-accent">*</span>}
 				{hint && (
 					<span
-						style={{
-							textTransform: "none",
-							letterSpacing: 0,
-							fontFamily: "var(--font-ui)",
-							color: "var(--fg-4)",
-							fontWeight: 400,
-							fontSize: 10,
-						}}
+						className={cn(
+							"normal-case tracking-normal font-sans text-[10px] font-normal text-paper-400",
+						)}
 					>
 						· {hint}
 					</span>
