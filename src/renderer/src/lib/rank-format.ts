@@ -22,6 +22,7 @@ export function rankScore(rank: RankInfo | null): number {
 	return TIERS[rank.tier].idx * 4 + (4 - (DIV_NUM[rank.division] ?? 4))
 }
 
+// TODO(Phase 7): apex tiers (MASTER+) should render without a division — LCU reports "I".
 export function formatRank(rank: RankInfo | null): string {
 	if (!rank || !TIERS[rank.tier]) return "Unranked"
 	return `${TIERS[rank.tier].label} ${rank.division}`

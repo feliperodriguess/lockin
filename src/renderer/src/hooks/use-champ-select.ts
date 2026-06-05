@@ -117,15 +117,15 @@ export function useChampSelect(): ChampSelectVM | null {
 
 		// PHASE-1 GLUE — replaced by src/shared/lib/spells.ts in Phase 6
 		const pinned = note?.pinnedSpells
-		const pairIds: [number, number] =
-			pinned && spell(pinned[0]) && spell(pinned[1])
-				? pinned
-				: [FLASH, DEFAULT_SECOND_SPELL[me.assignedPosition] ?? 14]
+		const pinnedValid = !!(pinned && spell(pinned[0]) && spell(pinned[1]))
+		const pairIds: [number, number] = pinnedValid
+			? pinned
+			: [FLASH, DEFAULT_SECOND_SPELL[me.assignedPosition] ?? 14]
 		const s0 = spell(pairIds[0])
 		const s1 = spell(pairIds[1])
 		const spells: SpellRec = {
 			pair: s0 && s1 ? [s0, s1] : null,
-			source: pinned ? "pinned" : "default",
+			source: pinnedValid ? "pinned" : "default",
 			rolePending,
 		}
 
@@ -158,7 +158,7 @@ export function useChampSelect(): ChampSelectVM | null {
 			rank: ranks?.[p.puuid] ?? null,
 			you: p.cellId === session.localPlayerCellId,
 		}))
-		// teammates only — your own rank is always present, so it can't count as "available"
+		// requires at least one *teammate* rank — the fake always returns yours, matching the prototype
 		const ranksAvailable = team.some((t) => !t.you && t.rank != null)
 
 		// PHASE-1 GLUE — replaced by src/shared/lib/rank.ts in Phase 7
