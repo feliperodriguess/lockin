@@ -6,14 +6,14 @@ import type { AppSettings, BanListEntry, MatchupNote } from "@/shared/types"
 export function useDDragon() {
 	return useQuery({
 		queryKey: ["ddragon"],
-		queryFn: api.getDDragonBundle,
+		queryFn: () => api.getDDragonBundle(),
 		staleTime: Infinity,
 		gcTime: Infinity,
 	})
 }
 
 export function useSettings() {
-	return useQuery({ queryKey: ["settings"], queryFn: api.getSettings, staleTime: Infinity })
+	return useQuery({ queryKey: ["settings"], queryFn: () => api.getSettings(), staleTime: Infinity })
 }
 export function useSetSettings() {
 	const qc = useQueryClient()
@@ -24,7 +24,7 @@ export function useSetSettings() {
 }
 
 export function useNotes() {
-	return useQuery({ queryKey: ["notes"], queryFn: api.listNotes, staleTime: Infinity })
+	return useQuery({ queryKey: ["notes"], queryFn: () => api.listNotes(), staleTime: Infinity })
 }
 export function useUpsertNote() {
 	const qc = useQueryClient()
@@ -42,7 +42,7 @@ export function useDeleteNote() {
 }
 
 export function useBanList() {
-	return useQuery({ queryKey: ["banlist"], queryFn: api.getBanList, staleTime: Infinity })
+	return useQuery({ queryKey: ["banlist"], queryFn: () => api.getBanList(), staleTime: Infinity })
 }
 export function useSetBanList() {
 	const qc = useQueryClient()
@@ -54,7 +54,8 @@ export function useSetBanList() {
 
 export function useTeamRanks(puuids: string[]) {
 	return useQuery({
-		queryKey: ["ranks", ...puuids],
+		// sorted copy → stable cache key regardless of caller's puuid order
+		queryKey: ["ranks", ...[...puuids].sort()],
 		queryFn: () => api.getRanksForPuuids(puuids),
 		enabled: puuids.length > 0,
 		staleTime: Infinity,
