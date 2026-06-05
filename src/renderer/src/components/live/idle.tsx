@@ -1,12 +1,12 @@
 // live-view.jsx:93-161 — Idle state (connected, no active game flow).
-// Hero card + recent notes grid (placeholder cards until Task 14 swaps in real NoteCard).
+// Hero card + recent notes grid (real NoteCard full variant).
 
 import { Card } from "@renderer/components/app/card"
 import { EmptyState } from "@renderer/components/app/empty-state"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
+import { NoteCard } from "@renderer/components/notes/note-card"
 import { Button } from "@renderer/components/ui/button"
-import { useDDragon, useNotes } from "@renderer/hooks/use-data"
-import { timeAgo } from "@renderer/lib/time"
+import { useDDragon, useNotes, useSettings } from "@renderer/hooks/use-data"
 import { useNavigate } from "@tanstack/react-router"
 import { BookOpen, ChevronRight, Plus, Shield } from "lucide-react"
 
@@ -14,9 +14,10 @@ export function Idle(): React.JSX.Element {
 	const navigate = useNavigate()
 	const { data: notes = [] } = useNotes()
 	const { data: bundle } = useDDragon()
+	const { data: settings } = useSettings()
 
-	const champName = (id: number | null | undefined) =>
-		id ? (bundle?.championsByKey[id]?.name ?? "Unknown") : null
+	const version = bundle?.version ?? ""
+	const spellSlotLayout = settings?.spellSlotLayout ?? "DF"
 
 	// 4 most-recently-updated notes — listNotes() already sorts desc; re-sort defensively
 	const recent = [...notes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4)
@@ -75,50 +76,29 @@ export function Idle(): React.JSX.Element {
 						</Button>
 					}
 				/>
-			) : (
+			) : bundle ? (
 				<div
 					className="min-h-0 flex-1 overflow-y-auto"
 					style={{
 						display: "grid",
 						gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-						gridAutoRows: "1fr",
+						gridAutoRows: "minmax(186px, auto)",
 						gap: 14,
 					}}
 				>
 					{recent.map((note) => (
-						// swapped for the real NoteCard in Task 14
-						<Card key={note.id} className="flex flex-col gap-2 p-3">
-							<p
-								className="truncate text-[var(--fg-1)]"
-								style={{ font: "500 13px/1.3 var(--font-ui)" }}
-							>
-								{champName(note.championId) ?? "Note"}{" "}
-								{note.opponentChampionId ? `vs ${champName(note.opponentChampionId)}` : ""}
-							</p>
-							<p
-								className="text-[var(--fg-3)] overflow-hidden"
-								style={{
-									font: "400 12px/1.5 var(--font-ui)",
-									display: "-webkit-box",
-									WebkitLineClamp: 3,
-									WebkitBoxOrient: "vertical",
-								}}
-							>
-								{note.body}
-							</p>
-							<p
-								className="mt-auto"
-								style={{
-									font: "400 11px/1 var(--font-mono)",
-									color: "var(--fg-4)",
-								}}
-							>
-								{timeAgo(note.updatedAt)}
-							</p>
-						</Card>
+						<NoteCard
+							key={note.id}
+							note={note}
+							bundle={bundle}
+							version={version}
+							variant="full"
+							spellSlotLayout={spellSlotLayout}
+							onClick={() => navigate({ to: "/notes", search: { edit: note.id } })}
+						/>
 					))}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }
