@@ -8,6 +8,7 @@ import { ChampionPicker } from "@renderer/components/app/champion-picker"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { useBanList, useDDragon, useSetBanList } from "@renderer/hooks/use-data"
+import { cn } from "@renderer/lib/utils"
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 import { useState } from "react"
 
@@ -39,41 +40,18 @@ function BanRow({
 	const atBottom = index === total - 1
 
 	return (
-		<li
-			style={{
-				display: "flex",
-				alignItems: "center",
-				gap: 10,
-				padding: "7px 8px",
-				borderRadius: "var(--radius-sm)",
-				background: "var(--color-ink-950)",
-				border: "1px solid var(--stroke-subtle)",
-				listStyle: "none",
-			}}
-		>
+		<li className="flex list-none items-center gap-[10px] rounded-sm border border-[var(--stroke-subtle)] bg-ink-950 px-2 py-[7px]">
 			{/* Move chevrons */}
-			<span
-				style={{
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					color: "var(--fg-4)",
-				}}
-			>
+			<span className="flex flex-col items-center text-paper-400">
 				<button
 					type="button"
 					onClick={() => onMove(-1)}
 					disabled={atTop}
 					title="Move up"
-					style={{
-						background: "none",
-						border: "none",
-						cursor: atTop ? "default" : "pointer",
-						color: atTop ? "var(--color-ink-600)" : "var(--fg-3)",
-						padding: 0,
-						display: "flex",
-						height: 13,
-					}}
+					className={cn(
+						"flex h-[13px] items-center border-none bg-transparent p-0",
+						atTop ? "cursor-default text-ink-600" : "cursor-pointer text-paper-300",
+					)}
 				>
 					<ChevronUp size={14} />
 				</button>
@@ -82,29 +60,17 @@ function BanRow({
 					onClick={() => onMove(1)}
 					disabled={atBottom}
 					title="Move down"
-					style={{
-						background: "none",
-						border: "none",
-						cursor: atBottom ? "default" : "pointer",
-						color: atBottom ? "var(--color-ink-600)" : "var(--fg-3)",
-						padding: 0,
-						display: "flex",
-						height: 13,
-					}}
+					className={cn(
+						"flex h-[13px] items-center border-none bg-transparent p-0",
+						atBottom ? "cursor-default text-ink-600" : "cursor-pointer text-paper-300",
+					)}
 				>
 					<ChevronDown size={14} />
 				</button>
 			</span>
 
 			{/* Priority index */}
-			<span
-				style={{
-					font: "600 11px/1 var(--font-mono)",
-					color: "var(--fg-4)",
-					width: 16,
-					textAlign: "center",
-				}}
-			>
+			<span className="w-4 text-center font-mono text-[11px] font-semibold leading-none text-paper-400">
 				{index + 1}
 			</span>
 
@@ -112,32 +78,19 @@ function BanRow({
 			<ChampionPortrait champion={champion} version={version} size={30} />
 
 			{/* Champion name */}
-			<div style={{ display: "flex", flexDirection: "column", gap: 2, width: 96, flexShrink: 0 }}>
-				<span
-					style={{
-						font: "600 13px/1 var(--font-ui)",
-						color: "var(--fg-1)",
-					}}
-				>
+			<div className="flex w-24 shrink-0 flex-col gap-[2px]">
+				<span className="text-[13px] font-semibold leading-none text-paper-100">
 					{champion?.name ?? "Unknown"}
 				</span>
 			</div>
 
-			{/* Reason inline input — local draft, mutate on blur */}
+			{/* Reason inline input — local draft, mutate on blur; transparent look preserved via classes only */}
 			<input
 				value={localReason}
 				onChange={(ev) => setLocalReason(ev.target.value)}
 				onBlur={() => onReasonBlur(localReason)}
 				placeholder="Add a reason (optional)"
-				style={{
-					flex: 1,
-					minWidth: 0,
-					background: "transparent",
-					border: "none",
-					outline: "none",
-					color: "var(--fg-2)",
-					font: "400 12.5px/1 var(--font-ui)",
-				}}
+				className="min-w-0 flex-1 border-none bg-transparent text-[12.5px] leading-none text-paper-200 outline-none placeholder:text-paper-400"
 			/>
 
 			{/* Remove button */}
@@ -145,20 +98,7 @@ function BanRow({
 				type="button"
 				onClick={onRemove}
 				title="Remove"
-				onMouseEnter={(ev) => {
-					ev.currentTarget.style.color = "var(--color-fail)"
-				}}
-				onMouseLeave={(ev) => {
-					ev.currentTarget.style.color = "var(--fg-4)"
-				}}
-				style={{
-					background: "none",
-					border: "none",
-					cursor: "pointer",
-					color: "var(--fg-4)",
-					display: "flex",
-					padding: 4,
-				}}
+				className="flex cursor-pointer border-none bg-transparent p-1 text-paper-400 transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)] hover:text-[var(--color-fail)]"
 			>
 				<Trash2 size={15} />
 			</button>
@@ -200,41 +140,25 @@ export function BanEditor(): React.JSX.Element {
 	const excludeIds = banlist.map((e) => e.championId)
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+		<div className="flex flex-col gap-3">
 			{/* Header */}
-			<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+			<div className="flex items-center justify-between">
 				<Eyebrow line={22}>Ban list · priority order</Eyebrow>
-				<span style={{ font: "400 11px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+				<span className="font-mono text-[11px] leading-none text-paper-400">
 					{banlist.length} champions
 				</span>
 			</div>
 
-			<Card className="p-2 flex flex-col gap-1">
+			<Card className="flex flex-col gap-1 p-2">
 				{/* Empty state */}
 				{banlist.length === 0 && (
-					<div
-						style={{
-							padding: "24px",
-							textAlign: "center",
-							font: "400 13px/1.5 var(--font-ui)",
-							color: "var(--fg-4)",
-						}}
-					>
+					<p className="m-0 px-6 py-6 text-center text-[13px] leading-[1.5] text-paper-400">
 						Your ban list is empty. Add the champions you never want to face.
-					</div>
+					</p>
 				)}
 
 				{/* Ban rows */}
-				<ul
-					style={{
-						listStyle: "none",
-						margin: 0,
-						padding: 0,
-						display: "flex",
-						flexDirection: "column",
-						gap: 4,
-					}}
-				>
+				<ul className="m-0 flex flex-col gap-1 p-0">
 					{banlist.map((entry, i) => (
 						<BanRow
 							key={entry.championId}
@@ -251,7 +175,7 @@ export function BanEditor(): React.JSX.Element {
 				</ul>
 
 				{/* Footer: add champion picker */}
-				<div style={{ padding: "6px 4px 2px", maxWidth: 280 }}>
+				<div className="max-w-[280px] px-1 pb-[2px] pt-[6px]">
 					<ChampionPicker
 						value={null}
 						onChange={add}

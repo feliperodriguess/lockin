@@ -5,6 +5,7 @@
 
 import { Card } from "@renderer/components/app/card"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
+import { cn } from "@renderer/lib/utils"
 
 interface GroupProps {
 	label: string
@@ -13,7 +14,7 @@ interface GroupProps {
 
 export function Group({ label, children }: GroupProps): React.JSX.Element {
 	return (
-		<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+		<div className="flex flex-col gap-3">
 			<Eyebrow line={22}>{label}</Eyebrow>
 			<Card className="px-4 py-1">{children}</Card>
 		</div>
@@ -30,30 +31,18 @@ interface RowProps {
 export function Row({ title, desc, control, last }: RowProps): React.JSX.Element {
 	return (
 		<div
-			style={{
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "space-between",
-				gap: 20,
-				padding: "15px 0",
-				borderBottom: last ? "none" : "1px solid var(--stroke-subtle)",
-			}}
+			className={cn(
+				"flex items-center justify-between gap-5 py-[15px]",
+				!last && "border-b border-[var(--stroke-subtle)]",
+			)}
 		>
-			<div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
-				<span style={{ font: "500 14px/1.2 var(--font-ui)", color: "var(--fg-1)" }}>{title}</span>
+			<div className="flex min-w-0 flex-col gap-[3px]">
+				<span className="text-[14px] font-medium leading-[1.2] text-paper-100">{title}</span>
 				{desc && (
-					<span
-						style={{
-							font: "400 12px/1.45 var(--font-ui)",
-							color: "var(--fg-4)",
-							maxWidth: 380,
-						}}
-					>
-						{desc}
-					</span>
+					<span className="max-w-[380px] text-[12px] leading-[1.45] text-paper-400">{desc}</span>
 				)}
 			</div>
-			<div style={{ flexShrink: 0 }}>{control}</div>
+			<div className="shrink-0">{control}</div>
 		</div>
 	)
 }

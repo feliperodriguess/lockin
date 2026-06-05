@@ -3,6 +3,7 @@ import { getScenario, setScenario } from "@renderer/api/fake/bridge"
 import type { ScenarioState } from "@renderer/api/fake/scenario"
 import { Switch } from "@renderer/components/ui/switch"
 import { useSetSettings, useSettings } from "@renderer/hooks/use-data"
+import { cn } from "@renderer/lib/utils"
 import { useQueryClient } from "@tanstack/react-query"
 import { Play, X } from "lucide-react"
 import { useState } from "react"
@@ -26,16 +27,7 @@ function Seg<T extends string | null>({
 	accentActive?: boolean
 }) {
 	return (
-		<div
-			style={{
-				display: "inline-flex",
-				padding: 2,
-				gap: 2,
-				background: "rgba(0,0,0,0.35)",
-				border: "1px solid var(--stroke-default)",
-				borderRadius: "var(--radius-sm)",
-			}}
-		>
+		<div className="inline-flex gap-[2px] rounded-sm border border-[var(--stroke-default)] bg-[rgba(0,0,0,0.35)] p-[2px]">
 			{options.map((o) => {
 				const on = value === o.value
 				return (
@@ -43,21 +35,16 @@ function Seg<T extends string | null>({
 						key={String(o.value)}
 						type="button"
 						onClick={() => onChange(o.value)}
-						style={{
-							padding: "5px 10px",
-							borderRadius: 4,
-							border: "none",
-							cursor: "pointer",
-							whiteSpace: "nowrap",
-							background: on
+						className={cn(
+							"cursor-pointer whitespace-nowrap rounded-[4px] border-none px-[10px] py-[5px]",
+							"text-[11px] font-semibold leading-none",
+							"transition-colors duration-[var(--dur-fast)] ease-[var(--ease-standard)]",
+							on
 								? accentActive
-									? "var(--color-accent)"
-									: "var(--color-ink-700)"
-								: "transparent",
-							color: on ? (accentActive ? "var(--color-accent-fg)" : "var(--fg-1)") : "var(--fg-3)",
-							font: "600 11px/1 var(--font-ui)",
-							transition: "background var(--dur-fast) var(--ease-standard)",
-						}}
+									? "bg-accent text-[var(--color-accent-fg)]"
+									: "bg-ink-700 text-paper-100"
+								: "bg-transparent text-paper-300",
+						)}
 					>
 						{o.label}
 					</button>
@@ -69,29 +56,15 @@ function Seg<T extends string | null>({
 
 function DemoLabel({ children }: { children: React.ReactNode }) {
 	return (
-		<span
-			style={{
-				font: "600 9px/1 var(--font-mono)",
-				letterSpacing: "0.1em",
-				textTransform: "uppercase",
-				color: "var(--fg-4)",
-				marginRight: 2,
-			}}
-		>
+		<span className="mr-[2px] font-mono text-[9px] font-semibold leading-none tracking-[0.1em] uppercase text-paper-400">
 			{children}
 		</span>
 	)
 }
 
-/* shared inline-label style for switch rows */
-const LABEL_STYLE: React.CSSProperties = {
-	display: "inline-flex",
-	alignItems: "center",
-	gap: 8,
-	font: "500 11px/1 var(--font-ui)",
-	color: "var(--fg-2)",
-	cursor: "pointer",
-}
+/* shared label style for switch rows */
+const LABEL_CLASS =
+	"inline-flex cursor-pointer items-center gap-2 text-[11px] font-medium leading-none text-paper-200"
 
 /* ---------------------------------------------------------------- main component */
 
@@ -118,23 +91,13 @@ export default function StateSwitcher(): React.JSX.Element {
 			<button
 				type="button"
 				onClick={() => setExpanded(true)}
-				style={{
-					position: "absolute",
-					bottom: 12,
-					right: 12,
-					zIndex: 50,
-					display: "inline-flex",
-					alignItems: "center",
-					gap: 6,
-					padding: "6px 12px",
-					borderRadius: 999,
-					background: "rgba(14,16,18,0.9)",
-					border: "1px solid var(--stroke-default)",
-					color: "var(--color-accent)",
-					font: "600 11px/1 var(--font-ui)",
-					cursor: "pointer",
-					boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-				}}
+				className={cn(
+					"absolute bottom-3 right-3 z-50",
+					"inline-flex cursor-pointer items-center gap-[6px]",
+					"rounded-full border border-[var(--stroke-default)] px-3 py-[6px]",
+					"bg-[rgba(14,16,18,0.9)] text-accent shadow-[0_4px_12px_rgba(0,0,0,0.5)]",
+					"text-[11px] font-semibold leading-none",
+				)}
 			>
 				<Play size={10} />
 				Dev
@@ -144,55 +107,26 @@ export default function StateSwitcher(): React.JSX.Element {
 
 	return (
 		<div
-			style={{
-				position: "absolute",
-				bottom: 12,
-				left: "50%",
-				transform: "translateX(-50%)",
-				zIndex: 50,
-				minHeight: 54,
-				display: "flex",
-				alignItems: "center",
-				gap: 18,
-				padding: "8px 16px",
-				borderRadius: 12,
-				flexWrap: "wrap",
-				background: "rgba(14,16,18,0.9)",
-				border: "1px solid var(--stroke-default)",
-				boxShadow: "0 10px 30px -12px rgba(0,0,0,0.6)",
-			}}
+			className={cn(
+				"absolute bottom-3 z-50",
+				"flex min-h-[54px] flex-wrap items-center gap-[18px]",
+				"rounded-[12px] border border-[var(--stroke-default)] px-4 py-2",
+				"bg-[rgba(14,16,18,0.9)] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]",
+			)}
+			// dynamic: translateX(-50%) horizontal centering from left:50% requires runtime transform
+			style={{ left: "50%", transform: "translateX(-50%)" }}
 		>
 			{/* label block */}
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "column",
-					gap: 3,
-					paddingRight: 16,
-					borderRight: "1px solid var(--stroke-default)",
-				}}
-			>
-				<span
-					style={{
-						display: "inline-flex",
-						alignItems: "center",
-						gap: 6,
-						font: "600 9px/1 var(--font-mono)",
-						letterSpacing: "0.14em",
-						textTransform: "uppercase",
-						color: "var(--color-accent)",
-					}}
-				>
+			<div className="flex flex-col gap-[3px] border-r border-[var(--stroke-default)] pr-4">
+				<span className="inline-flex items-center gap-[6px] font-mono text-[9px] font-semibold leading-none tracking-[0.14em] uppercase text-accent">
 					<Play size={10} />
 					Prototype
 				</span>
-				<span style={{ font: "400 10px/1 var(--font-ui)", color: "var(--fg-4)" }}>
-					Drive the client state
-				</span>
+				<span className="text-[10px] leading-none text-paper-400">Drive the client state</span>
 			</div>
 
 			{/* Client phase seg */}
-			<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+			<div className="flex items-center gap-2">
 				<DemoLabel>Client</DemoLabel>
 				<Seg
 					accentActive
@@ -208,18 +142,18 @@ export default function StateSwitcher(): React.JSX.Element {
 			</div>
 
 			{/* Spacer */}
-			<div style={{ flex: 1 }} />
+			<div className="flex-1" />
 
 			{/* Ready Check controls */}
 			{snapshot.phase === "ready" && (
-				<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+				<div className="flex items-center gap-[14px]">
 					{/* switch restyled in Task 9 */}
 					<Switch
 						id="dev-auto-accept"
 						checked={settingsQuery.data?.autoAccept ?? false}
 						onCheckedChange={(checked) => setSettingsMutation.mutate({ autoAccept: checked })}
 					/>
-					<label htmlFor="dev-auto-accept" style={LABEL_STYLE}>
+					<label htmlFor="dev-auto-accept" className={LABEL_CLASS}>
 						Auto-accept
 					</label>
 					{/* switch restyled in Task 9 */}
@@ -228,7 +162,7 @@ export default function StateSwitcher(): React.JSX.Element {
 						checked={snapshot.autoAcceptFired}
 						onCheckedChange={(checked) => drive({ autoAcceptFired: checked })}
 					/>
-					<label htmlFor="dev-show-fired" style={LABEL_STYLE}>
+					<label htmlFor="dev-show-fired" className={LABEL_CLASS}>
 						Show fired
 					</label>
 				</div>
@@ -236,16 +170,8 @@ export default function StateSwitcher(): React.JSX.Element {
 
 			{/* Champ Select controls */}
 			{snapshot.phase === "select" && (
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: 12,
-						flexWrap: "wrap",
-						justifyContent: "flex-end",
-					}}
-				>
-					<div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+				<div className="flex flex-wrap items-center justify-end gap-3">
+					<div className="flex items-center gap-[7px]">
 						<DemoLabel>Phase</DemoLabel>
 						<Seg
 							value={snapshot.csSubPhase ?? ("live" as const)}
@@ -259,7 +185,7 @@ export default function StateSwitcher(): React.JSX.Element {
 							]}
 						/>
 					</div>
-					<div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+					<div className="flex items-center gap-[7px]">
 						<DemoLabel>Enemy</DemoLabel>
 						<Seg
 							value={
@@ -273,7 +199,7 @@ export default function StateSwitcher(): React.JSX.Element {
 							]}
 						/>
 					</div>
-					<div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+					<div className="flex items-center gap-[7px]">
 						<DemoLabel>Ranks</DemoLabel>
 						<Seg
 							value={snapshot.ranksAvailable ? "on" : "off"}
@@ -284,7 +210,7 @@ export default function StateSwitcher(): React.JSX.Element {
 							]}
 						/>
 					</div>
-					<div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+					<div className="flex items-center gap-[7px]">
 						<DemoLabel>Note</DemoLabel>
 						<Seg
 							value={snapshot.hasNote ? "on" : "off"}
@@ -295,7 +221,7 @@ export default function StateSwitcher(): React.JSX.Element {
 							]}
 						/>
 					</div>
-					<div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+					<div className="flex items-center gap-[7px]">
 						<DemoLabel>Role</DemoLabel>
 						<Seg
 							value={snapshot.roleAssigned ? "on" : "off"}
@@ -311,30 +237,15 @@ export default function StateSwitcher(): React.JSX.Element {
 
 			{/* Idle/Disconnected hint text */}
 			{(snapshot.phase === "disconnected" || snapshot.phase === "idle") && (
-				<span
-					style={{
-						font: "400 11px/1.4 var(--font-ui)",
-						color: "var(--fg-4)",
-						maxWidth: 320,
-						textAlign: "right",
-					}}
-				>
+				<p className="m-0 max-w-[320px] text-right text-[11px] leading-[1.4] text-paper-400">
 					{snapshot.phase === "disconnected"
 						? "Client closed — calm waiting state. Notes & Settings stay usable."
 						: "Connected, between games. Sharpen notes or queue up."}
-				</span>
+				</p>
 			)}
 
 			{/* Force fake API toggle */}
-			<div
-				style={{
-					display: "flex",
-					alignItems: "center",
-					gap: 7,
-					paddingLeft: 16,
-					borderLeft: "1px solid var(--stroke-default)",
-				}}
-			>
+			<div className="flex items-center gap-[7px] border-l border-[var(--stroke-default)] pl-4">
 				<DemoLabel>Fake api</DemoLabel>
 				{/* switch restyled in Task 9 */}
 				<Switch
@@ -355,18 +266,11 @@ export default function StateSwitcher(): React.JSX.Element {
 			<button
 				type="button"
 				onClick={() => setExpanded(false)}
-				style={{
-					display: "inline-flex",
-					alignItems: "center",
-					justifyContent: "center",
-					padding: 4,
-					borderRadius: 4,
-					border: "none",
-					background: "transparent",
-					color: "var(--fg-4)",
-					cursor: "pointer",
-					transition: "color var(--dur-fast) var(--ease-standard)",
-				}}
+				className={cn(
+					"inline-flex cursor-pointer items-center justify-center rounded-[4px]",
+					"border-none bg-transparent p-1 text-paper-400",
+					"transition-colors duration-[var(--dur-fast)] ease-[var(--ease-standard)]",
+				)}
 				aria-label="Collapse dev bar"
 			>
 				<X size={14} />
