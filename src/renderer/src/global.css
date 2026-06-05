@@ -129,12 +129,21 @@
 	}
 	html {
 		overflow: hidden;
+		height: 100%;
 	}
 	body {
+		height: 100%;
 		background: var(--bg-canvas);
 		color: var(--fg-1);
 		font-family: var(--font-ui);
 		-webkit-font-smoothing: antialiased;
+	}
+	/* the React root must fill the window so h-full layout chains (e.g. the
+	   champ-select rail) resolve against the viewport, not their own content.
+	   In Electron <html> already fills the BrowserWindow; this is a no-op there
+	   and the fix that makes the browser (dev/Playwright) match. */
+	#root {
+		height: 100%;
 	}
 	::selection {
 		background: var(--accent-bg);
