@@ -44,6 +44,7 @@
 	--radius-lg: 12px;
 	--radius-xl: 16px;
 	--radius-2xl: 24px;
+	--radius: 0.5rem;
 }
 
 :root {
@@ -78,7 +79,6 @@
 	--dur-slow: 360ms;
 
 	/* shadcn semantic vars → handoff tokens (single dark theme, no .dark block) */
-	--radius: 0.5rem;
 	--background: var(--color-ink-950);
 	--foreground: var(--color-paper-100);
 	--card: var(--color-ink-850);
@@ -100,6 +100,10 @@
 }
 
 @theme inline {
+	/* NOTE: --color-accent is intentionally NOT mapped here — it stays the static
+	   crimson #f5003d from @theme, so `bg-accent` = brand crimson. The shadcn
+	   "accent" hover-surface semantic lives in --accent (ink-800) above. */
+
 	/* keep shadcn-style utilities working against the aliases above */
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
@@ -117,7 +121,6 @@
 	--color-input: var(--input);
 	--color-ring: var(--ring);
 	--color-destructive: var(--destructive);
-	--radius-DEFAULT: var(--radius);
 }
 
 @layer base {
@@ -275,6 +278,9 @@
 		transform: none;
 	}
 }
+.ccp-rise {
+	animation: ccpRise var(--dur-slow) var(--ease-emphasized);
+}
 
 @media (prefers-reduced-motion: reduce) {
 	.ac-blink,
@@ -283,7 +289,8 @@
 	.ccp-halo,
 	.ccp-screen,
 	.ccp-drawer,
-	.ccp-fade {
+	.ccp-fade,
+	.ccp-rise {
 		animation: none;
 	}
 }
