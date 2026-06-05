@@ -1,5 +1,5 @@
 import { spellIconUrl } from "@renderer/lib/ddragon-urls"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import type { SummonerSpellStatic } from "@/shared/types"
 
@@ -17,6 +17,11 @@ export function SpellIcon({
 	keyHint,
 }: SpellIconProps): React.JSX.Element | null {
 	const [err, setErr] = useState(false)
+
+	// reset the fallback when the spell identity changes
+	useEffect(() => {
+		setErr(false)
+	}, [spell?.key])
 
 	if (!spell) return null
 

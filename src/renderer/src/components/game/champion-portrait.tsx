@@ -1,6 +1,6 @@
 import { champIconUrl, championFallbackColor } from "@renderer/lib/ddragon-urls"
 import { cn } from "@renderer/lib/utils"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import type { ChampionStatic } from "@/shared/types"
 
@@ -25,6 +25,11 @@ export function ChampionPortrait({
 }: ChampionPortraitProps): React.JSX.Element {
 	const [err, setErr] = useState(false)
 	const r = Math.max(6, Math.round(size * 0.18))
+
+	// reset the fallback when the champion identity changes (slots get reused across session updates)
+	useEffect(() => {
+		setErr(false)
+	}, [champion?.key])
 
 	if (hidden || !champion) {
 		return (

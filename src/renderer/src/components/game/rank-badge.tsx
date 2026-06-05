@@ -62,7 +62,7 @@ export function RankBadge({
 						}}
 					/>
 				) : (
-					<RankEmblem tier={rank?.tier} size={small ? 14 : 18} />
+					<RankEmblem tier={rank.tier} size={small ? 14 : 18} />
 				))}
 			<span style={{ display: "inline-flex", flexDirection: "column", lineHeight: 1.15 }}>
 				<span
