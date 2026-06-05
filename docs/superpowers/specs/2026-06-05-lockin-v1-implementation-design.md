@@ -23,6 +23,7 @@
 | D13 | Fonts | Bundled locally (Poppins, JetBrains Mono). No Google Fonts at runtime |
 | D14 | Design tweaks | Locked: accent crimson `#f5003d` set, density "cozy", rail layout. The prototype's tweaks panel is a design-tool artifact, **not** app UI |
 | D15 | Icons | Champion/spell icons hotlink from DDragon CDN by URL; handoff's tinted fallback tiles cover loading/offline/unresolvable states |
+| D16 | Ready-check decline | **Contract addition.** §6.4 requires working manual Accept/Decline and "respect the decline", but §8 lists no decline channel. Add `declineReadyCheck(): Promise<void>` to the Api (LCU: `POST /lol-matchmaking/v1/ready-check/decline`). Fake in Phase 1; real in Phase 3 |
 
 ## 2. Module & file layout
 
@@ -79,6 +80,7 @@ type Unsubscribe = () => void
 interface Api {
   // invokes → TanStack Query
   acceptReadyCheck(): Promise<void>                              // mutation
+  declineReadyCheck(): Promise<void>                             // mutation (D16)
   getDDragonBundle(): Promise<DDragonBundle>                     // query ['ddragon'], staleTime Infinity
   getSettings(): Promise<AppSettings>                            // query ['settings']
   setSettings(p: Partial<AppSettings>): Promise<AppSettings>     // mutation → invalidate ['settings']

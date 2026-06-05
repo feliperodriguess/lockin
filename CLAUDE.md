@@ -42,7 +42,7 @@ Electron three-process split (electron-vite, configured in `electron.vite.config
 
 State ownership (PRD §3.1/§8.1 — keep these separate, never mirror data between them):
 - **TanStack Query** wraps request/response IPC (`invoke`) — notes, settings, Data Dragon bundle, ranks. Invalidate query keys after mutations.
-- **Zustand** holds the live LCU push state (`lcu:status`, `lcu:phase`, `lcu:readyCheck`, `lcu:champSelect`) — subscribe once in a top-level provider; never poll for these.
+- **`LcuProvider`** (plain React context, `src/renderer/src/providers/lcu-provider.tsx`) holds the live LCU push state (`lcu:status`, `lcu:phase`, `lcu:readyCheck`, `lcu:champSelect`) — it subscribes once and exposes two churn-split contexts; never poll for these, and don't add Zustand unless re-render pressure demands it.
 - Plain `useState` for small local UI state.
 
 Build strategy is **UI-first** (PRD §15): screens consume data through hooks (e.g. `useChampSelect()`, `useNotes()`) that return mock fixtures first and are repointed at real IPC later — keep components agnostic to the data source.
