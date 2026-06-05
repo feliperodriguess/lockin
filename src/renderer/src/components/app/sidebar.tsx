@@ -1,6 +1,7 @@
 /* Sidebar — ported from app.jsx:223-349 */
 
 import { phaseSub } from "@renderer/lib/phase"
+import { cn } from "@renderer/lib/utils"
 import { useMatchRoute, useNavigate } from "@tanstack/react-router"
 import { Activity, BookOpen, Settings } from "lucide-react"
 
@@ -25,7 +26,7 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 	const items = [
 		{
 			id: "live" as const,
-			icon: <Activity size={16} style={{ flexShrink: 0 }} />,
+			icon: <Activity size={16} className="shrink-0" />,
 			label: "Live",
 			sub: phaseSub(connected, phase),
 			active: isHome,
@@ -33,7 +34,7 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 		},
 		{
 			id: "notes" as const,
-			icon: <BookOpen size={16} style={{ flexShrink: 0 }} />,
+			icon: <BookOpen size={16} className="shrink-0" />,
 			label: "Notes",
 			sub: undefined,
 			active: isNotes,
@@ -41,7 +42,7 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 		},
 		{
 			id: "settings" as const,
-			icon: <Settings size={16} style={{ flexShrink: 0 }} />,
+			icon: <Settings size={16} className="shrink-0" />,
 			label: "Settings",
 			sub: undefined,
 			active: isSettings,
@@ -50,24 +51,14 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 	]
 
 	return (
-		<aside
-			style={{
-				width: 198,
-				flexShrink: 0,
-				background: "var(--bg-surface)",
-				borderRight: "1px solid var(--stroke-default)",
-				display: "flex",
-				flexDirection: "column",
-				padding: "14px 12px",
-			}}
-		>
+		<aside className="w-[198px] shrink-0 bg-ink-900 border-r border-[var(--stroke-default)] flex flex-col p-[14px_12px]">
 			{/* wordmark block */}
-			<div style={{ padding: "4px 8px 16px" }}>
+			<div className="px-2 pt-1 pb-4">
 				<Wordmark size={15} />
 			</div>
 
 			{/* nav items */}
-			<nav style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+			<nav className="flex flex-col gap-[3px]">
 				{items.map((item) => (
 					<SidebarItem
 						key={item.id}
@@ -83,30 +74,15 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 			</nav>
 
 			{/* spacer */}
-			<div style={{ flex: 1 }} />
+			<div className="flex-1" />
 
 			{/* footer */}
-			<div
-				style={{
-					borderTop: "1px solid var(--stroke-default)",
-					paddingTop: 12,
-					display: "flex",
-					flexDirection: "column",
-					gap: 6,
-				}}
-			>
+			<footer className="border-t border-[var(--stroke-default)] pt-3 flex flex-col gap-[6px]">
 				<ConnectionIndicator connected={connected} />
-				<span
-					style={{
-						font: "400 10px/1 var(--font-mono)",
-						color: "var(--fg-4)",
-						paddingLeft: 16,
-						whiteSpace: "nowrap",
-					}}
-				>
+				<span className="font-mono text-[10px] font-normal leading-none text-paper-400 pl-4 whitespace-nowrap">
 					{connected ? "LCU · 127.0.0.1" : "retrying every 2s…"}
 				</span>
-			</div>
+			</footer>
 		</aside>
 	)
 }
@@ -135,52 +111,30 @@ function SidebarItem({
 			type="button"
 			onClick={onClick}
 			aria-current={active ? "page" : undefined}
-			className={`region-no-drag ${!active ? "hover:bg-[rgba(255,255,255,0.03)]" : ""}`}
-			style={{
-				display: "flex",
-				alignItems: "center",
-				gap: 10,
-				padding: "9px 10px",
-				borderRadius: "var(--radius-sm)",
-				cursor: "pointer",
-				background: active ? "var(--bg-hover)" : "transparent",
-				border: "1px solid",
-				borderColor: active ? "var(--stroke-default)" : "transparent",
-				color: active ? "var(--fg-1)" : "var(--fg-3)",
-				textAlign: "left",
-				transition:
-					"background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard)",
-				position: "relative",
-				width: "100%",
-			}}
+			className={cn(
+				"region-no-drag relative flex items-center gap-[10px] w-full",
+				"px-[10px] py-[9px] rounded-sm cursor-pointer border text-left",
+				"transition-[background-color,color] duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+				active
+					? "bg-ink-800 border-[var(--stroke-default)] text-paper-100"
+					: "bg-transparent border-transparent text-paper-300 hover:bg-[rgba(255,255,255,0.03)]",
+			)}
 		>
 			{/* active accent bar — left:-12px is outside the button, clipped by aside padding */}
 			{active && (
-				<span
-					style={{
-						position: "absolute",
-						left: -12,
-						top: "50%",
-						transform: "translateY(-50%)",
-						width: 2.5,
-						height: 18,
-						background: "var(--color-accent)",
-						borderRadius: 2,
-					}}
-				/>
+				<span className="absolute left-[-12px] top-1/2 -translate-y-1/2 w-[2.5px] h-[18px] bg-accent rounded-[2px]" />
 			)}
 
 			{icon}
 
-			<span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}>
-				<span style={{ font: "500 13px/1.1 var(--font-ui)" }}>{label}</span>
+			<span className="flex-1 flex flex-col gap-[1px]">
+				<span className="text-[13px] font-medium leading-[1.1]">{label}</span>
 				{sub && (
 					<span
-						style={{
-							font: "400 10px/1 var(--font-mono)",
-							color: active ? "var(--color-accent)" : "var(--fg-4)",
-							letterSpacing: "0.02em",
-						}}
+						className={cn(
+							"font-mono text-[10px] font-normal leading-none tracking-[0.02em]",
+							active ? "text-accent" : "text-paper-400",
+						)}
 					>
 						{sub}
 					</span>
@@ -189,13 +143,10 @@ function SidebarItem({
 
 			{showDot && (
 				<span
-					style={{
-						width: 6,
-						height: 6,
-						borderRadius: 999,
-						background: connected ? "var(--color-accent)" : "var(--color-ink-600)",
-						flexShrink: 0,
-					}}
+					className={cn(
+						"w-[6px] h-[6px] rounded-full shrink-0",
+						connected ? "bg-accent" : "bg-ink-600",
+					)}
 				/>
 			)}
 		</button>

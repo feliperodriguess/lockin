@@ -28,6 +28,7 @@ function EmptyState({
 	className,
 }: EmptyStateProps): React.JSX.Element {
 	const iconSize = compact ? 20 : 26
+	// dynamic: tile/gap/pad/text sizes are derived from compact prop; non-standard values
 	const tileSize = compact ? 44 : 60
 	const gap = compact ? 10 : 14
 	const pad = compact ? 20 : 36
@@ -35,16 +36,18 @@ function EmptyState({
 	return (
 		<div
 			className={cn("flex flex-col items-center justify-center text-center", className)}
+			// dynamic: gap and padding derived from compact prop
 			style={{ gap, padding: pad }}
 		>
 			{/* icon tile */}
 			<div
 				className={cn(
 					"grid place-items-center shrink-0",
-					"bg-[var(--color-ink-850)] border border-[var(--stroke-default)]",
-					"rounded-[var(--radius-lg)] text-[var(--fg-3)]",
+					"bg-ink-850 border border-[var(--stroke-default)]",
+					"rounded-lg text-paper-300",
 					pulse && "ccp-breathe",
 				)}
+				// dynamic: width/height derived from compact prop
 				style={{ width: tileSize, height: tileSize }}
 			>
 				<Icon size={iconSize} strokeWidth={1.5} />
@@ -52,19 +55,23 @@ function EmptyState({
 
 			{/* text block */}
 			{(title || line) && (
-				<div className="flex flex-col gap-[5px]" style={{ maxWidth: 280 }}>
+				<div className="flex flex-col gap-[5px] max-w-[280px]">
 					{title && (
 						<p
-							className="text-[var(--fg-1)] leading-[1.3]"
-							style={{ font: `500 ${compact ? 14 : 15}px/1.3 var(--font-ui)` }}
+							className={cn(
+								"text-paper-100 leading-[1.3]",
+								compact ? "text-[14px] font-medium" : "text-[15px] font-medium",
+							)}
 						>
 							{title}
 						</p>
 					)}
 					{line && (
 						<p
-							className="text-[var(--fg-3)] leading-[1.5]"
-							style={{ font: `400 ${compact ? 12 : 13}px/1.5 var(--font-ui)` }}
+							className={cn(
+								"text-paper-300 leading-[1.5]",
+								compact ? "text-[12px]" : "text-[13px]",
+							)}
 						>
 							{line}
 						</p>

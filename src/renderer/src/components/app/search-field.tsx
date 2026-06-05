@@ -1,11 +1,11 @@
 // Primitives.jsx:329-381 — SearchField.
 // 34px height, ink-950 bg, border stroke-default (focus: accent + glow).
 // Search icon 15px fg-3 on left. Clear X button when value is non-empty.
-// Controlled: value/onChange strings. Focus ring via border + boxShadow.
+// Controlled: value/onChange strings. Focus ring via focus-within: on the wrapper (no JS state).
 
+import { Input } from "@renderer/components/ui/input"
 import { cn } from "@renderer/lib/utils"
 import { Search, X } from "lucide-react"
-import { useState } from "react"
 
 interface SearchFieldProps {
 	value: string
@@ -20,43 +20,32 @@ function SearchField({
 	placeholder = "Search",
 	className,
 }: SearchFieldProps): React.JSX.Element {
-	const [focused, setFocused] = useState(false)
-
 	return (
 		<div
 			className={cn(
-				"flex items-center gap-2 h-[34px] px-3",
-				"bg-[var(--color-ink-950)] rounded-[var(--radius-sm)]",
-				"border transition-[border-color,box-shadow] duration-[160ms] ease-[var(--ease-standard)]",
-				focused
-					? "border-[var(--color-accent)] shadow-[0_0_0_1px_var(--color-accent),0_0_16px_var(--accent-glow)]"
-					: "border-[var(--stroke-default)]",
+				"relative flex items-center h-[34px]",
+				"[&:focus-within_input]:border-accent",
+				"[&:focus-within_input]:shadow-[0_0_0_1px_var(--color-accent),0_0_16px_var(--accent-glow)]",
 				className,
 			)}
 		>
 			<Search
 				size={15}
 				strokeWidth={1.75}
-				className="shrink-0 text-[var(--fg-3)] pointer-events-none"
+				className="absolute left-3 shrink-0 text-paper-300 pointer-events-none z-10"
 			/>
-			<input
+			<Input
 				type="text"
 				value={value}
 				placeholder={placeholder}
 				onChange={(e) => onChange(e.target.value)}
-				onFocus={() => setFocused(true)}
-				onBlur={() => setFocused(false)}
-				className={cn(
-					"flex-1 bg-transparent border-0 outline-none",
-					"text-[var(--fg-1)] placeholder:text-[var(--fg-4)]",
-					"text-[13px] font-normal leading-none",
-				)}
+				className="pl-[34px] pr-[30px] h-[34px]"
 			/>
 			{value && (
 				<button
 					type="button"
 					onClick={() => onChange("")}
-					className="flex items-center justify-center p-0 bg-transparent border-0 cursor-pointer text-[var(--fg-3)] hover:text-[var(--fg-2)] shrink-0"
+					className="absolute right-2 flex items-center justify-center p-0 bg-transparent border-0 cursor-pointer text-paper-300 hover:text-paper-200 shrink-0"
 				>
 					<X size={14} strokeWidth={1.75} />
 				</button>

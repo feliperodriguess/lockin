@@ -27,55 +27,34 @@ export function WindowFrame({ children, connected, phase }: WindowFrameProps): R
 	}, [])
 
 	return (
-		<div className="flex h-full w-full flex-col overflow-hidden bg-[var(--bg-canvas)]">
+		<div className="flex h-full w-full flex-col overflow-hidden bg-ink-950">
 			{/* titlebar */}
 			<header
-				className="region-drag"
+				className="region-drag h-9 shrink-0 flex items-center justify-between px-[14px] border-b border-[var(--stroke-default)]"
 				style={{
-					height: 36,
-					flexShrink: 0,
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					padding: "0 14px",
+					// dynamic: backdrop-filter and semi-transparent bg are not Tailwind utilities
 					background: "rgba(17,19,21,0.86)",
 					backdropFilter: "blur(12px)",
-					borderBottom: "1px solid var(--stroke-default)",
 				}}
 			>
 				{/* left spacer — clears the real hiddenInset traffic lights (trafficLightPosition x:20) */}
 				<div className="w-[120px]" />
 
 				{/* center: wordmark + phase sub-label */}
-				<span
-					className="region-no-drag"
-					style={{
-						display: "inline-flex",
-						alignItems: "center",
-						gap: 8,
-						font: "500 12px/1 var(--font-ui)",
-						color: "var(--fg-3)",
-					}}
-				>
+				<span className="region-no-drag inline-flex items-center gap-2 text-[12px] font-medium leading-none text-paper-300">
 					<Wordmark size={12} mark={false} />
-					<span style={{ color: "var(--fg-4)" }}>·</span>
-					<span style={{ font: "400 11px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+					<span className="text-paper-400">·</span>
+					<span className="font-mono text-[11px] font-normal leading-none text-paper-400">
 						{phaseSub(connected, phase)}
 					</span>
 				</span>
 
 				{/* right: connection indicator + clock */}
-				<div
-					style={{
-						width: 120,
-						display: "flex",
-						justifyContent: "flex-end",
-						alignItems: "center",
-						gap: 10,
-					}}
-				>
+				<div className="w-[120px] flex justify-end items-center gap-[10px]">
 					<ConnectionIndicator connected={connected} compact />
-					<span style={{ font: "400 11px/1 var(--font-mono)", color: "var(--fg-4)" }}>{now}</span>
+					<time className="font-mono text-[11px] font-normal leading-none text-paper-400">
+						{now}
+					</time>
 				</div>
 			</header>
 

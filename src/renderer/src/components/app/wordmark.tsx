@@ -10,26 +10,24 @@ export function AppMark({ size = 22, radius }: AppMarkProps): React.JSX.Element 
 	const v = size * 0.68
 	return (
 		<span
+			className="relative overflow-hidden grid place-items-center shrink-0"
+			// dynamic: all dimensions + radius are prop-driven; background and border are static
+			// but they use non-standard values (gradient, alpha) that can't be Tailwind classes
 			style={{
 				width: size,
 				height: size,
 				borderRadius: r,
-				flexShrink: 0,
-				position: "relative",
-				overflow: "hidden",
 				background: "linear-gradient(155deg, #24272c 0%, #0b0c0d 78%)",
 				border: "1px solid var(--stroke-strong)",
-				display: "grid",
-				placeItems: "center",
 				boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
 			}}
 		>
 			<span
+				className="[grid-area:1/1] rounded-full"
+				// dynamic: width/height derived from size prop; radial-gradient color is static but non-standard
 				style={{
-					gridArea: "1/1",
 					width: size * 0.78,
 					height: size * 0.78,
-					borderRadius: "50%",
 					background: "radial-gradient(circle, rgba(245,0,61,0.45) 0%, rgba(245,0,61,0) 68%)",
 				}}
 			/>
@@ -39,7 +37,7 @@ export function AppMark({ size = 22, radius }: AppMarkProps): React.JSX.Element 
 				viewBox="0 0 24 24"
 				aria-label="lockin gem"
 				role="img"
-				style={{ gridArea: "1/1", position: "relative", display: "block" }}
+				className="[grid-area:1/1] relative block"
 			>
 				<defs>
 					<linearGradient id="lkGem" x1="0" y1="0" x2="0.25" y2="1">
@@ -70,14 +68,16 @@ interface WordmarkProps {
 
 export function Wordmark({ size = 15, mark = true }: WordmarkProps): React.JSX.Element {
 	return (
-		<span style={{ display: "inline-flex", alignItems: "center", gap: size * 0.5 }}>
+		<span
+			className="inline-flex items-center"
+			// dynamic: gap is proportional to size prop
+			style={{ gap: size * 0.5 }}
+		>
 			{mark && <AppMark size={size * 1.55} />}
 			<span
-				style={{
-					font: `600 ${size}px/1 var(--font-ui)`,
-					color: "var(--fg-1)",
-					letterSpacing: "-0.015em",
-				}}
+				className="text-paper-100 font-semibold tracking-[-0.015em] leading-none"
+				// dynamic: font-size is prop-driven
+				style={{ fontSize: size }}
 			>
 				lockin
 			</span>

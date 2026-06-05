@@ -11,8 +11,8 @@ import type { LucideIcon } from "lucide-react"
 export type PillTone = "neutral" | "accent" | "info" | "warn" | "fail"
 
 const TONE_CLASSES: Record<PillTone, string> = {
-	neutral: "bg-[var(--color-ink-800)] text-[var(--color-paper-300)]",
-	accent: "bg-[var(--accent-bg)] text-[var(--color-accent)]",
+	neutral: "bg-ink-800 text-paper-300",
+	accent: "bg-[var(--accent-bg)] text-accent",
 	info: "bg-[var(--info-bg)] text-[var(--color-info)]",
 	warn: "bg-[var(--warn-bg)] text-[var(--color-warn)]",
 	fail: "bg-[var(--fail-bg)] text-[var(--color-fail)]",
@@ -44,7 +44,13 @@ function Pill({
 				className,
 			)}
 		>
-			{dot && <span className="shrink-0 rounded-full bg-current" style={{ width: 5, height: 5 }} />}
+			{dot && (
+				<span
+					className="shrink-0 rounded-full bg-current"
+					// dynamic: 5px is non-standard; not in Tailwind's spacing scale
+					style={{ width: 5, height: 5 }}
+				/>
+			)}
 			{Icon && <Icon size={11} strokeWidth={2} className="shrink-0" />}
 			{children}
 		</span>

@@ -1,11 +1,11 @@
 // Primitives.jsx:298-326 — TextInput (called "Input" in prototype).
-// ink-950 bg, border stroke-default; focus: accent border + glow (same as SearchField).
-// mono prop: uses font-mono instead of font-ui. 13px font.
-// rows prop: renders <textarea> with vertical resize; else <input> with h-[34px].
-// Controlled: value/onChange strings.
+// Thin wrapper over ui/input and ui/textarea — preserves the existing props API
+// so Stage B consumers can migrate independently.
+/** @deprecated migrate to ui/input + ui/textarea (Stage B) */
 
+import { Input } from "@renderer/components/ui/input"
+import { Textarea } from "@renderer/components/ui/textarea"
 import { cn } from "@renderer/lib/utils"
-import { useState } from "react"
 
 interface TextInputBaseProps {
 	value: string
@@ -28,53 +28,30 @@ type TextInputProps = TextInputFieldProps | TextInputAreaProps
 
 function TextInput(props: TextInputProps): React.JSX.Element {
 	const { value, onChange, placeholder, mono, rows, autoFocus, className } = props
-	const [focused, setFocused] = useState(false)
 
-	const baseClass = cn(
-		"w-full bg-[var(--color-ink-950)] rounded-[var(--radius-sm)]",
-		"border text-[var(--fg-1)] outline-none",
-		"text-[13px] leading-none",
-		mono ? "font-mono" : "font-[var(--font-ui)]",
-		"placeholder:text-[var(--fg-4)]",
-		"transition-[border-color,box-shadow] duration-[160ms] ease-[var(--ease-standard)]",
-		focused
-			? "border-[var(--color-accent)] shadow-[0_0_0_1px_var(--color-accent),0_0_16px_var(--accent-glow)]"
-			: "border-[var(--stroke-default)]",
-		className,
-	)
-
-	const handleFocus = () => setFocused(true)
-	const handleBlur = () => setFocused(false)
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-		onChange(e.target.value)
+	const monoClass = mono ? "font-mono" : undefined
 
 	if (rows !== undefined) {
 		return (
-			<textarea
+			<Textarea
 				value={value}
 				placeholder={placeholder}
 				rows={rows}
-				// biome-ignore lint/a11y/noAutofocus: consumer opt-in
 				autoFocus={autoFocus}
-				onFocus={handleFocus}
-				onBlur={handleBlur}
-				onChange={handleChange}
-				className={cn(baseClass, "px-3 py-[10px] leading-[1.6] resize-y")}
+				onChange={(e) => onChange(e.target.value)}
+				className={cn(monoClass, className)}
 			/>
 		)
 	}
 
 	return (
-		<input
+		<Input
 			type="text"
 			value={value}
 			placeholder={placeholder}
-			// biome-ignore lint/a11y/noAutofocus: consumer opt-in
 			autoFocus={autoFocus}
-			onFocus={handleFocus}
-			onBlur={handleBlur}
-			onChange={handleChange}
-			className={cn(baseClass, "h-[34px] px-3")}
+			onChange={(e) => onChange(e.target.value)}
+			className={cn(monoClass, className)}
 		/>
 	)
 }
