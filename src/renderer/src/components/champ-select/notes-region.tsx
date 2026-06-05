@@ -120,6 +120,7 @@ function CompactNote({ note }: { note: MatchupNote }): React.JSX.Element {
 	const [draft, setDraft] = useState(note.body)
 
 	const toggle = () => {
+		if (upsert.isPending) return
 		if (editing) upsert.mutate({ id: note.id, body: draft }) // save on Done, not per keystroke
 		setEditing((v) => !v)
 	}
@@ -131,6 +132,7 @@ function CompactNote({ note }: { note: MatchupNote }): React.JSX.Element {
 				<button
 					type="button"
 					onClick={toggle}
+					disabled={upsert.isPending}
 					title="Edit note"
 					className="inline-flex items-center"
 					style={{

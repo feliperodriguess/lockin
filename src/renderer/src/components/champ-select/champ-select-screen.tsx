@@ -56,41 +56,21 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 			</div>
 
 			<div className="flex min-h-0 flex-col" style={{ gap: GAP }}>
-				{ban ? (
-					<>
-						<TeamRegion
-							team={vm.team}
-							ranksAvailable={vm.ranksAvailable}
-							mismatch={vm.mismatch}
-							version={version}
-						/>
-						<BansRegion
-							banRows={vm.banRows}
-							goneCount={vm.goneCount}
-							enemyHidden={vm.enemyHidden}
-							subPhase={vm.subPhase}
-							version={version}
-							grow
-						/>
-					</>
-				) : (
-					<>
-						<TeamRegion
-							team={vm.team}
-							ranksAvailable={vm.ranksAvailable}
-							mismatch={vm.mismatch}
-							version={version}
-							grow
-						/>
-						<BansRegion
-							banRows={vm.banRows}
-							goneCount={vm.goneCount}
-							enemyHidden={vm.enemyHidden}
-							subPhase={vm.subPhase}
-							version={version}
-						/>
-					</>
-				)}
+				<TeamRegion
+					team={vm.team}
+					ranksAvailable={vm.ranksAvailable}
+					mismatch={vm.mismatch}
+					version={version}
+					grow={!ban}
+				/>
+				<BansRegion
+					banRows={vm.banRows}
+					goneCount={vm.goneCount}
+					enemyHidden={vm.enemyHidden}
+					subPhase={vm.subPhase}
+					version={version}
+					grow={ban}
+				/>
 			</div>
 		</section>
 	)
