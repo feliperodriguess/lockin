@@ -22,29 +22,20 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 	// --- Accepted ---
 	if (readyCheck.playerResponse === "Accepted") {
 		return (
-			<section
-				style={{
-					height: "100%",
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					justifyContent: "center",
-					gap: 22,
-				}}
-			>
+			<section className="flex h-full flex-col items-center justify-center gap-[22px]">
 				<CountdownRing
 					size={176}
 					stroke={8}
 					progress={1}
 					tone="accent"
-					value={<Check size={52} strokeWidth={2.5} style={{ color: "var(--color-accent)" }} />}
+					value={<Check size={52} strokeWidth={2.5} className="text-accent" />}
 					label="Accepted"
 				/>
-				<div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
-					<h1 style={{ font: "400 22px/1.3 var(--font-display)", color: "var(--fg-1)", margin: 0 }}>
+				<div className="flex flex-col items-center gap-[6px]">
+					<h1 className="m-0 font-display text-[22px] font-normal leading-[1.3] text-paper-100">
 						Match accepted
 					</h1>
-					<p style={{ font: "400 13px/1.4 var(--font-ui)", color: "var(--fg-3)", margin: 0 }}>
+					<p className="m-0 text-[13px] leading-[1.4] text-paper-300">
 						{settings?.autoAccept
 							? "Auto-accept handled it — sit tight for champ select."
 							: "Locked in. Loading champ select…"}
@@ -57,27 +48,16 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 	// --- Declined ---
 	if (readyCheck.playerResponse === "Declined") {
 		return (
-			<section
-				style={{
-					height: "100%",
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					justifyContent: "center",
-					gap: 20,
-				}}
-			>
+			<section className="flex h-full flex-col items-center justify-center gap-[20px]">
 				<CountdownRing
 					size={176}
 					stroke={8}
 					progress={1}
 					tone="warn"
-					value={<X size={48} strokeWidth={2.5} style={{ color: "var(--color-warn)" }} />}
+					value={<X size={48} strokeWidth={2.5} className="text-[var(--color-warn)]" />}
 					label="Declined"
 				/>
-				<p style={{ font: "400 13px/1.4 var(--font-ui)", color: "var(--fg-3)", margin: 0 }}>
-					Back to the queue.
-				</p>
+				<p className="m-0 text-[13px] leading-[1.4] text-paper-300">Back to the queue.</p>
 			</section>
 		)
 	}
@@ -85,27 +65,16 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 	// --- Missed (state === "Invalid" and playerResponse === "None") ---
 	if (readyCheck.state === "Invalid") {
 		return (
-			<section
-				style={{
-					height: "100%",
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					justifyContent: "center",
-					gap: 20,
-				}}
-			>
+			<section className="flex h-full flex-col items-center justify-center gap-[20px]">
 				<CountdownRing
 					size={176}
 					stroke={8}
 					progress={1}
 					tone="warn"
-					value={<X size={48} strokeWidth={2.5} style={{ color: "var(--color-warn)" }} />}
+					value={<X size={48} strokeWidth={2.5} className="text-[var(--color-warn)]" />}
 					label="Missed"
 				/>
-				<p style={{ font: "400 13px/1.4 var(--font-ui)", color: "var(--fg-3)", margin: 0 }}>
-					Back to the queue.
-				</p>
+				<p className="m-0 text-[13px] leading-[1.4] text-paper-300">Back to the queue.</p>
 			</section>
 		)
 	}
@@ -114,16 +83,7 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 	const autoAccept = settings?.autoAccept ?? false
 
 	return (
-		<section
-			style={{
-				height: "100%",
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				justifyContent: "center",
-				gap: 26,
-			}}
-		>
+		<section className="flex h-full flex-col items-center justify-center gap-[26px]">
 			<CountdownRing
 				size={188}
 				stroke={9}
@@ -133,31 +93,20 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 				label="seconds"
 				pulsing={left <= 3}
 			/>
-			<div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "center" }}>
-				<h1
-					style={{
-						font: "600 20px/1.1 var(--font-ui)",
-						color: "var(--fg-1)",
-						margin: 0,
-					}}
-				>
+			<div className="flex flex-col items-center gap-[5px]">
+				<h1 className="m-0 text-[20px] font-semibold leading-[1.1] text-paper-100">
 					{autoAccept ? "Auto-accepting…" : "Match found — accept?"}
 				</h1>
-				<p
-					style={{
-						font: "400 12.5px/1 var(--font-mono)",
-						color: "var(--fg-4)",
-						margin: 0,
-					}}
-				>
+				<p className="m-0 font-mono text-[12.5px] leading-none text-paper-400">
 					{autoAccept ? `Firing in ${left}s · cancel to take over` : "Your move"}
 				</p>
 			</div>
-			<div style={{ display: "flex", gap: 12 }}>
+			<div className="flex gap-3">
 				<Button
 					size="lg"
 					disabled={mutationPending}
 					onClick={() => acceptMutation.mutate()}
+					// dynamic: minWidth enforces a balanced button pair at fixed widths
 					style={{ minWidth: 132 }}
 				>
 					<Check size={16} />
@@ -168,6 +117,7 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 					size="lg"
 					disabled={mutationPending}
 					onClick={() => declineMutation.mutate()}
+					// dynamic: minWidth enforces a balanced button pair at fixed widths
 					style={{ minWidth: 132 }}
 				>
 					<X size={16} />

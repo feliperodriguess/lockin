@@ -23,23 +23,17 @@ export function Idle(): React.JSX.Element {
 	const recent = [...notes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4)
 
 	return (
-		<div className="flex h-full flex-col gap-[18px]" style={{ minHeight: 0 }}>
+		<div className="flex h-full min-h-0 flex-col gap-[18px]">
 			{/* hero card */}
 			<Card className="flex items-center justify-between gap-4 p-5">
 				<div className="flex flex-col gap-[10px]">
 					<Eyebrow line={22}>Connected · standing by</Eyebrow>
-					<div style={{ font: "400 24px/1.3 var(--font-display)", color: "var(--fg-1)" }}>
+					<p className="m-0 font-display text-[24px] font-normal leading-[1.3] text-paper-100">
 						Back at it. Queue up when you're ready.
-					</div>
-					<div
-						style={{
-							font: "400 13px/1.5 var(--font-ui)",
-							color: "var(--fg-3)",
-							maxWidth: 420,
-						}}
-					>
+					</p>
+					<p className="m-0 max-w-[420px] text-[13px] leading-[1.5] text-paper-300">
 						Lockin wakes up the moment champ select begins. Until then, sharpen your notes.
-					</div>
+					</p>
 				</div>
 				<Button size="lg" onClick={() => navigate({ to: "/notes", search: { new: true } })}>
 					<Plus size={16} />
@@ -53,11 +47,7 @@ export function Idle(): React.JSX.Element {
 				<button
 					type="button"
 					onClick={() => navigate({ to: "/settings" })}
-					className="inline-flex cursor-pointer items-center gap-[6px] border-none bg-transparent"
-					style={{
-						font: "500 12px/1 var(--font-ui)",
-						color: "var(--fg-3)",
-					}}
+					className="inline-flex cursor-pointer items-center gap-[6px] border-none bg-transparent text-[12px] font-medium leading-none text-paper-300"
 				>
 					<Shield size={13} />
 					Manage ban list
@@ -79,6 +69,7 @@ export function Idle(): React.JSX.Element {
 			) : bundle ? (
 				<div
 					className="min-h-0 flex-1 overflow-y-auto"
+					// dynamic: named grid template with specific column/row constraints
 					style={{
 						display: "grid",
 						gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
