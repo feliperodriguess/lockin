@@ -11,7 +11,7 @@ import { Button } from "@renderer/components/ui/button"
 import { useDDragon, useNotes, useSettings } from "@renderer/hooks/use-data"
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import { BookOpen, Plus, Search } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 export function NotesPage(): React.JSX.Element {
 	const navigate = useNavigate()
@@ -25,10 +25,9 @@ export function NotesPage(): React.JSX.Element {
 	// editingId: "new" | note.id | null
 	const [editingId, setEditingId] = useState<string | null>(null)
 
-	// Consume route search params once on mount (open editor, then clear params).
-	// useState init reads search params synchronously — no effect needed for values.
-	// We use useRef to stable-capture the initial search state so the effect is
-	// a true one-shot (biome has no exhaustive-deps rule so empty array is fine).
+	// On mount, open the editor from route search params (?new / ?edit), then clear
+	// them (replace) so back-navigation doesn't reopen. The effect re-runs once after
+	// the params clear; both values are then falsy, so it no-ops.
 	const initSearch = { new: search.new, edit: search.edit }
 	useEffect(
 		() => {
@@ -67,7 +66,7 @@ export function NotesPage(): React.JSX.Element {
 
 	const openNew = () => setEditingId("new")
 	const openEdit = (id: string) => setEditingId(id)
-	const closeEditor = () => setEditingId(null)
+	const closeEditor = useCallback(() => setEditingId(null), [])
 
 	if (!bundle) return <div className="h-full" />
 
