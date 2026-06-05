@@ -1,0 +1,56 @@
+{
+	"name": "lockin",
+	"version": "1.0.0",
+	"description": "An Electron application with React and TypeScript",
+	"main": "./out/main/index.js",
+	"author": "example.com",
+	"homepage": "https://electron-vite.org",
+	"scripts": {
+		"format": "biome check --write --unsafe .",
+		"typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+		"typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+		"typecheck": "npm run typecheck:node && npm run typecheck:web",
+		"start": "electron-vite preview",
+		"dev": "electron-vite dev",
+		"build": "npm run typecheck && electron-vite build",
+		"postinstall": "electron-builder install-app-deps",
+		"build:unpack": "npm run build && electron-builder --dir",
+		"build:win": "npm run build && electron-builder --win",
+		"build:mac": "electron-vite build && electron-builder --mac",
+		"build:linux": "electron-vite build && electron-builder --linux"
+	},
+	"dependencies": {
+		"@electron-toolkit/preload": "^3.0.2",
+		"@electron-toolkit/utils": "^4.0.0",
+		"@tailwindcss/vite": "^4.3.0",
+		"@tanstack/react-query": "^5.101.0",
+		"@tanstack/react-router": "^1.170.11",
+		"electron-store": "^11.0.2",
+		"league-connect": "6.0.0-rc13",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tailwind-scrollbar": "^4.0.2",
+		"tailwindcss": "^4.3.0",
+		"zustand": "^5.0.14"
+	},
+	"devDependencies": {
+		"@electron-toolkit/tsconfig": "^2.0.0",
+		"@tanstack/router-vite-plugin": "^1.167.14",
+		"@types/node": "^22.19.1",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^5.1.1",
+		"electron": "^39.2.6",
+		"electron-builder": "^26.0.12",
+		"electron-vite": "^5.0.0",
+		"typescript": "^5.9.3",
+		"vite": "^7.2.6",
+		"vite-tsconfig-paths": "^6.1.1"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"electron",
+			"esbuild"
+		]
+	}
+}
