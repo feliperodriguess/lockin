@@ -57,7 +57,7 @@ export function MismatchFlag({ label = "Rank spread" }: MismatchFlagProps): Reac
 				gap: 5,
 				padding: "3px 8px",
 				borderRadius: "var(--radius-sm)",
-				background: "rgba(245,183,64,0.25)",
+				background: "var(--warn-bg)",
 				color: "var(--color-warn)",
 				border: "1px solid rgba(245,183,64,0.25)",
 				font: "600 10px/1 var(--font-mono)",
