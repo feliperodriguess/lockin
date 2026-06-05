@@ -56,7 +56,7 @@ export interface ChampSelectAction {
 	isAllyAction: boolean
 	isInProgress: boolean
 	pickTurn: number
-	type: "ban" | "pick" | string
+	type: "ban" | "pick" | (string & {})
 }
 
 export interface ChampSelectSession {
