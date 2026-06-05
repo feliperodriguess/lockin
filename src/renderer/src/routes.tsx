@@ -3,10 +3,12 @@ import {
 	createRootRoute,
 	createRoute,
 	createRouter,
-	Link,
 	Outlet,
 } from "@tanstack/react-router"
 
+import { Sidebar } from "./components/app/sidebar"
+import { WindowFrame } from "./components/app/window-frame"
+import { useLcuStatus, usePhase } from "./hooks/use-lcu"
 import { HomePage } from "./pages/home"
 import { NotesPage } from "./pages/notes"
 import { SettingsPage } from "./pages/settings"
@@ -16,27 +18,20 @@ const rootRoute = createRootRoute({
 })
 
 function RootLayout(): React.JSX.Element {
+	const { connected } = useLcuStatus()
+	const phase = usePhase()
 	return (
-		<div className="flex h-screen w-screen flex-col bg-black">
-			<nav className="region-drag flex justify-end gap-4 border-b border-white/10 px-4 py-4 text-sm text-white/70">
-				<Link
-					to="/"
-					className="[&.active]:text-white region-no-drag"
-					activeOptions={{ exact: true }}
-				>
-					Home
-				</Link>
-				<Link to="/notes" className="[&.active]:text-white region-no-drag">
-					Notes
-				</Link>
-				<Link to="/settings" className="[&.active]:text-white region-no-drag">
-					Settings
-				</Link>
-			</nav>
-			<div className="flex-1 overflow-hidden">
-				<Outlet />
+		<WindowFrame connected={connected} phase={phase}>
+			<div className="flex min-h-0 flex-1">
+				<Sidebar connected={connected} phase={phase} />
+				<main className="relative min-w-0 flex-1 overflow-hidden bg-ink-950">
+					<div className="ccp-screen absolute inset-0 p-4">
+						<Outlet />
+					</div>
+				</main>
 			</div>
-		</div>
+			{/* dev switcher mounts here (Task 8) */}
+		</WindowFrame>
 	)
 }
 
