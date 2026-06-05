@@ -4,6 +4,7 @@ import {
 	createRoute,
 	createRouter,
 	Outlet,
+	useRouterState,
 } from "@tanstack/react-router"
 
 import { Sidebar } from "./components/app/sidebar"
@@ -20,12 +21,13 @@ const rootRoute = createRootRoute({
 function RootLayout(): React.JSX.Element {
 	const { connected } = useLcuStatus()
 	const phase = usePhase()
+	const routePath = useRouterState({ select: (s) => s.location.pathname })
 	return (
 		<WindowFrame connected={connected} phase={phase}>
 			<div className="flex min-h-0 flex-1">
 				<Sidebar connected={connected} phase={phase} />
 				<main className="relative min-w-0 flex-1 overflow-hidden bg-ink-950">
-					<div className="ccp-screen absolute inset-0 p-4">
+					<div key={`${routePath}:${phase}`} className="ccp-screen absolute inset-0 p-4">
 						<Outlet />
 					</div>
 				</main>

@@ -1,11 +1,12 @@
 /* WindowFrame — real Electron titlebar with hiddenInset traffic lights
    Ported from app.jsx:351-449. NO painted traffic-light dots. */
+
+import { phaseSub } from "@renderer/lib/phase"
 import { useEffect, useState } from "react"
 
 import type { GameflowPhase } from "@/shared/types"
 
 import { ConnectionIndicator } from "./connection-indicator"
-import { phaseSub } from "./sidebar"
 import { Wordmark } from "./wordmark"
 
 interface WindowFrameProps {
@@ -65,7 +66,6 @@ export function WindowFrame({ children, connected, phase }: WindowFrameProps): R
 
 				{/* right: connection indicator + clock */}
 				<div
-					className="region-no-drag"
 					style={{
 						width: 120,
 						display: "flex",

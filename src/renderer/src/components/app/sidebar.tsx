@@ -1,5 +1,6 @@
-/* Sidebar + phaseSub helper — ported from app.jsx:223-349 */
+/* Sidebar — ported from app.jsx:223-349 */
 
+import { phaseSub } from "@renderer/lib/phase"
 import { useMatchRoute, useNavigate } from "@tanstack/react-router"
 import { Activity, BookOpen, Settings } from "lucide-react"
 
@@ -7,15 +8,6 @@ import type { GameflowPhase } from "@/shared/types"
 
 import { ConnectionIndicator } from "./connection-indicator"
 import { Wordmark } from "./wordmark"
-
-/* Maps LCU GameflowPhase → titlebar / sidebar sub-label.
-   Uses GameflowPhase strings (not prototype scenario strings). */
-export function phaseSub(connected: boolean, phase: GameflowPhase): string {
-	if (!connected) return "Disconnected"
-	if (phase === "ReadyCheck") return "Ready Check"
-	if (phase === "ChampSelect") return "Champ Selection"
-	return "Idle"
-}
 
 interface SidebarProps {
 	connected: boolean
@@ -142,7 +134,8 @@ function SidebarItem({
 		<button
 			type="button"
 			onClick={onClick}
-			className="region-no-drag"
+			aria-current={active ? "page" : undefined}
+			className={`region-no-drag ${!active ? "hover:bg-[rgba(255,255,255,0.03)]" : ""}`}
 			style={{
 				display: "flex",
 				alignItems: "center",
@@ -159,12 +152,6 @@ function SidebarItem({
 					"background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard)",
 				position: "relative",
 				width: "100%",
-			}}
-			onMouseEnter={(e) => {
-				if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.03)"
-			}}
-			onMouseLeave={(e) => {
-				if (!active) e.currentTarget.style.background = "transparent"
 			}}
 		>
 			{/* active accent bar — left:-12px is outside the button, clipped by aside padding */}
