@@ -1,0 +1,222 @@
+import type { Api, Unsubscribe } from "@/shared/api"
+import type {
+	AppSettings,
+	BanListEntry,
+	ChampSelectSession,
+	GameflowPhase,
+	MatchupNote,
+	RankInfo,
+	ReadyCheck,
+} from "@/shared/types"
+
+import {
+	C,
+	FIXTURE_BANLIST,
+	FIXTURE_BUNDLE,
+	FIXTURE_NOTES,
+	FIXTURE_RANKS,
+	FIXTURE_SETTINGS,
+} from "./fixtures"
+import {
+	buildReadyCheck,
+	buildSession,
+	GAMEFLOW_BY_SCENARIO,
+	INITIAL_SCENARIO,
+	PHASE_LEN_MS,
+	READY_CHECK_TOTAL_S,
+	type ScenarioState,
+} from "./scenario"
+
+/* ---------------------------------------------------------------- emitter */
+type Listener<T> = (payload: T) => void
+function channel<T>() {
+	const listeners = new Set<Listener<T>>()
+	return {
+		emit(payload: T) {
+			for (const l of listeners) l(payload)
+		},
+		on(cb: Listener<T>): Unsubscribe {
+			listeners.add(cb)
+			return () => listeners.delete(cb)
+		},
+	}
+}
+
+const statusCh = channel<{ connected: boolean }>()
+const phaseCh = channel<{ phase: GameflowPhase }>()
+const readyCh = channel<ReadyCheck | null>()
+const champCh = channel<ChampSelectSession | null>()
+
+/* ----------------------------------------------------------- mutable state */
+let scenario: ScenarioState = { ...INITIAL_SCENARIO }
+let settings: AppSettings = { ...FIXTURE_SETTINGS }
+let notes: MatchupNote[] = FIXTURE_NOTES.map((n) => ({ ...n }))
+let banlist: BanListEntry[] = FIXTURE_BANLIST.map((b) => ({ ...b }))
+
+/* live tickers */
+let subPhase: "ban" | "pick" = "ban"
+let csMsLeft: number = PHASE_LEN_MS.ban
+let readyElapsedS = 0
+let readyResponse: ReadyCheck["playerResponse"] = "None"
+let tick: ReturnType<typeof setInterval> | undefined
+
+function emitAll() {
+	const connected = scenario.phase !== "disconnected"
+	statusCh.emit({ connected })
+	phaseCh.emit({ phase: GAMEFLOW_BY_SCENARIO[scenario.phase] })
+	readyCh.emit(
+		scenario.phase === "ready"
+			? { ...buildReadyCheck(scenario, readyElapsedS), playerResponse: effectiveReadyResponse() }
+			: null,
+	)
+	champCh.emit(scenario.phase === "select" ? buildSession(scenario, subPhase, csMsLeft) : null)
+}
+
+function effectiveReadyResponse(): ReadyCheck["playerResponse"] {
+	if (scenario.autoAcceptFired) return "Accepted"
+	return readyResponse
+}
+
+function startTicker() {
+	stopTicker()
+	tick = setInterval(() => {
+		if (scenario.phase === "select") {
+			csMsLeft -= 1000
+			if (csMsLeft <= 0) {
+				if (scenario.csSubPhase == null) subPhase = subPhase === "ban" ? "pick" : "ban"
+				csMsLeft = PHASE_LEN_MS[subPhase]
+			}
+			champCh.emit(buildSession(scenario, subPhase, csMsLeft))
+		} else if (scenario.phase === "ready" && effectiveReadyResponse() === "None") {
+			readyElapsedS += 1
+			if (readyElapsedS >= READY_CHECK_TOTAL_S) {
+				// missed — LCU flips state to Invalid
+				readyCh.emit({
+					state: "Invalid",
+					playerResponse: "None",
+					timer: readyElapsedS,
+					declinerIds: [],
+				})
+				return
+			}
+			readyCh.emit({ ...buildReadyCheck(scenario, readyElapsedS), playerResponse: "None" })
+		}
+	}, 1000)
+}
+function stopTicker() {
+	if (tick) clearInterval(tick)
+}
+
+/* --------------------------------------------------------- switcher contract */
+export function getScenario(): ScenarioState {
+	return scenario
+}
+export function setScenario(next: Partial<ScenarioState>): void {
+	const prevPhase = scenario.phase
+	scenario = { ...scenario, ...next }
+	if (scenario.phase !== prevPhase) {
+		// entering a phase resets its ticker state
+		readyElapsedS = 0
+		readyResponse = "None"
+		subPhase = scenario.csSubPhase ?? "ban"
+		csMsLeft = PHASE_LEN_MS[subPhase]
+	}
+	if (next.csSubPhase != null) {
+		subPhase = next.csSubPhase
+		csMsLeft = PHASE_LEN_MS[subPhase]
+	}
+	emitAll()
+}
+
+/* ------------------------------------------------------------------- the Api */
+export const fakeBridge: Api = {
+	async acceptReadyCheck() {
+		readyResponse = "Accepted"
+		emitAll()
+	},
+	async declineReadyCheck() {
+		readyResponse = "Declined"
+		emitAll()
+	},
+	async getDDragonBundle() {
+		return FIXTURE_BUNDLE
+	},
+	async getSettings() {
+		return { ...settings }
+	},
+	async setSettings(partial) {
+		settings = { ...settings, ...partial }
+		return { ...settings }
+	},
+	async listNotes() {
+		// "Note: none" scenario hides the Aatrox-vs-Fiora note (the live matchup)
+		const visible = scenario.hasNote
+			? notes
+			: notes.filter((n) => !(n.championId === C.aatrox && n.opponentChampionId === C.fiora))
+		return visible.map((n) => ({ ...n })).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+	},
+	async upsertNote(partial) {
+		const now = new Date().toISOString()
+		if (partial.id) {
+			notes = notes.map((n) => (n.id === partial.id ? { ...n, ...partial, updatedAt: now } : n))
+			const updated = notes.find((n) => n.id === partial.id)
+			if (!updated) throw new Error(`note not found: ${partial.id}`)
+			return { ...updated }
+		}
+		const created: MatchupNote = {
+			id: `n-${crypto.randomUUID()}`,
+			championId: partial.championId ?? 0,
+			opponentChampionId: partial.opponentChampionId ?? null,
+			body: partial.body ?? "",
+			pinnedSpells: partial.pinnedSpells,
+			createdAt: now,
+			updatedAt: now,
+		}
+		notes = [created, ...notes]
+		return { ...created }
+	},
+	async deleteNote(id) {
+		notes = notes.filter((n) => n.id !== id)
+	},
+	async getBanList() {
+		return banlist.map((b) => ({ ...b }))
+	},
+	async setBanList(entries) {
+		banlist = entries.map((e, i) => ({ ...e, priority: i + 1 }))
+		return banlist.map((b) => ({ ...b }))
+	},
+	async getRanksForPuuids(puuids) {
+		// "Ranks N/A" still keeps YOUR rank — the prototype always shows the local player's
+		// rank (champ-select-parts.jsx:517 showRank = ranksAvailable || p.you)
+		const out: Record<string, RankInfo | null> = {}
+		for (const p of puuids)
+			out[p] = scenario.ranksAvailable || p === "p-me" ? (FIXTURE_RANKS[p] ?? null) : null
+		return out
+	},
+	onLcuStatus: (cb) => {
+		const off = statusCh.on(cb)
+		cb({ connected: scenario.phase !== "disconnected" })
+		return off
+	},
+	onGameflowPhase: (cb) => {
+		const off = phaseCh.on(cb)
+		cb({ phase: GAMEFLOW_BY_SCENARIO[scenario.phase] })
+		return off
+	},
+	onReadyCheck: (cb) => {
+		const off = readyCh.on(cb)
+		cb(
+			scenario.phase === "ready"
+				? { ...buildReadyCheck(scenario, readyElapsedS), playerResponse: effectiveReadyResponse() }
+				: null,
+		)
+		return off
+	},
+	onChampSelect: (cb) => {
+		const off = champCh.on(cb)
+		cb(scenario.phase === "select" ? buildSession(scenario, subPhase, csMsLeft) : null)
+		return off
+	},
+}
+
+startTicker()
