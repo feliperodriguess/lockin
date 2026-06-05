@@ -1,5 +1,5 @@
 import { spellIconUrl } from "@renderer/lib/ddragon-urls"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import type { SummonerSpellStatic } from "@/shared/types"
 
@@ -16,12 +16,9 @@ export function SpellIcon({
 	size = 28,
 	keyHint,
 }: SpellIconProps): React.JSX.Element | null {
-	const [err, setErr] = useState(false)
-
-	// reset the fallback when the spell identity changes
-	useEffect(() => {
-		setErr(false)
-	}, [spell?.key])
+	const [errKey, setErrKey] = useState<number | null>(null)
+	// derived, not synced: a failed load only suppresses THIS champion's icon
+	const err = spell != null && errKey === spell.key
 
 	if (!spell) return null
 
@@ -43,7 +40,7 @@ export function SpellIcon({
 				<img
 					src={spellIconUrl(version, spell.imageFull)}
 					alt={spell.name}
-					onError={() => setErr(true)}
+					onError={() => setErrKey(spell.key)}
 					style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
 				/>
 			) : (
