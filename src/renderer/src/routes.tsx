@@ -19,13 +19,17 @@ function RootLayout(): React.JSX.Element {
 	return (
 		<div className="flex h-screen w-screen flex-col bg-black">
 			<nav className="region-drag flex justify-end gap-4 border-b border-white/10 px-4 py-4 text-sm text-white/70">
-				<Link to="/" className="[&.active]:text-white" activeOptions={{ exact: true }}>
+				<Link
+					to="/"
+					className="[&.active]:text-white region-no-drag"
+					activeOptions={{ exact: true }}
+				>
 					Home
 				</Link>
-				<Link to="/notes" className="[&.active]:text-white">
+				<Link to="/notes" className="[&.active]:text-white region-no-drag">
 					Notes
 				</Link>
-				<Link to="/settings" className="[&.active]:text-white">
+				<Link to="/settings" className="[&.active]:text-white region-no-drag">
 					Settings
 				</Link>
 			</nav>
