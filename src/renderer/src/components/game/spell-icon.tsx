@@ -17,7 +17,7 @@ export function SpellIcon({
 	keyHint,
 }: SpellIconProps): React.JSX.Element | null {
 	const [errKey, setErrKey] = useState<number | null>(null)
-	// derived, not synced: a failed load only suppresses THIS champion's icon
+	// derived, not synced: a failed load only suppresses THIS spell's icon
 	const err = spell != null && errKey === spell.key
 
 	if (!spell) return null
@@ -25,51 +25,24 @@ export function SpellIcon({
 	return (
 		<div
 			title={spell.name}
-			style={{
-				width: size,
-				height: size,
-				borderRadius: "var(--radius-xs)",
-				position: "relative",
-				overflow: "hidden",
-				background: "var(--color-ink-800)",
-				border: "1px solid var(--stroke-default)",
-				flexShrink: 0,
-			}}
+			className="relative overflow-hidden shrink-0 bg-ink-800 border border-[var(--stroke-default)] rounded-xs"
+			// dynamic: width/height derived from size prop
+			style={{ width: size, height: size }}
 		>
 			{!err ? (
 				<img
 					src={spellIconUrl(version, spell.imageFull)}
 					alt={spell.name}
 					onError={() => setErrKey(spell.key)}
-					style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+					className="w-full h-full object-cover block"
 				/>
 			) : (
-				<div
-					style={{
-						width: "100%",
-						height: "100%",
-						display: "grid",
-						placeItems: "center",
-						font: "600 9px/1 var(--font-mono)",
-						color: "var(--fg-2)",
-					}}
-				>
+				<div className="w-full h-full grid place-items-center font-mono text-[9px] font-semibold leading-none text-paper-200">
 					{spell.name.slice(0, 4)}
 				</div>
 			)}
 			{keyHint && (
-				<span
-					style={{
-						position: "absolute",
-						bottom: -1,
-						right: -1,
-						padding: "1px 3px",
-						background: "var(--color-ink-950)",
-						borderTopLeftRadius: 4,
-						font: "600 8px/1 var(--font-mono)",
-						color: "var(--color-accent)",
-					}}
-				>
+				<span className="absolute bottom-[-1px] right-[-1px] px-[3px] py-[1px] bg-ink-950 rounded-tl-[4px] font-mono text-[8px] font-semibold leading-none text-accent">
 					{keyHint}
 				</span>
 			)}

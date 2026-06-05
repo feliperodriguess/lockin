@@ -1,4 +1,5 @@
 import { type DisplayRole, ROLE_ABBR, ROLE_GLYPH_POS } from "@renderer/lib/roles"
+import { cn } from "@renderer/lib/utils"
 
 interface RoleGlyphProps {
 	role: DisplayRole | null
@@ -11,6 +12,7 @@ export function RoleGlyph({
 	size = 16,
 	color = "currentColor",
 }: RoleGlyphProps): React.JSX.Element {
+	// dynamic: cx/cy are data-driven from role → ROLE_GLYPH_POS lookup
 	const pos = role ? ROLE_GLYPH_POS[role] : ([12, 12] as [number, number])
 	return (
 		<svg
@@ -19,7 +21,7 @@ export function RoleGlyph({
 			viewBox="0 0 24 24"
 			fill="none"
 			aria-hidden="true"
-			style={{ flexShrink: 0 }}
+			className="shrink-0"
 		>
 			<line
 				x1="3"
@@ -31,6 +33,7 @@ export function RoleGlyph({
 				strokeOpacity="0.35"
 				strokeLinecap="round"
 			/>
+			{/* dynamic: cx/cy derived from role glyph position */}
 			<circle cx={pos[0]} cy={pos[1]} r="3.4" fill={color} />
 		</svg>
 	)
@@ -44,17 +47,12 @@ interface RoleTagProps {
 export function RoleTag({ role, active }: RoleTagProps): React.JSX.Element {
 	return (
 		<span
-			style={{
-				display: "inline-flex",
-				alignItems: "center",
-				gap: 5,
-				padding: "3px 8px",
-				borderRadius: "var(--radius-sm)",
-				background: active ? "var(--accent-bg)" : "var(--color-ink-800)",
-				color: active ? "var(--color-accent)" : "var(--fg-2)",
-				font: "600 10px/1 var(--font-mono)",
-				letterSpacing: "0.08em",
-			}}
+			className={cn(
+				"inline-flex items-center gap-[5px]",
+				"px-2 py-[3px] rounded-sm",
+				"font-mono text-[10px] font-semibold leading-none tracking-[0.08em]",
+				active ? "bg-[var(--accent-bg)] text-accent" : "bg-ink-800 text-paper-200",
+			)}
 		>
 			<RoleGlyph role={role} size={12} />
 			{ROLE_ABBR[role]}

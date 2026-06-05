@@ -1,3 +1,4 @@
+import { cn } from "@renderer/lib/utils"
 import type { ReactNode } from "react"
 
 interface CountdownRingProps {
@@ -24,6 +25,7 @@ export function CountdownRing({
 	const radius = (size - stroke) / 2
 	const circ = 2 * Math.PI * radius
 	const clamped = Math.max(0, Math.min(1, progress))
+	// dynamic: toneColor is data-driven (tone prop) — used in SVG stroke and drop-shadow filter
 	const toneColor =
 		tone === "accent"
 			? "var(--color-accent)"
@@ -32,13 +34,12 @@ export function CountdownRing({
 				: "var(--color-fail)"
 
 	return (
-		<div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-			<svg
-				width={size}
-				height={size}
-				aria-hidden="true"
-				style={{ transform: "rotate(-90deg)", display: "block" }}
-			>
+		<div
+			className="relative shrink-0"
+			// dynamic: width/height derived from size prop
+			style={{ width: size, height: size }}
+		>
+			<svg width={size} height={size} aria-hidden="true" className="block -rotate-90">
 				{/* track */}
 				<circle
 					cx={size / 2}
@@ -57,36 +58,30 @@ export function CountdownRing({
 					stroke={toneColor}
 					strokeWidth={stroke}
 					strokeLinecap="round"
+					// dynamic: dasharray/dashoffset are SVG geometry computed from radius/progress
 					strokeDasharray={circ}
 					strokeDashoffset={circ * (1 - clamped)}
 					style={{
 						transition:
 							"stroke-dashoffset 980ms linear, stroke var(--dur-base) var(--ease-standard)",
+						// dynamic: drop-shadow color is tone-derived
 						filter: pulsing ? `drop-shadow(0 0 8px ${toneColor})` : "none",
 					}}
 				/>
 			</svg>
 			<div
-				className={pulsing ? "ccp-breathe" : undefined}
-				style={{
-					position: "absolute",
-					inset: 0,
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					justifyContent: "center",
-					gap: 2,
-				}}
+				className={cn(
+					"absolute inset-0 flex flex-col items-center justify-center gap-[2px]",
+					pulsing && "ccp-breathe",
+				)}
 			>
 				{value != null && (
 					<div
+						className="text-paper-100 tabular-nums leading-none font-normal"
+						// dynamic: font-size derived from size prop; font-family is a CSS var
 						style={{
 							fontFamily: "var(--font-display)",
 							fontSize: `${Math.round(size * 0.32)}px`,
-							fontWeight: 400,
-							lineHeight: 1,
-							fontVariantNumeric: "tabular-nums",
-							color: "var(--fg-1)",
 						}}
 					>
 						{value}
@@ -94,19 +89,14 @@ export function CountdownRing({
 				)}
 				{label && (
 					<div
-						style={{
-							font: "600 10px/1 var(--font-mono)",
-							letterSpacing: "0.14em",
-							textTransform: "uppercase",
-							color: tone === "accent" ? "var(--color-accent)" : toneColor,
-						}}
+						className="font-mono text-[10px] font-semibold leading-none tracking-[0.14em] uppercase"
+						// dynamic: color is tone-derived (accent uses brand accent color)
+						style={{ color: tone === "accent" ? "var(--color-accent)" : toneColor }}
 					>
 						{label}
 					</div>
 				)}
-				{sub && (
-					<div style={{ font: "400 11px/1 var(--font-ui)", color: "var(--fg-3)" }}>{sub}</div>
-				)}
+				{sub && <div className="text-[11px] font-normal leading-none text-paper-300">{sub}</div>}
 			</div>
 		</div>
 	)

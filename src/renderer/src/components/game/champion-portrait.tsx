@@ -33,25 +33,22 @@ export function ChampionPortrait({
 	if (hidden || !champion) {
 		return (
 			<div
-				className={cn(className)}
+				className={cn("grid place-items-center shrink-0", className)}
+				// dynamic: width/height/borderRadius/boxShadow derived from size/ring props
 				style={{
 					width: size,
 					height: size,
 					borderRadius: r,
-					flexShrink: 0,
 					background:
 						"repeating-linear-gradient(135deg, var(--color-ink-850) 0 6px, var(--color-ink-900) 6px 12px)",
 					border: "1px dashed var(--stroke-strong)",
-					display: "grid",
-					placeItems: "center",
 					boxShadow: ring ? "0 0 0 2px var(--color-accent)" : "none",
 				}}
 			>
 				<span
-					style={{
-						font: `400 ${Math.round(size * 0.5)}px/1 var(--font-display)`,
-						color: "var(--fg-3)",
-					}}
+					className="text-paper-300"
+					// dynamic: font-size derived from size prop
+					style={{ font: `400 ${Math.round(size * 0.5)}px/1 var(--font-display)` }}
 				>
 					?
 				</span>
@@ -68,20 +65,21 @@ export function ChampionPortrait({
 		.slice(0, 2)
 		.toUpperCase()
 
+	// dynamic: fallback bg is data-driven (hsl based on champion key)
 	const fallbackBg = championFallbackColor(champion.key)
 
 	return (
 		<div
-			className={cn(className)}
+			className={cn(
+				"relative overflow-hidden shrink-0 border border-[var(--stroke-default)]",
+				className,
+			)}
+			// dynamic: width/height/borderRadius/boxShadow/background derived from props & data
 			style={{
 				width: size,
 				height: size,
 				borderRadius: r,
-				flexShrink: 0,
-				position: "relative",
-				overflow: "hidden",
 				background: fallbackBg,
-				border: "1px solid var(--stroke-default)",
 				boxShadow: ring ? "0 0 0 2px var(--color-accent)" : "none",
 			}}
 		>
@@ -90,38 +88,21 @@ export function ChampionPortrait({
 					src={champIconUrl(version, champion.imageFull)}
 					alt={champion.name}
 					onError={() => setErrKey(champion.key)}
-					style={{
-						width: "100%",
-						height: "100%",
-						objectFit: "cover",
-						display: "block",
-						filter: dim ? "grayscale(0.6) brightness(0.6)" : "none",
-					}}
+					className={cn(
+						"w-full h-full object-cover block",
+						dim && "grayscale-[0.6] brightness-[0.6]",
+					)}
 				/>
 			) : (
 				<div
-					style={{
-						width: "100%",
-						height: "100%",
-						display: "grid",
-						placeItems: "center",
-						font: `600 ${Math.round(size * 0.34)}px/1 var(--font-ui)`,
-						color: "rgba(255,255,255,0.92)",
-						letterSpacing: "0.02em",
-					}}
+					className="w-full h-full grid place-items-center text-white/90 tracking-[0.02em]"
+					// dynamic: font-size derived from size prop
+					style={{ font: `600 ${Math.round(size * 0.34)}px/1 var(--font-ui)` }}
 				>
 					{initials}
 				</div>
 			)}
-			{dim && (
-				<div
-					style={{
-						position: "absolute",
-						inset: 0,
-						background: "rgba(12,13,14,0.35)",
-					}}
-				/>
-			)}
+			{dim && <div className="absolute inset-0 bg-[rgba(12,13,14,0.35)]" />}
 		</div>
 	)
 }
