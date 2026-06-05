@@ -1,12 +1,14 @@
 import { join } from "node:path"
 
 import { electronApp, is, optimizer } from "@electron-toolkit/utils"
-import { app, BrowserWindow, ipcMain, shell } from "electron"
+import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron"
 
 import icon from "~/resources/icon.png"
 
 import "./ipc"
 import "./store"
+
+import { createTray } from "./tray"
 
 function createWindow(): void {
 	const mainWindow = new BrowserWindow({
@@ -29,6 +31,8 @@ function createWindow(): void {
 		},
 	})
 
+	createTray()
+
 	mainWindow.on("ready-to-show", () => {
 		mainWindow.show()
 	})
@@ -43,6 +47,10 @@ function createWindow(): void {
 	} else {
 		mainWindow.loadFile(join(__dirname, "../renderer/index.html"))
 	}
+}
+
+if (process.platform === "darwin") {
+	app.dock?.setIcon(nativeImage.createFromDataURL(icon))
 }
 
 app.whenReady().then(() => {
