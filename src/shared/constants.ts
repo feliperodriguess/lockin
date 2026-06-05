@@ -1,3 +1,19 @@
 export const IPC = {
-	PING: "ping",
-}
+	// Renderer → Main (invoke)
+	ACCEPT_READY_CHECK: "lcu:acceptReadyCheck",
+	DECLINE_READY_CHECK: "lcu:declineReadyCheck",
+	DDRAGON_GET_BUNDLE: "ddragon:getBundle",
+	SETTINGS_GET: "settings:get",
+	SETTINGS_SET: "settings:set",
+	NOTES_LIST: "notes:list",
+	NOTES_UPSERT: "notes:upsert",
+	NOTES_DELETE: "notes:delete",
+	BANLIST_GET: "banlist:get",
+	BANLIST_SET: "banlist:set",
+	RANK_GET_FOR_PUUIDS: "rank:getForPuuids",
+	// Main → Renderer (push)
+	LCU_STATUS: "lcu:status",
+	LCU_PHASE: "lcu:phase",
+	LCU_READY_CHECK: "lcu:readyCheck",
+	LCU_CHAMP_SELECT: "lcu:champSelect",
+} as const

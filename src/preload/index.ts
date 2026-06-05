@@ -1,16 +1,16 @@
-import { contextBridge, ipcRenderer } from "electron"
+import { contextBridge } from "electron"
+
+import type { Api } from "@/shared/api"
 
 declare global {
 	interface Window {
-		api: typeof api
+		api?: Partial<Api>
 	}
 }
 
-const api = {
-	ping(message: string): Promise<string> {
-		return ipcRenderer.invoke("ping", message)
-	},
-}
+// Real channels land here phase-by-phase (Phase 2: pushes for status/phase, …).
+// getApi() in the renderer merges this over the fake bridge — real keys win.
+const api: Partial<Api> = {}
 
 if (process.contextIsolated) {
 	try {

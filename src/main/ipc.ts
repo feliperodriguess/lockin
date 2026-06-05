@@ -1,7 +1,3 @@
-import { ipcMain } from "electron"
-
-import { IPC } from "@/shared/constants"
-
-ipcMain.handle(IPC.PING, async (_, message: string): Promise<string> => {
-	return message
-})
+// IPC invoke handlers register here. Phase 1 has none — the renderer runs on
+// its fake bridge (src/renderer/src/api/fake/). Channel names: @/shared/constants.
+export {}

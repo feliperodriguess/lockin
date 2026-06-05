@@ -1,7 +1,7 @@
 import { join } from "node:path"
 
 import { electronApp, is, optimizer } from "@electron-toolkit/utils"
-import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron"
+import { app, BrowserWindow, nativeImage, shell } from "electron"
 
 import icon from "~/resources/icon.png"
 
@@ -59,9 +59,6 @@ app.whenReady().then(() => {
 	app.on("browser-window-created", (_, window) => {
 		optimizer.watchWindowShortcuts(window)
 	})
-
-	// IPC test
-	ipcMain.on("ping", () => console.log("pong"))
 
 	createWindow()
 
