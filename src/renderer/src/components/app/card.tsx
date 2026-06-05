@@ -43,8 +43,11 @@ function Card({ children, hover, emphasis, onClick, className }: CardProps): Rea
 					"border-[var(--color-accent)]",
 					"shadow-[0_0_0_1px_var(--color-accent),0_0_28px_var(--accent-glow)]",
 				],
-				// clickable cursor
-				onClick && "cursor-pointer",
+				// clickable cursor and keyboard focus styles
+				onClick && [
+					"cursor-pointer",
+					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
+				],
 				className,
 			)}
 		>
