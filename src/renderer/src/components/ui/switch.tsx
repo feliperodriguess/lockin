@@ -1,26 +1,39 @@
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
 import { cn } from "@renderer/lib/utils"
 
-function Switch({
-	className,
-	size = "default",
-	...props
-}: SwitchPrimitive.Root.Props & {
-	size?: "sm" | "default"
-}) {
+// Primitives.jsx:384-418 — Toggle: 38×22, padding 2, checked=accent / unchecked=ink-700,
+// thumb 18px (checked: ink-950 bg, translateX 16px; unchecked: paper-200).
+// dur-base transition on both track and thumb.
+function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
 	return (
 		<SwitchPrimitive.Root
 			data-slot="switch"
-			data-size={size}
 			className={cn(
-				"peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[size=default]:h-[18.4px] data-[size=default]:w-[32px] data-[size=sm]:h-[14px] data-[size=sm]:w-[24px] dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 data-checked:bg-primary data-unchecked:bg-input dark:data-unchecked:bg-input/80 data-disabled:cursor-not-allowed data-disabled:opacity-50",
+				// track: 38×22, rounded-full, padding 2 via inline structure
+				"group/switch relative inline-flex shrink-0 items-center",
+				"w-[38px] h-[22px] rounded-full border-0 p-[2px]",
+				"outline-none cursor-pointer",
+				"transition-[background-color] duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+				// checked = accent, unchecked = ink-700
+				"data-checked:bg-[var(--color-accent)] data-unchecked:bg-[var(--color-ink-700)]",
+				// focus-visible ring
+				"focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-0",
+				// disabled
+				"data-disabled:cursor-not-allowed data-disabled:opacity-40",
 				className,
 			)}
 			{...props}
 		>
 			<SwitchPrimitive.Thumb
 				data-slot="switch-thumb"
-				className="pointer-events-none block rounded-full bg-background ring-0 transition-transform group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 group-data-[size=default]/switch:data-checked:translate-x-[calc(100%-2px)] group-data-[size=sm]/switch:data-checked:translate-x-[calc(100%-2px)] dark:data-checked:bg-primary-foreground group-data-[size=default]/switch:data-unchecked:translate-x-0 group-data-[size=sm]/switch:data-unchecked:translate-x-0 dark:data-unchecked:bg-foreground"
+				className={cn(
+					// thumb: 18×18, rounded-full
+					"pointer-events-none block size-[18px] rounded-full",
+					"transition-[transform,background-color] duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+					// checked: ink-950 bg, translate 16px; unchecked: paper-200, translate 0
+					"data-checked:translate-x-[16px] data-checked:bg-[var(--color-ink-950)]",
+					"data-unchecked:translate-x-0 data-unchecked:bg-[var(--color-paper-200)]",
+				)}
 			/>
 		</SwitchPrimitive.Root>
 	)
