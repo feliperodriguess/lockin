@@ -1,4 +1,97 @@
-// real content lands in Task 13
-export function ChampSelectScreen(): React.JSX.Element {
-	return <main className="h-full" />
+// champ-select.jsx:169-199 — the rail layout (the hero screen).
+// A two-column grid (left 1fr / right 314px) at cozy density (gap 14).
+//   left  = HeaderStrip + NotesRegion (grows to fill)
+//   right = ban phase ? TeamRegion (fixed) + BansRegion (grows)
+//                     : TeamRegion (grows) + BansRegion (fixed/collapsed)
+// All regions consume slices of the ChampSelectVM — never the raw session.
+
+import { BansRegion } from "@renderer/components/champ-select/bans-region"
+import { HeaderStrip } from "@renderer/components/champ-select/header-strip"
+import { NotesRegion } from "@renderer/components/champ-select/notes-region"
+import { TeamRegion } from "@renderer/components/champ-select/team-region"
+import { useChampSelect } from "@renderer/hooks/use-champ-select"
+import { useDDragon, useSettings } from "@renderer/hooks/use-data"
+
+const GAP = 14 // cozy
+
+export function ChampSelectScreen(): React.JSX.Element | null {
+	const vm = useChampSelect()
+	const { data: bundle } = useDDragon()
+	const { data: settings } = useSettings()
+
+	if (!vm) return null
+
+	const version = bundle?.version ?? ""
+	const layout = settings?.spellSlotLayout ?? "DF"
+	const ban = vm.subPhase === "ban"
+
+	return (
+		<section
+			className="grid h-full min-h-0"
+			style={{
+				gridTemplateColumns: "1fr 314px",
+				gridTemplateRows: "minmax(0, 1fr)",
+				gap: GAP,
+			}}
+		>
+			<div className="flex min-h-0 flex-col" style={{ gap: GAP }}>
+				<HeaderStrip
+					me={vm.me}
+					spells={vm.spells}
+					layout={layout}
+					version={version}
+					subPhase={vm.subPhase}
+					secondsLeft={vm.secondsLeft}
+					phaseTotal={vm.phaseTotal}
+					timerVisible={vm.timerVisible}
+				/>
+				<NotesRegion
+					note={vm.note}
+					enemyHidden={vm.enemyHidden}
+					me={vm.me}
+					opponent={vm.opponent}
+					version={version}
+					grow
+				/>
+			</div>
+
+			<div className="flex min-h-0 flex-col" style={{ gap: GAP }}>
+				{ban ? (
+					<>
+						<TeamRegion
+							team={vm.team}
+							ranksAvailable={vm.ranksAvailable}
+							mismatch={vm.mismatch}
+							version={version}
+						/>
+						<BansRegion
+							banRows={vm.banRows}
+							goneCount={vm.goneCount}
+							enemyHidden={vm.enemyHidden}
+							subPhase={vm.subPhase}
+							version={version}
+							grow
+						/>
+					</>
+				) : (
+					<>
+						<TeamRegion
+							team={vm.team}
+							ranksAvailable={vm.ranksAvailable}
+							mismatch={vm.mismatch}
+							version={version}
+							grow
+						/>
+						<BansRegion
+							banRows={vm.banRows}
+							goneCount={vm.goneCount}
+							enemyHidden={vm.enemyHidden}
+							subPhase={vm.subPhase}
+							version={version}
+						/>
+					</>
+				)}
+			</div>
+		</section>
+	)
 }
