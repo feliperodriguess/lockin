@@ -44,11 +44,10 @@ export function Section({
 				{right}
 			</header>
 			<div
-				className="flex min-h-0 flex-1 flex-col"
-				style={{
-					overflowY: scroll ? "auto" : "hidden",
-					margin: scroll ? "0 -4px" : 0,
-				}}
+				className={cn(
+					"flex min-h-0 flex-1 flex-col",
+					scroll ? "overflow-y-auto -mx-1" : "overflow-hidden",
+				)}
 			>
 				{children}
 			</div>

@@ -40,24 +40,14 @@ export function NotesRegion({
 	let body: React.JSX.Element
 	if (enemyHidden) {
 		body = (
-			<div
-				className="flex flex-1 flex-col items-center justify-center text-center"
-				style={{ gap: 10, padding: "8px 12px" }}
-			>
-				<EyeOff size={24} strokeWidth={2} style={{ color: "var(--fg-4)" }} />
-				<p style={{ font: "500 14px/1.4 var(--font-ui)", color: "var(--fg-2)", margin: 0 }}>
+			<div className="flex flex-1 flex-col items-center justify-center gap-[10px] px-3 py-2 text-center">
+				<EyeOff size={24} strokeWidth={2} className="text-paper-400" />
+				<p className="m-0 text-[14px] font-medium leading-[1.4] text-paper-200">
 					Enemy laner not revealed yet
 				</p>
-				<p
-					style={{
-						font: "400 12.5px/1.5 var(--font-ui)",
-						color: "var(--fg-4)",
-						maxWidth: 280,
-						margin: 0,
-					}}
-				>
-					Your <b style={{ color: "var(--fg-2)", fontWeight: 600 }}>{me.champion?.name}</b> matchup
-					notes appear here the moment they lock in.
+				<p className="m-0 max-w-[280px] text-[12.5px] leading-[1.5] text-paper-400">
+					Your <b className="font-semibold text-paper-200">{me.champion?.name}</b> matchup notes
+					appear here the moment they lock in.
 				</p>
 			</div>
 		)
@@ -78,16 +68,15 @@ export function NotesRegion({
 		)
 	} else {
 		body = (
-			<div className="flex flex-1 flex-col justify-center" style={{ gap: 12 }}>
-				<div className="flex items-center" style={{ gap: 8 }}>
+			<div className="flex flex-1 flex-col justify-center gap-3">
+				<div className="flex items-center gap-2">
 					<ChampionPortrait champion={me.champion} version={version} size={24} />
-					<span style={{ font: "400 11px/1 var(--font-mono)", color: "var(--fg-4)" }}>vs</span>
+					<span className="font-mono text-[11px] leading-none text-paper-400">vs</span>
 					<ChampionPortrait champion={opponent} version={version} size={24} />
 				</div>
-				<p style={{ font: "400 14px/1.5 var(--font-ui)", color: "var(--fg-2)", margin: 0 }}>
-					No note yet for{" "}
-					<b style={{ color: "var(--fg-1)", fontWeight: 600 }}>{me.champion?.name}</b> vs{" "}
-					<b style={{ color: "var(--fg-1)", fontWeight: 600 }}>{opponent?.name}</b>.
+				<p className="m-0 text-[14px] leading-[1.5] text-paper-200">
+					No note yet for <b className="font-semibold text-paper-100">{me.champion?.name}</b> vs{" "}
+					<b className="font-semibold text-paper-100">{opponent?.name}</b>.
 				</p>
 				<Button
 					className="self-start"
@@ -107,9 +96,12 @@ export function NotesRegion({
 			emphasis={showNote}
 			right={
 				showNote ? (
-					<span style={{ font: "400 10px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+					<time
+						dateTime={note.updatedAt}
+						className="font-mono text-[10px] leading-none text-paper-400"
+					>
 						{timeAgo(note.updatedAt)}
-					</span>
+					</time>
 				) : null
 			}
 		>

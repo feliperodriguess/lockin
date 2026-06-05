@@ -17,6 +17,7 @@ import { ThreatBadge } from "@renderer/components/game/badges"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { Button } from "@renderer/components/ui/button"
 import type { BanRowVM } from "@renderer/hooks/use-champ-select"
+import { cn } from "@renderer/lib/utils"
 import { useNavigate } from "@tanstack/react-router"
 import { ChevronDown, ChevronUp, Shield } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -63,8 +64,8 @@ export function BansRegion({
 			grow={grow}
 			scroll
 			right={
-				<div className="flex items-center" style={{ gap: 8 }}>
-					<span style={{ font: "400 10px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+				<div className="flex items-center gap-2">
+					<span className="font-mono text-[10px] leading-none text-paper-400">
 						{goneCount}/{banRows.length} gone
 					</span>
 					{subPhase === "pick" && (
@@ -72,13 +73,7 @@ export function BansRegion({
 							type="button"
 							title="Collapse"
 							onClick={() => setCollapsed(true)}
-							className="inline-flex items-center justify-center"
-							style={{
-								color: "var(--fg-4)",
-								background: "none",
-								border: "none",
-								cursor: "pointer",
-							}}
+							className="inline-flex cursor-pointer items-center justify-center border-none bg-transparent text-paper-400"
 						>
 							<ChevronUp size={15} />
 						</button>
@@ -86,7 +81,7 @@ export function BansRegion({
 				</div>
 			}
 		>
-			<ul className="flex flex-col" style={{ gap: 2 }}>
+			<ul className="flex flex-col gap-[2px]">
 				{banRows.map((row) => (
 					<BanRow key={row.championId} row={row} enemyHidden={enemyHidden} version={version} />
 				))}
@@ -108,47 +103,38 @@ function BanRow({
 	const showThreat = row.threat && !enemyHidden
 	return (
 		<li
-			className="flex items-center"
-			style={{
-				gap: 10,
-				padding: "7px 9px",
-				borderRadius: "var(--radius-sm)",
-				background: showThreat ? "var(--fail-bg)" : "transparent",
-				border: showThreat ? "1px solid rgba(255,107,94,0.22)" : "1px solid transparent",
-				opacity: gone ? 0.42 : 1,
-			}}
+			className={cn(
+				"flex items-center gap-[10px] rounded-sm border px-[9px] py-[7px]",
+				showThreat
+					? "border-[rgba(255,107,94,0.22)] bg-[var(--fail-bg)]"
+					: "border-transparent bg-transparent",
+				gone && "opacity-[0.42]",
+			)}
 		>
 			<ChampionPortrait champion={row.champion} version={version} size={30} dim={gone} />
 			<div className="min-w-0 flex-1">
-				<div className="flex items-center" style={{ gap: 7 }}>
+				<div className="flex items-center gap-[7px]">
 					<span
-						style={{
-							font: "600 13px/1 var(--font-ui)",
-							color: gone ? "var(--fg-3)" : "var(--fg-1)",
-							textDecoration: gone ? "line-through" : "none",
-						}}
+						className={cn(
+							"text-[13px] font-semibold leading-none",
+							gone ? "text-paper-300 line-through" : "text-paper-100",
+						)}
 					>
 						{row.champion?.name}
 					</span>
 					{showThreat && <ThreatBadge />}
 				</div>
 				{row.reason && (
-					<div
-						className="overflow-hidden text-ellipsis whitespace-nowrap"
-						style={{ font: "400 11px/1.3 var(--font-ui)", color: "var(--fg-4)", marginTop: 2 }}
-					>
+					<div className="mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-[1.3] text-paper-400">
 						{row.reason}
 					</div>
 				)}
 			</div>
 			<span
-				className="shrink-0"
-				style={{
-					font: "500 9px/1 var(--font-mono)",
-					letterSpacing: "0.06em",
-					textTransform: "uppercase",
-					color: gone ? "var(--fg-4)" : "var(--color-accent)",
-				}}
+				className={cn(
+					"shrink-0 font-mono text-[9px] font-medium leading-none tracking-[0.06em] uppercase",
+					gone ? "text-paper-400" : "text-accent",
+				)}
 			>
 				{row.status === "banned" ? "Banned" : row.status === "picked" ? "Picked" : "Open"}
 			</span>
@@ -165,16 +151,16 @@ function CollapsedBans({
 }): React.JSX.Element {
 	return (
 		<Card hover onClick={onToggle} className="flex items-center justify-between px-4 py-[11.2px]">
-			<div className="flex items-center" style={{ gap: 9 }}>
-				<Shield size={15} strokeWidth={2} style={{ color: "var(--fg-3)" }} />
-				<span style={{ font: "500 12.5px/1 var(--font-ui)", color: "var(--fg-2)" }}>
+			<div className="flex items-center gap-[9px]">
+				<Shield size={15} strokeWidth={2} className="text-paper-300" />
+				<span className="text-[12.5px] font-medium leading-none text-paper-200">
 					Ban phase complete
 				</span>
-				<span style={{ font: "400 11px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+				<span className="font-mono text-[11px] leading-none text-paper-400">
 					{goneCount} of your targets gone
 				</span>
 			</div>
-			<ChevronDown size={15} strokeWidth={2} style={{ color: "var(--fg-4)" }} />
+			<ChevronDown size={15} strokeWidth={2} className="text-paper-400" />
 		</Card>
 	)
 }

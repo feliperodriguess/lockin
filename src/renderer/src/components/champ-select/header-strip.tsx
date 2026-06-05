@@ -16,6 +16,7 @@ import { CountdownRing } from "@renderer/components/game/countdown-ring"
 import { RoleTag } from "@renderer/components/game/role"
 import { SpellPair } from "@renderer/components/game/spell-pair"
 import type { ChampSelectVM } from "@renderer/hooks/use-champ-select"
+import { cn } from "@renderer/lib/utils"
 import { CircleHelp } from "lucide-react"
 
 interface HeaderStripProps {
@@ -44,72 +45,56 @@ export function HeaderStrip({
 	const showYourPick = spells.source === "pinned"
 
 	return (
-		<Card className="flex items-center justify-between p-4 gap-3 min-h-[78px]">
-			<div className="flex min-w-0 items-center" style={{ gap: 12 }}>
+		<Card className="flex min-h-[78px] items-center justify-between gap-3 p-4">
+			<div className="flex min-w-0 items-center gap-3">
 				<ChampionPortrait champion={me.champion} version={version} size={46} ring radius={10} />
-				<div className="flex min-w-0 flex-col" style={{ gap: 6 }}>
-					<div className="flex items-center" style={{ gap: 9 }}>
-						<span
-							style={{
-								font: "600 16px/1 var(--font-ui)",
-								color: "var(--fg-1)",
-								letterSpacing: "-0.01em",
-							}}
-						>
+				<div className="flex min-w-0 flex-col gap-[6px]">
+					<div className="flex items-center gap-[9px]">
+						<span className="text-[16px] font-semibold leading-none tracking-[-0.01em] text-paper-100">
 							{me.champion?.name}
 						</span>
 					</div>
-					<div className="flex min-w-0 items-center" style={{ gap: 8 }}>
+					<div className="flex min-w-0 items-center gap-2">
 						{me.role ? (
 							<RoleTag role={me.role} active />
 						) : (
 							<span
-								className="shrink-0"
-								style={{
-									display: "inline-flex",
-									alignItems: "center",
-									gap: 5,
-									font: "500 10px/1 var(--font-mono)",
-									letterSpacing: "0.06em",
-									textTransform: "uppercase",
-									color: "var(--color-warn)",
-									padding: "3px 8px",
-									background: "var(--warn-bg)",
-									borderRadius: "var(--radius-sm)",
-								}}
+								className={cn(
+									"inline-flex shrink-0 items-center gap-[5px]",
+									"rounded-sm px-2 py-[3px]",
+									"font-mono text-[10px] font-medium leading-none tracking-[0.06em] uppercase",
+									"text-[var(--color-warn)] bg-[var(--warn-bg)]",
+								)}
 							>
 								<CircleHelp size={11} strokeWidth={2} />
 								Role pending
 							</span>
 						)}
-						<span
-							className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
-							style={{ font: "500 11px/1.3 var(--font-mono)", color: "var(--fg-4)" }}
-						>
+						<span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[11px] font-medium leading-[1.3] text-paper-400">
 							{me.name}
 						</span>
 					</div>
 				</div>
+				{/* 1px × 40px divider */}
 				<span
-					className="shrink-0"
-					style={{ width: 1, height: 40, background: "var(--stroke-default)" }}
+					className="shrink-0 bg-[var(--stroke-default)]"
+					// dynamic: 1×40 is a deliberate design token divider; no Tailwind preset covers both dims
+					style={{ width: 1, height: 40 }}
 				/>
-				<div className="flex shrink-0 items-center" style={{ gap: 8 }}>
+				<div className="flex shrink-0 items-center gap-2">
 					<SpellPair pair={spells.pair} version={version} layout={layout} size={32} showKeys />
 					{showYourPick && <YourPickBadge />}
 				</div>
 			</div>
 
 			{timerVisible && (
-				<div className="flex shrink-0 items-center" style={{ gap: 10 }}>
-					<div className="flex flex-col items-end" style={{ gap: 5 }}>
+				<div className="flex shrink-0 items-center gap-[10px]">
+					<div className="flex flex-col items-end gap-[5px]">
 						<span
-							style={{
-								font: "600 10px/1 var(--font-mono)",
-								letterSpacing: "0.14em",
-								textTransform: "uppercase",
-								color: danger ? "var(--color-warn)" : "var(--fg-3)",
-							}}
+							className={cn(
+								"font-mono text-[10px] font-semibold leading-none tracking-[0.14em] uppercase",
+								danger ? "text-[var(--color-warn)]" : "text-paper-300",
+							)}
 						>
 							{subPhase === "ban" ? "Ban phase" : "Pick phase"}
 						</span>

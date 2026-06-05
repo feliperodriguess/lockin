@@ -14,6 +14,7 @@ import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { RankBadge } from "@renderer/components/game/rank-badge"
 import { RoleGlyph } from "@renderer/components/game/role"
 import type { TeamRowVM } from "@renderer/hooks/use-champ-select"
+import { cn } from "@renderer/lib/utils"
 import { WifiOff } from "lucide-react"
 
 interface TeamRegionProps {
@@ -47,8 +48,7 @@ export function TeamRegion({
 			}
 		>
 			<ul
-				className="flex flex-1 flex-col"
-				style={{ gap: 1, justifyContent: grow ? "flex-start" : "center" }}
+				className={cn("flex flex-1 flex-col gap-[1px]", grow ? "justify-start" : "justify-center")}
 			>
 				{team.map((p) => (
 					<TeamRow key={p.cellId} p={p} version={version} />
@@ -62,28 +62,27 @@ function TeamRow({ p, version }: { p: TeamRowVM; version: string }): React.JSX.E
 	// your own rank always renders; teammates show "—" when their rank is unknown
 	const showRank = p.rank != null || p.you
 	return (
-		<li className="flex items-center" style={{ gap: 10, padding: "6px 4px" }}>
+		<li className="flex items-center gap-[10px] px-1 py-[6px]">
 			<RoleGlyph role={p.role} size={15} color="var(--fg-4)" />
 			<ChampionPortrait champion={p.champion} version={version} size={30} ring={p.you} />
-			<div className="flex min-w-0 flex-1 flex-col" style={{ gap: 2 }}>
+			<div className="flex min-w-0 flex-1 flex-col gap-[2px]">
 				<span
-					className="overflow-hidden text-ellipsis whitespace-nowrap"
-					style={{
-						font: "600 12.5px/1 var(--font-ui)",
-						color: p.you ? "var(--color-accent)" : "var(--fg-1)",
-					}}
+					className={cn(
+						"overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-semibold leading-none",
+						p.you ? "text-accent" : "text-paper-100",
+					)}
 				>
 					{p.name}
 					{p.you ? " (you)" : ""}
 				</span>
-				<span style={{ font: "400 10px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+				<span className="font-mono text-[10px] leading-none text-paper-400">
 					{p.champion?.name}
 				</span>
 			</div>
 			{showRank ? (
 				<RankBadge rank={p.rank} size="sm" />
 			) : (
-				<span style={{ font: "500 11px/1 var(--font-mono)", color: "var(--fg-4)" }}>—</span>
+				<span className="font-mono text-[11px] font-medium leading-none text-paper-400">—</span>
 			)}
 		</li>
 	)

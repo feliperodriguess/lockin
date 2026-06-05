@@ -12,8 +12,6 @@ import { TeamRegion } from "@renderer/components/champ-select/team-region"
 import { useChampSelect } from "@renderer/hooks/use-champ-select"
 import { useDDragon, useSettings } from "@renderer/hooks/use-data"
 
-const GAP = 14 // cozy
-
 export function ChampSelectScreen(): React.JSX.Element | null {
 	const vm = useChampSelect()
 	const { data: bundle } = useDDragon()
@@ -27,14 +25,11 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 
 	return (
 		<section
-			className="grid h-full min-h-0"
-			style={{
-				gridTemplateColumns: "1fr 314px",
-				gridTemplateRows: "minmax(0, 1fr)",
-				gap: GAP,
-			}}
+			className="grid h-full min-h-0 gap-[14px]"
+			// dynamic: named grid template requires arbitrary values not in Tailwind's column/row utilities
+			style={{ gridTemplateColumns: "1fr 314px", gridTemplateRows: "minmax(0, 1fr)" }}
 		>
-			<div className="flex min-h-0 flex-col" style={{ gap: GAP }}>
+			<div className="flex min-h-0 flex-col gap-[14px]">
 				<HeaderStrip
 					me={vm.me}
 					spells={vm.spells}
@@ -55,7 +50,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 				/>
 			</div>
 
-			<div className="flex min-h-0 flex-col" style={{ gap: GAP }}>
+			<div className="flex min-h-0 flex-col gap-[14px]">
 				<TeamRegion
 					team={vm.team}
 					ranksAvailable={vm.ranksAvailable}
