@@ -5,7 +5,7 @@ import { Card } from "@renderer/components/app/card"
 import { EmptyState } from "@renderer/components/app/empty-state"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
 import { Button } from "@renderer/components/ui/button"
-import { useNotes } from "@renderer/hooks/use-data"
+import { useDDragon, useNotes } from "@renderer/hooks/use-data"
 import { timeAgo } from "@renderer/lib/time"
 import { useNavigate } from "@tanstack/react-router"
 import { BookOpen, ChevronRight, Plus, Shield } from "lucide-react"
@@ -13,6 +13,10 @@ import { BookOpen, ChevronRight, Plus, Shield } from "lucide-react"
 export function Idle(): React.JSX.Element {
 	const navigate = useNavigate()
 	const { data: notes = [] } = useNotes()
+	const { data: bundle } = useDDragon()
+
+	const champName = (id: number | null | undefined) =>
+		id ? (bundle?.championsByKey[id]?.name ?? "Unknown") : null
 
 	// 4 most-recently-updated notes — listNotes() already sorts desc; re-sort defensively
 	const recent = [...notes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4)
@@ -88,8 +92,8 @@ export function Idle(): React.JSX.Element {
 								className="truncate text-[var(--fg-1)]"
 								style={{ font: "500 13px/1.3 var(--font-ui)" }}
 							>
-								{note.championId > 0 ? `Champion ${note.championId}` : "Note"}{" "}
-								{note.opponentChampionId ? `vs ${note.opponentChampionId}` : ""}
+								{champName(note.championId) ?? "Note"}{" "}
+								{note.opponentChampionId ? `vs ${champName(note.opponentChampionId)}` : ""}
 							</p>
 							<p
 								className="text-[var(--fg-3)] overflow-hidden"
