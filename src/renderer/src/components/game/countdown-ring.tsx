@@ -81,9 +81,12 @@ export function CountdownRing({
 				{value != null && (
 					<div
 						style={{
-							font: `400 ${Math.round(size * 0.32)}px/1 var(--font-display)`,
-							color: "var(--fg-1)",
+							fontFamily: "var(--font-display)",
+							fontSize: `${Math.round(size * 0.32)}px`,
+							fontWeight: 400,
+							lineHeight: 1,
 							fontVariantNumeric: "tabular-nums",
+							color: "var(--fg-1)",
 						}}
 					>
 						{value}
