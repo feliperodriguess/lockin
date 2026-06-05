@@ -108,13 +108,11 @@ export default function StateSwitcher(): React.JSX.Element {
 	return (
 		<div
 			className={cn(
-				"absolute bottom-3 z-50",
+				"absolute bottom-3 left-1/2 -translate-x-1/2 z-50",
 				"flex min-h-[54px] flex-wrap items-center gap-[18px]",
 				"rounded-[12px] border border-[var(--stroke-default)] px-4 py-2",
 				"bg-[rgba(14,16,18,0.9)] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]",
 			)}
-			// dynamic: translateX(-50%) horizontal centering from left:50% requires runtime transform
-			style={{ left: "50%", transform: "translateX(-50%)" }}
 		>
 			{/* label block */}
 			<div className="flex flex-col gap-[3px] border-r border-[var(--stroke-default)] pr-4">

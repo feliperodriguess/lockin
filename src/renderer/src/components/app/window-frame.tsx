@@ -29,14 +29,7 @@ export function WindowFrame({ children, connected, phase }: WindowFrameProps): R
 	return (
 		<div className="flex h-full w-full flex-col overflow-hidden bg-ink-950">
 			{/* titlebar */}
-			<header
-				className="region-drag h-9 shrink-0 flex items-center justify-between px-[14px] border-b border-[var(--stroke-default)]"
-				style={{
-					// dynamic: backdrop-filter and semi-transparent bg are not Tailwind utilities
-					background: "rgba(17,19,21,0.86)",
-					backdropFilter: "blur(12px)",
-				}}
-			>
+			<header className="region-drag h-9 shrink-0 flex items-center justify-between px-[14px] border-b border-[var(--stroke-default)] bg-[rgba(17,19,21,0.86)] backdrop-blur-[12px]">
 				{/* left spacer — clears the real hiddenInset traffic lights (trafficLightPosition x:20) */}
 				<div className="w-[120px]" />
 

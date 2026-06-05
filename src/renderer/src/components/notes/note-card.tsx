@@ -16,16 +16,9 @@ interface NoteTitleProps {
 	bundle: DDragonBundle
 	version: string
 	size?: number
-	fs?: number
 }
 
-export function NoteTitle({
-	note,
-	bundle,
-	version,
-	size = 22,
-	fs = 14,
-}: NoteTitleProps): React.JSX.Element {
+export function NoteTitle({ note, bundle, version, size = 22 }: NoteTitleProps): React.JSX.Element {
 	const champ = note.championId ? (bundle.championsByKey[note.championId] ?? null) : null
 	const opp = note.opponentChampionId
 		? (bundle.championsByKey[note.opponentChampionId] ?? null)
@@ -33,22 +26,14 @@ export function NoteTitle({
 	return (
 		<div className="flex min-w-0 items-center gap-2">
 			<ChampionPortrait champion={champ} version={version} size={size} />
-			<span
-				className="shrink-0 whitespace-nowrap font-semibold leading-none text-paper-100"
-				// dynamic: font-size driven by `fs` prop (variable, not static)
-				style={{ fontSize: fs }}
-			>
+			<span className="shrink-0 whitespace-nowrap text-[14px] font-semibold leading-none text-paper-100">
 				{champ?.name}
 			</span>
 			{opp && (
 				<>
 					<span className="shrink-0 font-mono text-[11px] leading-none text-paper-400">vs</span>
 					<ChampionPortrait champion={opp} version={version} size={size} />
-					<span
-						className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium leading-none text-paper-200"
-						// dynamic: font-size driven by `fs` prop (variable, not static)
-						style={{ fontSize: fs }}
-					>
+					<span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[14px] font-medium leading-none text-paper-200">
 						{opp.name}
 					</span>
 				</>
@@ -142,7 +127,7 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 		>
 			<div className="flex items-start justify-between gap-2">
 				<div className="min-w-0 flex-1">
-					<NoteTitle note={note} bundle={bundle} version={version} size={26} fs={14} />
+					<NoteTitle note={note} bundle={bundle} version={version} size={26} />
 				</div>
 				<SquarePen
 					size={14}
@@ -152,17 +137,7 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 					)}
 				/>
 			</div>
-			<p
-				className="m-0 flex-1 overflow-hidden text-[13px] leading-[1.55] text-paper-200"
-				// dynamic: -webkit-line-clamp requires vendor-prefixed CSS not available as Tailwind utility
-				style={{
-					display: "-webkit-box",
-					WebkitLineClamp: 3,
-					WebkitBoxOrient: "vertical",
-					overflow: "hidden",
-					textWrap: "pretty",
-				}}
-			>
+			<p className="m-0 flex-1 line-clamp-3 text-[13px] leading-[1.55] text-paper-200 [text-wrap:pretty]">
 				{note.body}
 			</p>
 			<div className="flex items-center justify-between gap-2">
@@ -220,7 +195,7 @@ function CompactCard({ note, bundle, version, onSaveBody, saving = false }: Comp
 			onMouseLeave={() => setHover(false)}
 		>
 			<div className="flex items-center justify-between gap-2">
-				<NoteTitle note={note} bundle={bundle} version={version} size={24} fs={14} />
+				<NoteTitle note={note} bundle={bundle} version={version} size={24} />
 				<button
 					type="button"
 					onClick={toggle}
@@ -252,17 +227,7 @@ function CompactCard({ note, bundle, version, onSaveBody, saving = false }: Comp
 					className="min-h-0 flex-1 resize-none text-[14px] leading-[1.6] text-paper-100"
 				/>
 			) : (
-				<p
-					className="m-0 min-h-0 flex-1 overflow-y-auto text-paper-100"
-					// dynamic: 14.5px/1.62/0.005em are sub-pixel design tokens with no Tailwind scale entry
-					style={{
-						fontSize: "14.5px",
-						lineHeight: 1.62,
-						letterSpacing: "0.005em",
-						textWrap: "pretty",
-						whiteSpace: "pre-wrap",
-					}}
-				>
+				<p className="m-0 min-h-0 flex-1 overflow-y-auto text-[14.5px] leading-[1.62] tracking-[0.005em] [text-wrap:pretty] whitespace-pre-wrap text-paper-100">
 					{note.body}
 				</p>
 			)}

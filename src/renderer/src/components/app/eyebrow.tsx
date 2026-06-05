@@ -13,9 +13,9 @@ interface AfterLineProps {
 function AfterLine({ width = 28, className }: AfterLineProps): React.JSX.Element {
 	return (
 		<span
-			className={cn("inline-block shrink-0 bg-accent align-middle", className)}
-			// dynamic: width is prop-driven; height is 1.5px (non-standard, not in Tailwind scale)
-			style={{ width, height: 1.5 }}
+			className={cn("inline-block shrink-0 h-[1.5px] bg-accent align-middle", className)}
+			// dynamic: width is prop-driven
+			style={{ width }}
 		/>
 	)
 }

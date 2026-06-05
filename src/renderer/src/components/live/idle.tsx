@@ -67,16 +67,7 @@ export function Idle(): React.JSX.Element {
 					}
 				/>
 			) : bundle ? (
-				<div
-					className="min-h-0 flex-1 overflow-y-auto"
-					// dynamic: named grid template with specific column/row constraints
-					style={{
-						display: "grid",
-						gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-						gridAutoRows: "minmax(186px, auto)",
-						gap: 14,
-					}}
-				>
+				<div className="min-h-0 flex-1 overflow-y-auto grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] auto-rows-[minmax(186px,auto)] gap-[14px]">
 					{recent.map((note) => (
 						<NoteCard
 							key={note.id}

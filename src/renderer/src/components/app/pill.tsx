@@ -44,13 +44,7 @@ function Pill({
 				className,
 			)}
 		>
-			{dot && (
-				<span
-					className="shrink-0 rounded-full bg-current"
-					// dynamic: 5px is non-standard; not in Tailwind's spacing scale
-					style={{ width: 5, height: 5 }}
-				/>
-			)}
+			{dot && <span className="shrink-0 size-[5px] rounded-full bg-current" />}
 			{Icon && <Icon size={11} strokeWidth={2} className="shrink-0" />}
 			{children}
 		</span>

@@ -112,10 +112,8 @@ export function NoteEditor({
 					"ccp-drawer absolute inset-y-0 right-0 z-[61]",
 					"flex flex-col",
 					"bg-ink-900 border-l border-[var(--stroke-strong)] shadow-[var(--shadow-lg)]",
-					"max-w-[92%]",
+					"max-w-[92%] w-[392px]",
 				)}
-				// dynamic: 392px is a specific design-token drawer width
-				style={{ width: 392 }}
 			>
 				{/* header */}
 				<div className="flex items-center justify-between border-b border-[var(--stroke-default)] px-[18px] py-4">

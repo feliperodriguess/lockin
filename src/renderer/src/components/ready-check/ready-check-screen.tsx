@@ -106,8 +106,7 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 					size="lg"
 					disabled={mutationPending}
 					onClick={() => acceptMutation.mutate()}
-					// dynamic: minWidth enforces a balanced button pair at fixed widths
-					style={{ minWidth: 132 }}
+					className="min-w-[132px]"
 				>
 					<Check size={16} />
 					Accept
@@ -117,8 +116,7 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 					size="lg"
 					disabled={mutationPending}
 					onClick={() => declineMutation.mutate()}
-					// dynamic: minWidth enforces a balanced button pair at fixed widths
-					style={{ minWidth: 132 }}
+					className="min-w-[132px]"
 				>
 					<X size={16} />
 					Decline

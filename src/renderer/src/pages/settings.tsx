@@ -21,28 +21,11 @@ export function SettingsPage(): React.JSX.Element | null {
 	const teleportSpell = bundle.spellsByKey[12] ?? null // SummonerTeleport key=12
 
 	return (
-		<div
-			style={{
-				height: "100%",
-				overflowY: "auto",
-				display: "flex",
-				flexDirection: "column",
-				gap: 22,
-				padding: "20px 24px",
-			}}
-		>
+		<div className="flex h-full flex-col gap-[22px] overflow-y-auto px-6 py-5">
 			{/* Header */}
-			<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-				<h1
-					style={{
-						margin: 0,
-						font: "600 24px/1.2 var(--font-ui)",
-						color: "var(--fg-1)",
-					}}
-				>
-					Settings
-				</h1>
-				<span style={{ font: "400 12px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+			<div className="flex flex-col gap-1">
+				<h1 className="m-0 text-[24px] font-semibold leading-[1.2] text-[var(--fg-1)]">Settings</h1>
+				<span className="font-mono text-[12px] font-normal leading-none text-[var(--fg-4)]">
 					Preferences · ban list
 				</span>
 			</div>
@@ -87,8 +70,8 @@ export function SettingsPage(): React.JSX.Element | null {
 					title="Summoner-spell keys"
 					desc="Which key holds your left spell. Shown beside your champion in champ select."
 					control={
-						<div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-							<div style={{ display: "flex", gap: 4 }}>
+						<div className="flex items-center gap-3">
+							<div className="flex gap-1">
 								<SpellIcon
 									spell={flashSpell}
 									version={bundle.version}
@@ -135,7 +118,7 @@ export function SettingsPage(): React.JSX.Element | null {
 			<BanEditor />
 
 			{/* Bottom spacer */}
-			<div style={{ height: 4 }} />
+			<div className="h-1" />
 		</div>
 	)
 }

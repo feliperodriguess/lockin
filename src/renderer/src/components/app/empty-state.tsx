@@ -28,16 +28,14 @@ function EmptyState({
 	className,
 }: EmptyStateProps): React.JSX.Element {
 	const iconSize = compact ? 20 : 26
-	// dynamic: tile/gap/pad/text sizes are derived from compact prop; non-standard values
-	const tileSize = compact ? 44 : 60
-	const gap = compact ? 10 : 14
-	const pad = compact ? 20 : 36
 
 	return (
 		<div
-			className={cn("flex flex-col items-center justify-center text-center", className)}
-			// dynamic: gap and padding derived from compact prop
-			style={{ gap, padding: pad }}
+			className={cn(
+				"flex flex-col items-center justify-center text-center",
+				compact ? "gap-[10px] p-[20px]" : "gap-[14px] p-[36px]",
+				className,
+			)}
 		>
 			{/* icon tile */}
 			<div
@@ -45,10 +43,9 @@ function EmptyState({
 					"grid place-items-center shrink-0",
 					"bg-ink-850 border border-[var(--stroke-default)]",
 					"rounded-lg text-paper-300",
+					compact ? "size-[44px]" : "size-[60px]",
 					pulse && "ccp-breathe",
 				)}
-				// dynamic: width/height derived from compact prop
-				style={{ width: tileSize, height: tileSize }}
 			>
 				<Icon size={iconSize} strokeWidth={1.5} />
 			</div>

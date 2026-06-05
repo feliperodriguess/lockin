@@ -24,11 +24,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 	const ban = vm.subPhase === "ban"
 
 	return (
-		<section
-			className="grid h-full min-h-0 gap-[14px]"
-			// dynamic: named grid template requires arbitrary values not in Tailwind's column/row utilities
-			style={{ gridTemplateColumns: "1fr 314px", gridTemplateRows: "minmax(0, 1fr)" }}
-		>
+		<section className="grid h-full min-h-0 gap-[14px] grid-cols-[1fr_314px] grid-rows-[minmax(0,1fr)]">
 			<div className="flex min-h-0 flex-col gap-[14px]">
 				<HeaderStrip
 					me={vm.me}

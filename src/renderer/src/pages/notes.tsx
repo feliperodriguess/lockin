@@ -71,40 +71,16 @@ export function NotesPage(): React.JSX.Element {
 	if (!bundle) return <div className="h-full" />
 
 	return (
-		<div
-			style={{
-				height: "100%",
-				display: "flex",
-				flexDirection: "column",
-				gap: 16,
-				minHeight: 0,
-				position: "relative",
-			}}
-		>
+		<div className="relative flex h-full min-h-0 flex-col gap-4">
 			{/* header */}
-			<div
-				style={{
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					gap: 16,
-				}}
-			>
-				<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-					<h1
-						style={{
-							margin: 0,
-							font: "600 24px/1 var(--font-ui)",
-							color: "var(--fg-1)",
-						}}
-					>
-						Notes
-					</h1>
-					<span style={{ font: "400 12px/1 var(--font-mono)", color: "var(--fg-4)" }}>
+			<div className="flex items-center justify-between gap-4">
+				<div className="flex flex-col gap-1">
+					<h1 className="m-0 text-[24px] font-semibold leading-none text-[var(--fg-1)]">Notes</h1>
+					<span className="font-mono text-[12px] font-normal leading-none text-[var(--fg-4)]">
 						{notes.length} matchup{notes.length === 1 ? "" : "s"}
 					</span>
 				</div>
-				<div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+				<div className="flex items-center gap-[10px]">
 					<SearchField
 						value={q}
 						onChange={setQ}
@@ -143,18 +119,7 @@ export function NotesPage(): React.JSX.Element {
 					)}
 				</Card>
 			) : (
-				<div
-					style={{
-						flex: 1,
-						minHeight: 0,
-						overflowY: "auto",
-						display: "grid",
-						gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-						gridAutoRows: "minmax(186px, auto)",
-						gap: 14,
-						paddingBottom: 4,
-					}}
-				>
+				<div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-[repeat(2,minmax(0,1fr))] auto-rows-[minmax(186px,auto)] gap-[14px] pb-1">
 					{sorted.map((n) => (
 						<NoteCard
 							key={n.id}

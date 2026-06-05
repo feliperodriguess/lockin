@@ -76,11 +76,7 @@ export function HeaderStrip({
 					</div>
 				</div>
 				{/* 1px × 40px divider */}
-				<span
-					className="shrink-0 bg-[var(--stroke-default)]"
-					// dynamic: 1×40 is a deliberate design token divider; no Tailwind preset covers both dims
-					style={{ width: 1, height: 40 }}
-				/>
+				<span className="shrink-0 w-px h-10 bg-[var(--stroke-default)]" />
 				<div className="flex shrink-0 items-center gap-2">
 					<SpellPair pair={spells.pair} version={version} layout={layout} size={32} showKeys />
 					{showYourPick && <YourPickBadge />}
