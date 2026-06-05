@@ -11,6 +11,7 @@ interface ChampionPortraitProps {
 	hidden?: boolean
 	dim?: boolean
 	ring?: boolean
+	radius?: number
 	className?: string
 }
 
@@ -21,12 +22,13 @@ export function ChampionPortrait({
 	hidden,
 	dim,
 	ring,
+	radius,
 	className,
 }: ChampionPortraitProps): React.JSX.Element {
 	const [errKey, setErrKey] = useState<number | null>(null)
 	// derived, not synced: a failed load only suppresses THIS champion's icon
 	const err = champion != null && errKey === champion.key
-	const r = Math.max(6, Math.round(size * 0.18))
+	const r = radius ?? Math.max(6, Math.round(size * 0.18))
 
 	if (hidden || !champion) {
 		return (

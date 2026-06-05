@@ -46,7 +46,7 @@ export function HeaderStrip({
 	return (
 		<Card className="flex items-center justify-between p-4 gap-3 min-h-[78px]">
 			<div className="flex min-w-0 items-center" style={{ gap: 12 }}>
-				<ChampionPortrait champion={me.champion} version={version} size={46} ring />
+				<ChampionPortrait champion={me.champion} version={version} size={46} ring radius={10} />
 				<div className="flex min-w-0 flex-col" style={{ gap: 6 }}>
 					<div className="flex items-center" style={{ gap: 9 }}>
 						<span
