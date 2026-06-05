@@ -1,15 +1,106 @@
 @import "tailwindcss";
 @plugin "tailwind-scrollbar";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme {
-	--font-display: "Poppins", "sans-serif";
-	--font-ui: "Geist", "sans-serif";
-	--font-mono: "JetBrains Mono", "monospace";
+	/* fonts (prototype overrides --font-ui to Poppins; display = Instrument Serif) */
+	--font-ui: "Poppins", ui-sans-serif, system-ui, sans-serif;
+	--font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+	--font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+	/* ink scale (tokens.css:21-28) — exposes bg-ink-950 etc. */
+	--color-ink-1000: #08090a;
+	--color-ink-950: #0c0d0e;
+	--color-ink-900: #111315;
+	--color-ink-850: #161819;
+	--color-ink-800: #1c1e20;
+	--color-ink-750: #232527;
+	--color-ink-700: #2a2c2f;
+	--color-ink-600: #3a3d40;
+
+	/* parchment scale (tokens.css:33-37) — text-paper-100 etc. */
+	--color-paper-100: #f4f1ea;
+	--color-paper-200: #d9d6cf;
+	--color-paper-300: #a8a59f;
+	--color-paper-400: #6e6c67;
+	--color-paper-500: #4a4845;
+
+	/* crimson accent set (Prototype.html:29-37 — LOCKED, D14) */
+	--color-accent: #f5003d;
+	--color-accent-strong: #ff2e5f;
+	--color-accent-press: #cc0034;
+	--color-accent-fg: #ffffff;
+
+	/* semantic states (tokens.css:50-57) */
+	--color-pass: #c8ff3d;
+	--color-fail: #ff6b5e;
+	--color-warn: #f5b740;
+	--color-info: #7aa2ff;
+	--color-online: #3fd07a; /* champ-art.jsx:511 ONLINE_GREEN */
+
+	/* radius (tokens.css:127-133) */
+	--radius-xs: 3px;
+	--radius-sm: 5px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+	--radius-xl: 16px;
+	--radius-2xl: 24px;
+}
+
+:root {
+	/* alpha tokens & shadows that Tailwind colors can't hold (tokens.css + Prototype.html) */
+	--accent-bg: rgba(245, 0, 61, 0.12);
+	--accent-glow: rgba(245, 0, 61, 0.32);
+	--pass-bg: rgba(200, 255, 61, 0.08);
+	--fail-bg: rgba(255, 107, 94, 0.1);
+	--warn-bg: rgba(245, 183, 64, 0.1);
+	--info-bg: rgba(122, 162, 255, 0.1);
+	--stroke-subtle: rgba(244, 241, 234, 0.06);
+	--stroke-default: rgba(244, 241, 234, 0.1);
+	--stroke-strong: rgba(244, 241, 234, 0.18);
+	--shadow-lg: 0 24px 48px -16px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--stroke-default);
+
+	/* semantic aliases used throughout (tokens.css:145-167) */
+	--bg-canvas: var(--color-ink-950);
+	--bg-surface: var(--color-ink-900);
+	--bg-raised: var(--color-ink-850);
+	--bg-hover: var(--color-ink-800);
+	--fg-1: var(--color-paper-100);
+	--fg-2: var(--color-paper-200);
+	--fg-3: var(--color-paper-300);
+	--fg-4: var(--color-paper-400);
+
+	/* motion (tokens.css:136-141) */
+	--ease-standard: cubic-bezier(0.2, 0, 0, 1);
+	--ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+	--ease-soft: cubic-bezier(0.4, 0, 0.6, 1);
+	--dur-fast: 120ms;
+	--dur-base: 200ms;
+	--dur-slow: 360ms;
+
+	/* shadcn semantic vars → handoff tokens (single dark theme, no .dark block) */
+	--radius: 0.5rem;
+	--background: var(--color-ink-950);
+	--foreground: var(--color-paper-100);
+	--card: var(--color-ink-850);
+	--card-foreground: var(--color-paper-100);
+	--popover: var(--color-ink-900);
+	--popover-foreground: var(--color-paper-100);
+	--primary: var(--color-accent);
+	--primary-foreground: var(--color-accent-fg);
+	--secondary: var(--color-ink-850);
+	--secondary-foreground: var(--color-paper-100);
+	--muted: var(--color-ink-800);
+	--muted-foreground: var(--color-paper-300);
+	--accent: var(--color-ink-800); /* shadcn "accent" = hover surface, NOT brand accent */
+	--accent-foreground: var(--color-paper-100);
+	--destructive: var(--color-fail);
+	--border: var(--stroke-default);
+	--input: var(--stroke-default);
+	--ring: var(--color-accent);
 }
 
 @theme inline {
+	/* keep shadcn-style utilities working against the aliases above */
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
@@ -22,75 +113,177 @@
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-muted: var(--muted);
 	--color-muted-foreground: var(--muted-foreground);
-	--color-accent: var(--accent);
-	--color-accent-foreground: var(--accent-foreground);
-	--color-destructive: var(--destructive);
 	--color-border: var(--border);
 	--color-input: var(--input);
 	--color-ring: var(--ring);
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
-}
-
-:root {
-	--radius: 0.625rem;
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.145 0 0);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
-	--primary-foreground: oklch(0.985 0 0);
-	--secondary: oklch(0.97 0 0);
-	--secondary-foreground: oklch(0.205 0 0);
-	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
-	--accent: oklch(0.97 0 0);
-	--accent-foreground: oklch(0.205 0 0);
-	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.922 0 0);
-	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
-}
-
-.dark {
-	--background: oklch(0.145 0 0);
-	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.205 0 0);
-	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.205 0 0);
-	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.922 0 0);
-	--primary-foreground: oklch(0.205 0 0);
-	--secondary: oklch(0.269 0 0);
-	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.269 0 0);
-	--muted-foreground: oklch(0.708 0 0);
-	--accent: oklch(0.269 0 0);
-	--accent-foreground: oklch(0.985 0 0);
-	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(1 0 0 / 10%);
-	--input: oklch(1 0 0 / 15%);
-	--ring: oklch(0.556 0 0);
+	--color-destructive: var(--destructive);
+	--radius-DEFAULT: var(--radius);
 }
 
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
 	}
+	html {
+		overflow: hidden;
+	}
+	body {
+		background: var(--bg-canvas);
+		color: var(--fg-1);
+		font-family: var(--font-ui);
+		-webkit-font-smoothing: antialiased;
+	}
+	::selection {
+		background: var(--accent-bg);
+	}
+	/* quiet scrollbars (Prototype.html:23-26) */
+	::-webkit-scrollbar {
+		width: 9px;
+		height: 9px;
+	}
+	::-webkit-scrollbar-thumb {
+		background: var(--color-ink-700);
+		border-radius: 999px;
+		border: 2px solid transparent;
+		background-clip: content-box;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--color-ink-600);
+		background-clip: content-box;
+	}
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
 }
 
-html {
-	overflow: hidden;
-}
-
+/* window drag regions (Electron) */
 .region-drag {
 	-webkit-app-region: drag;
 }
-
 .region-no-drag {
 	-webkit-app-region: no-drag;
+}
+
+/* prototype animations (Prototype.html:39-66) */
+@keyframes acBlink {
+	0%,
+	45% {
+		opacity: 1;
+	}
+	50%,
+	95% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+.ac-blink {
+	animation: acBlink 1.06s steps(1) infinite;
+}
+
+@keyframes ccpBreathe {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.55;
+		transform: scale(0.96);
+	}
+}
+.ccp-breathe {
+	animation: ccpBreathe 2.6s var(--ease-soft) infinite;
+}
+
+@keyframes ccpPing {
+	0% {
+		transform: scale(1);
+		opacity: 0.6;
+	}
+	70%,
+	100% {
+		transform: scale(2.6);
+		opacity: 0;
+	}
+}
+.ccp-ping {
+	animation: ccpPing 2.4s var(--ease-soft) infinite;
+}
+
+@keyframes ccpHalo {
+	0% {
+		transform: scale(0.7);
+		opacity: 0.5;
+	}
+	100% {
+		transform: scale(1.5);
+		opacity: 0;
+	}
+}
+.ccp-halo {
+	animation: ccpHalo 3.2s var(--ease-soft) infinite;
+}
+.ccp-halo-2 {
+	animation-delay: 1.6s;
+}
+
+@keyframes ccpFade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+.ccp-fade {
+	animation: ccpFade var(--dur-base) var(--ease-standard);
+}
+
+@keyframes ccpDrawer {
+	from {
+		transform: translateX(26px);
+	}
+	to {
+		transform: none;
+	}
+}
+.ccp-drawer {
+	animation: ccpDrawer var(--dur-slow) var(--ease-emphasized);
+}
+
+@keyframes ccpScreenIn {
+	from {
+		transform: translateY(7px);
+	}
+	to {
+		transform: none;
+	}
+}
+.ccp-screen {
+	animation: ccpScreenIn var(--dur-slow) var(--ease-emphasized);
+}
+
+@keyframes ccpRise {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ac-blink,
+	.ccp-breathe,
+	.ccp-ping,
+	.ccp-halo,
+	.ccp-screen,
+	.ccp-drawer,
+	.ccp-fade {
+		animation: none;
+	}
 }
