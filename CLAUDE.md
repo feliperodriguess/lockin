@@ -52,7 +52,9 @@ Path aliases (tsconfig + vite): `@renderer/*` → `src/renderer/src/*`, `@/*` �
 ## UI conventions
 
 - **Components max ~300 lines.** If a UI component grows past that, break it into smaller components.
-- **Use semantic HTML** — prefer `nav`, `main`, `section`, `header`, `button`, `ul`, etc. over div/span soup (no need to get fancy, just don't make everything a `div`).
+- **No inline `style` objects for static values.** Style with Tailwind utility classes only (arbitrary values like `text-[13px]`/`tracking-[0.06em]` where exact values matter); conditional styling via `cn()` (clsx + tailwind-merge). A `style` prop is acceptable only for values computed at runtime from props/data (SVG dash offsets, data-driven colors, dynamic sizes).
+- **Use semantic HTML** — prefer `nav`, `main`, `section`, `header`, `button`, `ul`, `time`, `p`, `fieldset`/`legend`, etc. over div/span soup. When a richer accessible tag fits naturally, use it.
+- **Text inputs build on `ui/input.tsx`/`ui/textarea.tsx`** (shadcn-based) — don't hand-roll one-off inputs per screen.
 - **shadcn/ui** primitives live in `src/renderer/src/components/ui/` (style `base-vega`, lucide icons — see `components.json`). Some are already scaffolded; when you need another, pull it from shadcn (`pnpm dlx shadcn@latest add <component>`) and customize it to match the design handoff.
 - Tailwind v4 (CSS-first config in `src/renderer/src/global.css`, `@tailwindcss/vite` plugin). Theme tokens should follow `lockin-design-handoff/project/tokens.css`.
 - Biome formats with tabs, 100-char lines, no semicolons (`asNeeded`) — let `pnpm format` handle style.
