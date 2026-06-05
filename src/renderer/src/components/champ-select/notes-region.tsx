@@ -70,7 +70,10 @@ export function NotesRegion({
 				bundle={bundle}
 				version={version}
 				variant="compact"
-				onSaveBody={(body) => upsert.mutate({ id: note.id, body })}
+				onSaveBody={(body) => {
+					if (!upsert.isPending) upsert.mutate({ id: note.id, body })
+				}}
+				saving={upsert.isPending}
 			/>
 		)
 	} else {

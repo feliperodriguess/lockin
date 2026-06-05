@@ -76,6 +76,8 @@ interface NoteCardCompactProps {
 	variant: "compact"
 	/** Called when user saves body in inline edit mode */
 	onSaveBody?: (body: string) => void
+	/** Whether a save is in flight; disables edit toggle while true */
+	saving?: boolean
 }
 
 type NoteCardProps = NoteCardFullProps | NoteCardCompactProps
@@ -90,6 +92,7 @@ export function NoteCard(props: NoteCardProps): React.JSX.Element {
 				bundle={bundle}
 				version={version}
 				onSaveBody={(props as NoteCardCompactProps).onSaveBody}
+				saving={(props as NoteCardCompactProps).saving}
 			/>
 		)
 	}
@@ -211,15 +214,17 @@ interface CompactCardProps {
 	bundle: DDragonBundle
 	version: string
 	onSaveBody?: (body: string) => void
+	saving?: boolean
 }
 
-function CompactCard({ note, bundle, version, onSaveBody }: CompactCardProps) {
+function CompactCard({ note, bundle, version, onSaveBody, saving = false }: CompactCardProps) {
 	const [hover, setHover] = useState(false)
 	const [editing, setEditing] = useState(false)
 	// Seed draft from note.body; remounted via key={note.id} by parent so state resets per note
 	const [draft, setDraft] = useState(note.body)
 
 	const toggle = () => {
+		if (saving) return
 		if (editing && onSaveBody) {
 			onSaveBody(draft)
 		}
@@ -239,6 +244,7 @@ function CompactCard({ note, bundle, version, onSaveBody }: CompactCardProps) {
 				<button
 					type="button"
 					onClick={toggle}
+					disabled={saving}
 					title="Edit note"
 					className="inline-flex items-center"
 					style={{
@@ -249,9 +255,10 @@ function CompactCard({ note, bundle, version, onSaveBody }: CompactCardProps) {
 						color: editing ? "var(--color-accent)" : "var(--fg-3)",
 						borderRadius: "var(--radius-sm)",
 						padding: "4px 8px",
-						cursor: "pointer",
+						cursor: saving ? "not-allowed" : "pointer",
 						font: "500 11px/1 var(--font-ui)",
 						transition: "all var(--dur-base) var(--ease-standard)",
+						opacity: saving ? 0.5 : 1,
 					}}
 				>
 					{editing ? <Check size={12} /> : <SquarePen size={12} />}
