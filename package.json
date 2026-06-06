@@ -8,6 +8,7 @@
 	"scripts": {
 		"format": "biome check --write --unsafe .",
 		"typecheck": "tsc --noEmit -p tsconfig.json --composite false",
+		"test": "vitest run --passWithNoTests",
 		"start": "electron-vite preview",
 		"dev": "electron-vite dev",
 		"build": "npm run typecheck && electron-vite build",
@@ -49,6 +50,7 @@
 		"electron-vite": "^5.0.0",
 		"typescript": "^5.9.3",
 		"vite": "^7.2.6",
-		"vite-tsconfig-paths": "^6.1.1"
+		"vite-tsconfig-paths": "^6.1.1",
+		"vitest": "^4.1.8"
 	}
 }
