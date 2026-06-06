@@ -21,7 +21,7 @@
 - [ ] **Step 1: Install vitest**
 
 Run: `pnpm add -D vitest`
-Expected: vitest added to devDependencies (latest stable, ~3.x).
+Expected: vitest added to devDependencies (latest stable, **4.x** — review-verified the planned config runs cleanly on 4.1.8).
 
 - [ ] **Step 2: Create `vitest.config.ts`**
 
@@ -42,13 +42,15 @@ export default defineConfig({
 In `package.json` scripts, after `"typecheck"`:
 
 ```json
-		"test": "vitest run",
+		"test": "vitest run --passWithNoTests",
 ```
+
+(`--passWithNoTests`: vitest 4 exits 1 on zero matching test files, which would trip the executor's gate between Tasks 1 and 2 — and protects against a future include-glob mismatch.)
 
 - [ ] **Step 4: Sanity run**
 
 Run: `pnpm test`
-Expected: "No test files found" (exits non-zero or warns — fine; the engine spec lands next task). If vitest errors on config, fix before committing.
+Expected: exit 0 with "no test files found" notice (the engine spec lands next task). If vitest errors on config, fix before committing.
 
 - [ ] **Step 5: Commit**
 
@@ -111,6 +113,17 @@ describe("matchNotes (PRD §6.2)", () => {
 		expect(matchNotes([note({})], 0, [114])).toEqual([])
 	})
 
+	it("keeps a stable, defined order for equal updatedAt", () => {
+		const a = note({ id: "a" })
+		const b = note({ id: "b" })
+		expect(matchNotes([a, b], 266, []).map((n) => n.id)).toEqual(["a", "b"])
+	})
+
+	it("matches an opponent-specific note even when the opponent is my own champion", () => {
+		const mirror = note({ id: "m", opponentChampionId: 266 })
+		expect(matchNotes([mirror], 266, [266])).toEqual([mirror]) // mirror matchup
+	})
+
 	it("does not mutate the input array", () => {
 		const notes = [
 			note({ id: "1", updatedAt: "2026-02-01T00:00:00.000Z" }),
@@ -157,7 +170,7 @@ export function matchNotes(
 - [ ] **Step 4: Run, watch it pass**
 
 Run: `pnpm test`
-Expected: 6 passing.
+Expected: 8 passing.
 
 - [ ] **Step 5: Typecheck + format, commit**
 
@@ -178,7 +191,9 @@ git commit -m "feat(shared): notes-match engine + vitest spec (§6.2)"
 
 ```ts
 export function listNotes(): MatchupNote[] {
-	return store.get("notes")
+	// sorted copy — matches the fake bridge's contract (consumers re-sort only defensively);
+	// spreading also avoids handing out electron-store's internal array reference
+	return [...store.get("notes")].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 }
 
 export function upsertNote(partial: Partial<MatchupNote>): MatchupNote {
