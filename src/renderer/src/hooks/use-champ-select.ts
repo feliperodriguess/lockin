@@ -1,5 +1,5 @@
 import { type DisplayRole, displayRole } from "@renderer/lib/roles"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { suggestBans } from "@/shared/lib/bans"
 import { matchNotes } from "@/shared/lib/notes-match"
@@ -63,6 +63,20 @@ export function useChampSelect(): ChampSelectVM | null {
 		[session],
 	)
 	const { data: ranks } = useTeamRanks(myPuuids)
+
+	// Countdown interpolation: the real LCU pushes sessions on state changes only
+	// (picks/bans), NOT at 1 Hz — without a local tick the timer freezes between
+	// pushes. Stamp each session's arrival and tick once per second from it.
+	// (The fake bridge pushes every second, so elapsed stays ~0 there.)
+	const receivedAt = useMemo(() => Date.now(), [])
+	const [nowMs, setNowMs] = useState(receivedAt)
+	useEffect(() => {
+		if (!session || session.timer.isInfinite) return
+		setNowMs(Date.now())
+		const id = setInterval(() => setNowMs(Date.now()), 1000)
+		return () => clearInterval(id)
+	}, [session])
+	const elapsedMs = Math.max(0, nowMs - receivedAt)
 
 	return useMemo(() => {
 		// bundle-optional: with no bundle (first-run offline) every lookup misses and
@@ -149,7 +163,10 @@ export function useChampSelect(): ChampSelectVM | null {
 
 		return {
 			subPhase,
-			secondsLeft: Math.max(0, Math.ceil(session.timer.adjustedTimeLeftInPhase / 1000)),
+			secondsLeft: Math.max(
+				0,
+				Math.ceil((session.timer.adjustedTimeLeftInPhase - elapsedMs) / 1000),
+			),
 			phaseTotal: Math.max(1, Math.round(session.timer.totalTimeInPhase / 1000)),
 			timerVisible: !session.timer.isInfinite,
 			enemyHidden,
@@ -163,5 +180,5 @@ export function useChampSelect(): ChampSelectVM | null {
 			ranksAvailable,
 			mismatch,
 		}
-	}, [session, bundle, notes, banlist, settings, ranks])
+	}, [session, bundle, notes, banlist, settings, ranks, elapsedMs])
 }
