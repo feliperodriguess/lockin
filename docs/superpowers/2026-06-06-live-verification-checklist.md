@@ -46,6 +46,11 @@
 
 ## F. Team ranks (Phase 7 — §6.5)
 
+> Lobby type matters: a solo bot game gives you 4 bots with no puuids — no rank data and no
+> mismatch flag is **correct** there. Use a co-op/PvP lobby with ranked humans to exercise the
+> rank render + mismatch flag. Reminder: your own account is flex-ranked only, so your row
+> correctly shows "Unranked" (§6.5 reads solo queue; see the spike doc).
+
 - [ ] In champ select, your 5-player side shows ranks (or "Unranked"/— where missing); never blocks the rail.
 - [ ] Mismatch flag appears when the lobby spread ≥ the configured sensitivity (test with Strict if your lobby is even).
 - [ ] Apex-tier players (Master+) show tier only, no division.
