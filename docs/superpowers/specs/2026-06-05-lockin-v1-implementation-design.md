@@ -181,3 +181,15 @@ One implementation plan per phase, written when the phase is reached. Exit crite
 ## 8. Out of scope (v1, confirmed)
 
 Everything in PRD §2.2, plus the rulings above: no item pins on notes (D2), no stacked/hero layouts (D3), no component tests (D4), no Zustand (D6), no always-on-top / launch-on-login / locale settings, no auto-anything beyond ready-check accept (off by default).
+
+## 9. Overnight execution addendum (approved 2026-06-06)
+
+Phases 2–8 run unattended in one overnight session. Decisions locked with Felipe before the run:
+
+| # | Decision | Ruling |
+|---|---|---|
+| E1 | Live-LCU verification | **Build + checklist.** Implement against the LCU API spec (league-connect source verified in `node_modules`, not from memory). Verify via typecheck, vitest, and Playwright on the fake bridge. Real-client paths get a step-by-step `docs/superpowers/2026-06-06-live-verification-checklist.md` run by Felipe in the morning |
+| E2 | Packaging | **Skipped.** Phase 8 reduces to the final visual polish pass + PRD §14 compliance checklist. No `.dmg`, no signing/notarization — deferred until Felipe is back |
+| E3 | Git | Stay on `integration`, granular commits per logical change, no merge to `main` until Felipe reviews |
+| E4 | Review gates | Self-review per phase: plan written (writing-plans) → adversarial plan review → implement → verify (`typecheck`/`format`/`test`/Playwright) → multi-agent code review → fix confirmed findings. Morning report summarizes everything for Felipe's review |
+| E5 | Phase 7 spike fallback | If LCU rank-endpoint research is inconclusive without a live client, implement full-roster ranks with the degraded self-only fallback path; the morning checklist decides which mode survives |
