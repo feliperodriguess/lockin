@@ -43,6 +43,7 @@ function subscribeWithSnapshot<T>(
 const api: Partial<Api> = {
 	acceptReadyCheck: () => ipcRenderer.invoke(IPC.ACCEPT_READY_CHECK),
 	declineReadyCheck: () => ipcRenderer.invoke(IPC.DECLINE_READY_CHECK),
+	getDDragonBundle: () => ipcRenderer.invoke(IPC.DDRAGON_GET_BUNDLE),
 	getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
 	setSettings: (partial) => ipcRenderer.invoke(IPC.SETTINGS_SET, partial),
 	onLcuStatus: (cb) =>

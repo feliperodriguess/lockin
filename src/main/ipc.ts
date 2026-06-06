@@ -3,6 +3,7 @@ import { ipcMain } from "electron"
 import { IPC } from "@/shared/constants"
 import type { AppSettings } from "@/shared/types"
 
+import { getDDragonBundle } from "./ddragon"
 import { acceptReadyCheck, declineReadyCheck, getLcuSnapshot } from "./lcu"
 import { getSettings, setSettings } from "./store"
 
@@ -15,3 +16,5 @@ ipcMain.handle(IPC.SETTINGS_SET, (_event, partial: Partial<AppSettings>) => setS
 
 ipcMain.handle(IPC.ACCEPT_READY_CHECK, () => acceptReadyCheck())
 ipcMain.handle(IPC.DECLINE_READY_CHECK, () => declineReadyCheck())
+
+ipcMain.handle(IPC.DDRAGON_GET_BUNDLE, () => getDDragonBundle())
