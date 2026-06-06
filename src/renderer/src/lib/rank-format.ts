@@ -1,3 +1,4 @@
+import { isApexTier } from "@/shared/lib/rank"
 import type { RankInfo } from "@/shared/types"
 
 /* tier metadata — tint colors from data.js:59-70, LCU-uppercase keys */
@@ -14,16 +15,8 @@ export const TIERS: Record<string, { idx: number; color: string; label: string }
 	CHALLENGER: { idx: 9, color: "#d6ff66", label: "Challenger" },
 }
 
-const DIV_NUM: Record<string, number> = { I: 1, II: 2, III: 3, IV: 4 }
-
-/* PHASE-1 GLUE — replaced by src/shared/lib/rank.ts in Phase 7 */
-export function rankScore(rank: RankInfo | null): number {
-	if (!rank || !TIERS[rank.tier]) return -1
-	return TIERS[rank.tier].idx * 4 + (4 - (DIV_NUM[rank.division] ?? 4))
-}
-
-// TODO(Phase 7): apex tiers (MASTER+) should render without a division — LCU reports "I".
 export function formatRank(rank: RankInfo | null): string {
 	if (!rank || !TIERS[rank.tier]) return "Unranked"
+	if (isApexTier(rank.tier)) return TIERS[rank.tier].label // LCU division is "I"/"NA" noise
 	return `${TIERS[rank.tier].label} ${rank.division}`
 }

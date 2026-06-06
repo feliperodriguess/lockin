@@ -1,9 +1,9 @@
-import { rankScore } from "@renderer/lib/rank-format"
 import { type DisplayRole, displayRole } from "@renderer/lib/roles"
 import { useMemo } from "react"
 
 import { suggestBans } from "@/shared/lib/bans"
 import { matchNotes } from "@/shared/lib/notes-match"
+import { flagMismatch } from "@/shared/lib/rank"
 import { recommendSpells } from "@/shared/lib/spells"
 import type { ChampionStatic, MatchupNote, RankInfo, SummonerSpellStatic } from "@/shared/types"
 
@@ -140,10 +140,12 @@ export function useChampSelect(): ChampSelectVM | null {
 		// requires at least one *teammate* rank — the fake always returns yours, matching the prototype
 		const ranksAvailable = team.some((t) => !t.you && t.rank != null)
 
-		// PHASE-1 GLUE — replaced by src/shared/lib/rank.ts in Phase 7
-		const scores = team.map((t) => rankScore(t.rank)).filter((s) => s >= 0)
-		const spread = scores.length >= 2 ? Math.max(...scores) - Math.min(...scores) : 0
-		const mismatch = ranksAvailable && spread >= (settings?.rankDiffThreshold ?? 8)
+		const mismatch =
+			ranksAvailable &&
+			flagMismatch(
+				team.map((t) => t.rank),
+				settings?.rankDiffThreshold ?? 8,
+			)
 
 		return {
 			subPhase,
