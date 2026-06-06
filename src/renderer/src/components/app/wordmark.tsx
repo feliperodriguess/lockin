@@ -10,16 +10,12 @@ export function AppMark({ size = 22, radius }: AppMarkProps): React.JSX.Element 
 	const v = size * 0.68
 	return (
 		<span
-			className="relative overflow-hidden grid place-items-center shrink-0"
-			// dynamic: all dimensions + radius are prop-driven; background and border are static
-			// but they use non-standard values (gradient, alpha) that can't be Tailwind classes
+			className="relative overflow-hidden grid place-items-center shrink-0 bg-[linear-gradient(155deg,#24272c_0%,#0b0c0d_78%)] border border-[var(--stroke-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
+			// dynamic: width, height, and borderRadius are prop-driven
 			style={{
 				width: size,
 				height: size,
 				borderRadius: r,
-				background: "linear-gradient(155deg, #24272c 0%, #0b0c0d 78%)",
-				border: "1px solid var(--stroke-strong)",
-				boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
 			}}
 		>
 			<span

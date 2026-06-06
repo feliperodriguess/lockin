@@ -61,9 +61,8 @@ export function CountdownRing({
 					// dynamic: dasharray/dashoffset are SVG geometry computed from radius/progress
 					strokeDasharray={circ}
 					strokeDashoffset={circ * (1 - clamped)}
+					className="[transition:stroke-dashoffset_980ms_linear,stroke_var(--dur-base)_var(--ease-standard)]"
 					style={{
-						transition:
-							"stroke-dashoffset 980ms linear, stroke var(--dur-base) var(--ease-standard)",
 						// dynamic: drop-shadow color is tone-derived
 						filter: pulsing ? `drop-shadow(0 0 8px ${toneColor})` : "none",
 					}}

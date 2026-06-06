@@ -16,11 +16,16 @@ interface WindowFrameProps {
 }
 
 export function WindowFrame({ children, connected, phase }: WindowFrameProps): React.JSX.Element {
-	const [now, setNow] = useState("")
+	const [now, setNow] = useState({ display: "", iso: "" })
 
 	useEffect(() => {
-		const tick = () =>
-			setNow(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))
+		const tick = () => {
+			const date = new Date()
+			setNow({
+				display: date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+				iso: date.toISOString(),
+			})
+		}
 		tick()
 		const id = setInterval(tick, 15000)
 		return () => clearInterval(id)
@@ -45,8 +50,11 @@ export function WindowFrame({ children, connected, phase }: WindowFrameProps): R
 				{/* right: connection indicator + clock */}
 				<div className="w-[120px] flex justify-end items-center gap-[10px]">
 					<ConnectionIndicator connected={connected} compact />
-					<time className="font-mono text-[11px] font-normal leading-none text-paper-400">
-						{now}
+					<time
+						dateTime={now.iso}
+						className="font-mono text-[11px] font-normal leading-none text-paper-400"
+					>
+						{now.display}
 					</time>
 				</div>
 			</header>
