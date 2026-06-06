@@ -11,6 +11,9 @@ export const IPC = {
 	BANLIST_GET: "banlist:get",
 	BANLIST_SET: "banlist:set",
 	RANK_GET_FOR_PUUIDS: "rank:getForPuuids",
+	// Renderer → Main (invoke, preload-internal — not part of the public Api;
+	// the bridge uses it to deliver current state on subscribe, matching the fake)
+	LCU_GET_SNAPSHOT: "lcu:getSnapshot",
 	// Main → Renderer (push)
 	LCU_STATUS: "lcu:status",
 	LCU_PHASE: "lcu:phase",

@@ -30,7 +30,10 @@ export interface Api {
 	getBanList(): Promise<BanListEntry[]>
 	setBanList(entries: BanListEntry[]): Promise<BanListEntry[]>
 	getRanksForPuuids(puuids: string[]): Promise<Record<string, RankInfo | null>>
-	// pushes → LcuProvider context (never into the Query cache)
+	// pushes → LcuProvider context (never into the Query cache).
+	// Contract: every subscribe delivers the CURRENT value immediately (microtask ok),
+	// then streams updates. The fake calls back synchronously; the real bridge
+	// answers from lcu:getSnapshot. Subscribers must not assume sync delivery.
 	onLcuStatus(cb: (s: { connected: boolean }) => void): Unsubscribe
 	onGameflowPhase(cb: (p: { phase: GameflowPhase }) => void): Unsubscribe
 	onReadyCheck(cb: (r: ReadyCheck | null) => void): Unsubscribe

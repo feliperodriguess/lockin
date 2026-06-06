@@ -117,3 +117,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
 	spellSlotLayout: "DF",
 	rankDiffThreshold: 8,
 }
+
+// ---------- LCU snapshot (preload-internal; current push-state on subscribe) ----------
+export interface LcuSnapshot {
+	connected: boolean
+	phase: GameflowPhase
+	readyCheck: ReadyCheck | null // stays null until Phase 3
+	champSelect: ChampSelectSession | null // stays null until Phase 3 (timer) / 4 (full)
+}
+
+export const DISCONNECTED_SNAPSHOT: LcuSnapshot = {
+	connected: false,
+	phase: "None",
+	readyCheck: null,
+	champSelect: null,
+}
