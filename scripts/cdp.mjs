@@ -23,6 +23,17 @@ const ws = new WebSocket(page.webSocketDebuggerUrl)
 let nextId = 1
 const pending = new Map()
 
+// stale targets (e.g. right after location.reload) can leave the socket in
+// limbo — fail loudly instead of hanging the caller
+setTimeout(() => {
+	console.error("cdp timeout (stale target? retry)")
+	process.exit(2)
+}, 15_000).unref?.()
+ws.onerror = (event) => {
+	console.error("cdp socket error:", event.message ?? "unknown")
+	process.exit(2)
+}
+
 function send(method, params = {}) {
 	const id = nextId++
 	ws.send(JSON.stringify({ id, method, params }))

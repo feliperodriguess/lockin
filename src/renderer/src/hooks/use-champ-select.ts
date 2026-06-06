@@ -1,5 +1,5 @@
 import { type DisplayRole, displayRole } from "@renderer/lib/roles"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { suggestBans } from "@/shared/lib/bans"
 import { matchNotes } from "@/shared/lib/notes-match"
@@ -66,9 +66,14 @@ export function useChampSelect(): ChampSelectVM | null {
 
 	// Countdown interpolation: the real LCU pushes sessions on state changes only
 	// (picks/bans), NOT at 1 Hz — without a local tick the timer freezes between
-	// pushes. Stamp each session's arrival and tick once per second from it.
+	// pushes. Stamp each session's arrival (ref-compare, not a deps array — the
+	// linter would strip a deps-only dependency) and tick once per second from it.
 	// (The fake bridge pushes every second, so elapsed stays ~0 there.)
-	const receivedAt = useMemo(() => Date.now(), [])
+	const stampRef = useRef<{ session: typeof session; at: number }>({ session: null, at: 0 })
+	if (stampRef.current.session !== session) {
+		stampRef.current = { session, at: Date.now() }
+	}
+	const receivedAt = stampRef.current.at
 	const [nowMs, setNowMs] = useState(receivedAt)
 	useEffect(() => {
 		if (!session || session.timer.isInfinite) return
