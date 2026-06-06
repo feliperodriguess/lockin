@@ -15,7 +15,7 @@ given the champ-select session exposes `myTeam[].puuid`?
 
 | Probe | puuid | Result |
 |---|---|---|
-| Self (`current-ranked-stats`) | `21126cd9-4102-502e-b9ab-4023315523c6` | 200 — GOLD IV, 96 LP |
+| Self (`current-ranked-stats`) | `21126cd9-4102-502e-b9ab-4023315523c6` | 200 — GOLD IV, 96 LP **in RANKED_FLEX_SR** (`highestRankedEntry`); solo queue: unranked → the app correctly shows `null`/Unranked for Felipe (verified end-to-end in the Phase 7 smoke) |
 | Self (by-puuid) | same | 200 — identical payload |
 | **Other player 1** ("Malkinho", friend puuid from `/lol-chat/v1/friends`) | `0025a82b-a624-5d72-be51-435b9f9c6c32` | 200 — `queueMap.RANKED_SOLO_5x5 = { tier: "GOLD", division: "IV", leaguePoints: 3, isProvisional: false }` |
 | **Other player 2** ("Loyola", friend puuid, unranked) | `01994359-2948-5df2-b553-1687a49ca401` | 200 — `{ tier: "", division: "NA", leaguePoints: 0 }` |
@@ -43,3 +43,6 @@ Also available if ever needed: `.isProvisional` (PRD §6.5 mentions labeling pro
 - Caveat recorded: probed on patch 16.11/BR with friends' puuids (the closest live proxy for
   "arbitrary teammate" outside a queue). Morning checklist re-confirms with a real champ-select
   roster; if Riot ever locks this endpoint down, the fallback path is already wired.
+- **Product nuance for Felipe:** §6.5 scopes to solo queue, so flex-only players (currently
+  including Felipe himself) render as "Unranked". A flex fallback would be a post-v1 product
+  decision, not a bug.
