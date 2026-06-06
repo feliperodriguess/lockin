@@ -4,7 +4,9 @@
 
 **Goal:** Real Data Dragon bundle (version resolve → fetch → normalize → disk cache → offline fallback → background patch refresh) served over IPC, plus the one renderer refinement real sessions need (timer-phase-aware sub-phase derivation). After this phase a live champ select renders fully real except notes/banlist/ranks (Phases 5–7).
 
-**Architecture:** `src/main/ddragon.ts` is **cache-first**: serve the disk cache (`userData/ddragon-cache.json`) immediately when present and, if the live patch differs, refresh the cache in the background for the *next* launch (icons are stable within a patch; staleness costs one launch — this is the PRD §10 "serve from cache when offline; refresh in the background" reading). First run awaits the network; offline + no cache → the invoke rejects, TanStack Query retries, and the UI keeps D15 fallback tiles. Bundle is memoized per app session (matches the renderer's `staleTime: Infinity`).
+**Architecture:** `src/main/ddragon.ts` is **cache-first**: serve the disk cache (`userData/ddragon-cache.json`) immediately when present and, if the live patch differs, refresh the cache in the background for the *next* launch. **Δ** PRD §10's "refresh in the background" is implemented as *refresh-disk-for-next-launch*: the served bundle is stable per app session (icons are stable within a patch; hot-swapping the running bundle is deliberately not done). First run awaits the network. Bundle is memoized per session on success only — a failed load is retried by the renderer.
+
+**Offline resilience (plan-review finding):** the renderer's global QueryClient sets `retry: false` (written for local-IPC queries), so a single rejected bundle invoke would be a *terminal* error — blank Notes/Settings forever. Fix shipped with this phase: `useDDragon` overrides `retry: 3` with exponential backoff (it is a real network call behind IPC), and `useChampSelect` becomes bundle-optional so champ select renders D15 fallback tiles instead of nothing when the bundle is absent. Residual known limitation (documented for the morning report): first-ever run while fully offline leaves Notes/Settings mostly blank until connectivity returns and retries land — acceptable for v1; champ select is never blocked.
 
 **Tech Stack:** main-process built-in `fetch` (PRD §3) with `AbortSignal.timeout`, `node:fs/promises` for the cache.
 
@@ -228,10 +230,48 @@ git commit -m "feat: real ddragon:getBundle over IPC"
 
 ---
 
-### Task 3: Timer-phase-aware sub-phase derivation
+### Task 3: Renderer refinements — sub-phase derivation, bundle retry, bundle-optional champ select
 
 **Files:**
-- Modify: `src/renderer/src/hooks/use-champ-select.ts:92-96`
+- Modify: `src/renderer/src/hooks/use-champ-select.ts`
+- Modify: `src/renderer/src/hooks/use-data.ts:6-13`
+
+- [ ] **Step 0a: Retry override in `useDDragon` (`src/renderer/src/hooks/use-data.ts`)**
+
+```ts
+export function useDDragon() {
+	return useQuery({
+		queryKey: ["ddragon"],
+		queryFn: () => api.getDDragonBundle(),
+		staleTime: Infinity,
+		gcTime: Infinity,
+		// real network behind IPC (unlike the local-IPC queries the global
+		// retry:false targets) — transient failures must not freeze the bundle
+		retry: 3,
+		retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30_000),
+	})
+}
+```
+
+- [ ] **Step 0b: Bundle-optional VM in `use-champ-select.ts`**
+
+Replace:
+
+```ts
+		if (!session || !bundle) return null
+		const champ = (id: number): ChampionStatic | null => bundle.championsByKey[id] ?? null
+		const spell = (id: number): SummonerSpellStatic | null => bundle.spellsByKey[id] ?? null
+```
+
+with:
+
+```ts
+		// bundle-optional: with no bundle (first-run offline) every lookup misses and
+		// the rail renders D15 fallback tiles — champ select is never blocked
+		if (!session) return null
+		const champ = (id: number): ChampionStatic | null => bundle?.championsByKey[id] ?? null
+		const spell = (id: number): SummonerSpellStatic | null => bundle?.spellsByKey[id] ?? null
+```
 
 - [ ] **Step 1: Replace the sub-phase glue**
 
@@ -270,8 +310,8 @@ Expected: clean.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/renderer/src/hooks/use-champ-select.ts
-git commit -m "feat(renderer): timer-phase-aware champ-select sub-phase derivation"
+git add src/renderer/src/hooks/use-champ-select.ts src/renderer/src/hooks/use-data.ts
+git commit -m "feat(renderer): bundle retry + bundle-optional champ select + timer-phase-aware sub-phase"
 ```
 
 ---
@@ -302,7 +342,9 @@ Read the PNG — recent-note champion icons render real DDragon portraits (no ti
 
 - [ ] **Step 3: Cache-hit path**
 
-Kill the app, relaunch (same logging), wait for connect, then:
+Kill the app, then relaunch explicitly into the second log file (background):
+`ELECTRON_ENABLE_LOGGING=1 pnpm dev > /tmp/lockin-phase4-smoke2.log 2>&1`
+Wait for connect, then:
 
 ```bash
 grep -E '\[ddragon\]' /tmp/lockin-phase4-smoke2.log

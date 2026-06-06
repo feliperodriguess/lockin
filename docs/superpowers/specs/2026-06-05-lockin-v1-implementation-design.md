@@ -158,7 +158,7 @@ Each lands with its owning phase; most are previewable via the switcher.
 
 - Champ select **never crashes** on unresolvable champion/spell IDs → fallback tile + name placeholder (D15).
 - Disconnected keeps Notes/Settings fully usable; LCU reconnects with backoff and resubscribes cleanly (PRD §9).
-- DDragon: serve disk cache when offline; background-refresh on patch change; no cache + offline → fallback tiles.
+- DDragon: serve disk cache when offline; background-refresh on patch change (**Δ** PRD §10: refresh updates the *disk* for the next launch — the served bundle is stable per session; no hot-swap); no cache + offline → fallback tiles in champ select (`useDDragon` retries with backoff; Notes/Settings stay minimal until connectivity returns — first-run-offline only).
 - Ready check vanish/race → clear state on `null` push, no stuck UI.
 - Auto-accept fires only while `playerResponse === "None"`; a manual decline is never overridden (guard lives in main).
 - Timer `isInfinite` → hide countdown. Role unassigned → defaults + "role pending" hint. Enemy hidden → general notes now, opponent-specific notes on reveal.
