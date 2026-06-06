@@ -2,6 +2,7 @@ import { rankScore } from "@renderer/lib/rank-format"
 import { type DisplayRole, displayRole } from "@renderer/lib/roles"
 import { useMemo } from "react"
 
+import { matchNotes } from "@/shared/lib/notes-match"
 import type {
 	BanListEntry,
 	ChampionStatic,
@@ -113,15 +114,11 @@ export function useChampSelect(): ChampSelectVM | null {
 			null
 		const opponent = laneOpponent ? champ(laneOpponent.championId) : null
 
-		// PHASE-1 GLUE — replaced by src/shared/lib/notes-match.ts in Phase 5
-		const matching = (notes ?? [])
-			.filter(
-				(n) =>
-					n.championId === me.championId &&
-					(n.opponentChampionId == null ||
-						enemyVisible.some((p) => p.championId === n.opponentChampionId)),
-			)
-			.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+		const matching = matchNotes(
+			notes ?? [],
+			me.championId,
+			enemyVisible.map((p) => p.championId),
+		)
 		const note = matching[0] ?? null
 
 		// PHASE-1 GLUE — replaced by src/shared/lib/spells.ts in Phase 6
