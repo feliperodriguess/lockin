@@ -457,20 +457,15 @@ Inside `session()`'s async IIFE, replace the block from `socket.subscribe<Gamefl
 						this.setChampSelect(data ? toChampSelectSession(data) : null)
 					})
 
-					// initial state AFTER subscribing so no transition is missed in between.
+					// initial state after subscribing; a later push reconciles any
+					// in-between transition (last-writer race, self-heals within ~1 WS tick).
 					// ready-check + session 404 while idle (verified live) → null.
-					const phase = await this.fetchJson<GameflowPhase>(
-						"/lol-gameflow/v1/gameflow-phase",
-						credentials,
-					)
-					const readyCheck = await this.fetchJson<RawReadyCheck>(
-						"/lol-matchmaking/v1/ready-check",
-						credentials,
-					)
-					const champSelect = await this.fetchJson<RawChampSelectSession>(
-						"/lol-champ-select/v1/session",
-						credentials,
-					)
+					const [phase, readyCheck, champSelect] = await Promise.all([
+						this.fetchJson<GameflowPhase>("/lol-gameflow/v1/gameflow-phase", credentials),
+						this.fetchJson<RawReadyCheck>("/lol-matchmaking/v1/ready-check", credentials),
+						this.fetchJson<RawChampSelectSession>("/lol-champ-select/v1/session", credentials),
+					])
+					if (settled) return // client died during the GETs — emit nothing on a dead session
 
 					this.setConnected(true)
 					this.setPhase(phase ?? "None")
@@ -485,15 +480,20 @@ In `finish()` (the session cleanup), add credential + timer cleanup after `settl
 				this.resetAutoAccept()
 ```
 
-Delete the now-unused direct `createHttp1Request` block that fetched the initial phase (replaced by `fetchJson` above).
+(The replace above already removes the former direct `createHttp1Request` initial-phase GET; `createHttp1Request` stays imported because `fetchJson`/`request` use it.)
 
 - [ ] **Step 3: Add the private helpers (place after `setPhase`)**
 
 ```ts
-	/** GET that treats any non-ok response (404 while idle) as null. */
+	/** GET that treats non-ok (404 while idle) and transport hiccups as null. */
 	private async fetchJson<T>(url: string, credentials: Credentials): Promise<T | null> {
-		const response = await createHttp1Request({ method: "GET", url }, credentials)
-		return response.ok ? response.json<T>() : null
+		try {
+			const response = await createHttp1Request({ method: "GET", url }, credentials)
+			return response.ok ? response.json<T>() : null
+		} catch (error) {
+			console.warn(`[lcu] GET ${url} failed:`, error)
+			return null // transient transport failure must not kill the session — WS close decides
+		}
 	}
 
 	private async request(method: "POST", url: string): Promise<void> {
@@ -516,11 +516,16 @@ Delete the now-unused direct `createHttp1Request` block that fetched the initial
 	private handleReadyCheck(readyCheck: ReadyCheck | null): void {
 		if (readyCheck?.state !== "InProgress") {
 			this.resetAutoAccept() // check over/gone → next pop is a fresh cycle
-		} else if (readyCheck.playerResponse === "Declined") {
-			this.aaDeclined = true // decline observed (either surface) is final for this cycle
-			this.cancelAutoAcceptTimer()
-		} else if (readyCheck.playerResponse === "None") {
-			this.maybeScheduleAutoAccept()
+		} else {
+			// transition INTO InProgress = a new pop; flags/timers never leak across
+			// cycles even if no null/Invalid push separated them (back-to-back pops)
+			if (this.snapshot.readyCheck?.state !== "InProgress") this.resetAutoAccept()
+			if (readyCheck.playerResponse === "Declined") {
+				this.aaDeclined = true // decline observed (either surface) is final for this cycle
+				this.cancelAutoAcceptTimer()
+			} else if (readyCheck.playerResponse === "None") {
+				this.maybeScheduleAutoAccept()
+			}
 		}
 		this.setReadyCheck(readyCheck)
 	}
@@ -657,6 +662,8 @@ Add to the `api` object:
 
 Note the consequence: ready-check/champ-select previews from the dev switcher now require the **force-fake** toggle (real channels win the merge). Expected per spec §3.2 — not a regression.
 
+Second consequence (D12 framing, flagged in plan review): once `onChampSelect` is real, `HomePage` renders the **full champ-select rail** from a live client in this phase — real session (teams/picks/bans/timer) composited with **fake** DDragon/notes/banlist/ranks until Phases 4–6. Fallback-safe by D15, by design, not a regression. The morning checklist item is "eyeball the real champ-select rail (real session + fake static data)", not just the timer.
+
 - [ ] **Step 3: Typecheck + format**
 
 Run: `pnpm typecheck && pnpm format`
@@ -698,6 +705,8 @@ node scripts/cdp.mjs eval 'window.api.setSettings({ autoAccept: true, autoAccept
 cat ~/Library/Application\ Support/lockin/config.json
 ```
 Expected: returned object and disk file both show `autoAccept: true`, `autoAcceptDelayMs: 1500`.
+
+(Before the first boot of this smoke run: `rm -f ~/Library/Application\ Support/lockin/config.json` — the existing file holds only the Phase-0 scaffold's stale `"data": {}` key, which electron-store never prunes; deleting lets the typed store re-seed clean defaults.)
 
 - [ ] **Step 3: Restart persistence**
 
