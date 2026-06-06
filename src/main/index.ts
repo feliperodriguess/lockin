@@ -11,6 +11,11 @@ import "./store"
 import { startLcuService, stopLcuService } from "./lcu"
 import { createTray } from "./tray"
 
+// CDP endpoint for the overnight verification harness (scripts/cdp.mjs). DEV only.
+if (is.dev) {
+	app.commandLine.appendSwitch("remote-debugging-port", "9223")
+}
+
 function createWindow(): void {
 	const mainWindow = new BrowserWindow({
 		width: 1320,
