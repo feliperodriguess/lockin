@@ -41,11 +41,15 @@ function subscribeWithSnapshot<T>(
 // settings + ready-check + champ-select). getApi() in the renderer merges
 // this over the fake bridge — real keys win.
 const api: Partial<Api> = {
+	acceptReadyCheck: () => ipcRenderer.invoke(IPC.ACCEPT_READY_CHECK),
+	declineReadyCheck: () => ipcRenderer.invoke(IPC.DECLINE_READY_CHECK),
 	getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
 	setSettings: (partial) => ipcRenderer.invoke(IPC.SETTINGS_SET, partial),
 	onLcuStatus: (cb) =>
 		subscribeWithSnapshot(IPC.LCU_STATUS, cb, (s) => ({ connected: s.connected })),
 	onGameflowPhase: (cb) => subscribeWithSnapshot(IPC.LCU_PHASE, cb, (s) => ({ phase: s.phase })),
+	onReadyCheck: (cb) => subscribeWithSnapshot(IPC.LCU_READY_CHECK, cb, (s) => s.readyCheck),
+	onChampSelect: (cb) => subscribeWithSnapshot(IPC.LCU_CHAMP_SELECT, cb, (s) => s.champSelect),
 }
 
 if (process.contextIsolated) {
