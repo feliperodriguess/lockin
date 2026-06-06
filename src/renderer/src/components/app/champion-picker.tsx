@@ -7,9 +7,34 @@ import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { Input } from "@renderer/components/ui/input"
 import { cn } from "@renderer/lib/utils"
 import { ChevronDown, Search, X } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import type { DDragonBundle } from "@/shared/types"
+
+// Dropdown sizing constants (px). The panel = search block + scrollable list; the
+// list height is bounded by DROPDOWN_MAX_H on tall windows and shrinks to fit on short ones.
+const DROPDOWN_MAX_H = 232 // list max height when there is ample room
+const DROPDOWN_MIN_H = 96 // never shrink the list below this; it scrolls instead
+const DROPDOWN_GAP = 6 // offset between trigger and panel
+const DROPDOWN_HEADER_H = 47 // search block above the list (p-2 + 30px input)
+const VIEWPORT_MARGIN = 12 // breathing room from the bounding edge
+
+// Walks up to the nearest scrollable ancestor and returns its viewport rect, so the
+// dropdown can be bounded by it (the note-editor drawer scrolls, and its footer marks
+// the bottom of that scroll area). Falls back to the full viewport.
+function scrollableAncestorRect(el: HTMLElement): { top: number; bottom: number } {
+	let node = el.parentElement
+	while (node) {
+		// Match on the overflow style itself (not live overflow) so a scroll region that
+		// isn't currently overflowing — e.g. the drawer form above its footer — still bounds us.
+		if (/(auto|scroll|overlay)/.test(getComputedStyle(node).overflowY)) {
+			const r = node.getBoundingClientRect()
+			return { top: r.top, bottom: r.bottom }
+		}
+		node = node.parentElement
+	}
+	return { top: 0, bottom: window.innerHeight }
+}
 
 interface ChampionPickerProps {
 	value: number | null
@@ -35,6 +60,13 @@ export function ChampionPicker({
 	const [open, setOpen] = useState(false)
 	const [q, setQ] = useState("")
 	const ref = useRef<HTMLDivElement>(null)
+	// Viewport-aware placement so the dropdown never clips at small window heights
+	// (e.g. inside the note-editor drawer at the 500px min height): open upward when
+	// there is more room above, and cap the panel height to the space available.
+	const [placement, setPlacement] = useState<{ dir: "down" | "up"; maxH: number }>({
+		dir: "down",
+		maxH: DROPDOWN_MAX_H,
+	})
 
 	// click-outside close
 	useEffect(() => {
@@ -44,6 +76,39 @@ export function ChampionPicker({
 		document.addEventListener("mousedown", h)
 		return () => document.removeEventListener("mousedown", h)
 	}, [])
+
+	// Measure available space around the trigger whenever the dropdown opens, and on
+	// resize/scroll while open, to choose direction + a non-clipping max height. Bounds
+	// come from the nearest scrollable ancestor (e.g. the note-editor drawer's form, whose
+	// bottom is the footer) clamped to the viewport — so the panel never hides under a
+	// sticky footer or runs off-screen at the 500px min window height.
+	useLayoutEffect(() => {
+		if (!open) return
+		const recompute = () => {
+			const el = ref.current
+			if (!el) return
+			const rect = el.getBoundingClientRect()
+			const bounds = scrollableAncestorRect(el)
+			const topBound = Math.max(bounds.top, 0) + VIEWPORT_MARGIN
+			const bottomBound = Math.min(bounds.bottom, window.innerHeight) - VIEWPORT_MARGIN
+			// room for the *list* = panel space minus the search header above it
+			const below = bottomBound - rect.bottom - DROPDOWN_GAP - DROPDOWN_HEADER_H
+			const above = rect.top - topBound - DROPDOWN_GAP - DROPDOWN_HEADER_H
+			const openUp = below < DROPDOWN_MIN_H && above > below
+			const room = openUp ? above : below
+			setPlacement({
+				dir: openUp ? "up" : "down",
+				maxH: Math.max(DROPDOWN_MIN_H, Math.min(DROPDOWN_MAX_H, Math.floor(room))),
+			})
+		}
+		recompute()
+		window.addEventListener("resize", recompute)
+		window.addEventListener("scroll", recompute, true)
+		return () => {
+			window.removeEventListener("resize", recompute)
+			window.removeEventListener("scroll", recompute, true)
+		}
+	}, [open])
 
 	// Sorted champion list excluding banned ids
 	const allChamps = Object.values(bundle.championsByKey)
@@ -118,8 +183,8 @@ export function ChampionPicker({
 			{open && (
 				<div
 					className="absolute left-0 right-0 z-50 bg-ink-900 border border-[var(--stroke-strong)] rounded-md shadow-[var(--shadow-lg)] overflow-hidden"
-					// dynamic: top offset depends on trigger height
-					style={{ top: h + 6 }}
+					// dynamic: anchor below the trigger, or above it when space is tight
+					style={placement.dir === "up" ? { bottom: h + DROPDOWN_GAP } : { top: h + DROPDOWN_GAP }}
 				>
 					{/* search */}
 					<div className="p-2 border-b border-[var(--stroke-default)]">
@@ -139,7 +204,8 @@ export function ChampionPicker({
 					</div>
 
 					{/* list */}
-					<div className="max-h-[232px] overflow-y-auto p-1">
+					{/* dynamic: max height bounded to the space available in the viewport */}
+					<div className="overflow-y-auto p-1" style={{ maxHeight: placement.maxH }}>
 						{list.length === 0 && (
 							<p className="py-[14px] text-center text-[12px] text-paper-400">No champions match</p>
 						)}
