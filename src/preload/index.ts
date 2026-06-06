@@ -49,6 +49,7 @@ const api: Partial<Api> = {
 	deleteNote: (id) => ipcRenderer.invoke(IPC.NOTES_DELETE, id),
 	getBanList: () => ipcRenderer.invoke(IPC.BANLIST_GET),
 	setBanList: (entries) => ipcRenderer.invoke(IPC.BANLIST_SET, entries),
+	getRanksForPuuids: (puuids) => ipcRenderer.invoke(IPC.RANK_GET_FOR_PUUIDS, puuids),
 	getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
 	setSettings: (partial) => ipcRenderer.invoke(IPC.SETTINGS_SET, partial),
 	onLcuStatus: (cb) =>

@@ -4,7 +4,7 @@ import { IPC } from "@/shared/constants"
 import type { AppSettings, BanListEntry, MatchupNote } from "@/shared/types"
 
 import { getDDragonBundle } from "./ddragon"
-import { acceptReadyCheck, declineReadyCheck, getLcuSnapshot } from "./lcu"
+import { acceptReadyCheck, declineReadyCheck, getLcuSnapshot, getRanksForPuuids } from "./lcu"
 import {
 	deleteNote,
 	getBanList,
@@ -33,3 +33,5 @@ ipcMain.handle(IPC.NOTES_DELETE, (_event, id: string) => deleteNote(id))
 
 ipcMain.handle(IPC.BANLIST_GET, () => getBanList())
 ipcMain.handle(IPC.BANLIST_SET, (_event, entries: BanListEntry[]) => setBanList(entries))
+
+ipcMain.handle(IPC.RANK_GET_FOR_PUUIDS, (_event, puuids: string[]) => getRanksForPuuids(puuids))

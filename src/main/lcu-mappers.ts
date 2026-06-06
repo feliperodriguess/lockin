@@ -2,6 +2,7 @@ import type {
 	ChampSelectAction,
 	ChampSelectPlayer,
 	ChampSelectSession,
+	RankInfo,
 	ReadyCheck,
 } from "@/shared/types"
 
@@ -89,6 +90,22 @@ function toAction(raw: RawAction): ChampSelectAction {
 		isInProgress: raw.isInProgress ?? false,
 		pickTurn: raw.pickTurn ?? 0,
 		type: raw.type ?? "",
+	}
+}
+
+export interface RawRankedStats {
+	queueMap?: Record<string, { tier?: string; division?: string; leaguePoints?: number }>
+}
+
+/** Spike-verified (docs/spikes/2026-06-06-lcu-teammate-ranks.md): empty tier = unranked → null. */
+export function toRankInfo(raw: RawRankedStats): RankInfo | null {
+	const solo = raw.queueMap?.RANKED_SOLO_5x5
+	if (!solo?.tier) return null
+	return {
+		tier: solo.tier,
+		division: solo.division ?? "NA",
+		lp: solo.leaguePoints ?? 0,
+		queueType: "RANKED_SOLO_5x5",
 	}
 }
 

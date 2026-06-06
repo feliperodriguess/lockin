@@ -13,13 +13,16 @@ import {
 	DISCONNECTED_SNAPSHOT,
 	type GameflowPhase,
 	type LcuSnapshot,
+	type RankInfo,
 	type ReadyCheck,
 } from "@/shared/types"
 
 import {
 	type RawChampSelectSession,
+	type RawRankedStats,
 	type RawReadyCheck,
 	toChampSelectSession,
+	toRankInfo,
 	toReadyCheck,
 } from "./lcu-mappers"
 import { getSettings } from "./store"
@@ -274,6 +277,27 @@ class LcuService {
 		this.snapshot = { ...this.snapshot, champSelect }
 		this.emit(IPC.LCU_CHAMP_SELECT, champSelect)
 	}
+
+	/** §6.5: per-puuid failures → null — ranks degrade, never block champ select. */
+	async getRanksForPuuids(puuids: string[]): Promise<Record<string, RankInfo | null>> {
+		const out: Record<string, RankInfo | null> = {}
+		const credentials = this.credentials
+		const targets = puuids.filter(Boolean)
+		if (!credentials) {
+			for (const puuid of targets) out[puuid] = null
+			return out
+		}
+		await Promise.all(
+			targets.map(async (puuid) => {
+				const raw = await this.fetchJson<RawRankedStats>(
+					`/lol-ranked/v1/ranked-stats/${puuid}`,
+					credentials,
+				)
+				out[puuid] = raw ? toRankInfo(raw) : null
+			}),
+		)
+		return out
+	}
 }
 
 function sleep(ms: number): Promise<void> {
@@ -306,4 +330,11 @@ export async function acceptReadyCheck(): Promise<void> {
 export async function declineReadyCheck(): Promise<void> {
 	if (!service) throw new Error("LCU service not started")
 	await service.declineReadyCheck()
+}
+
+export async function getRanksForPuuids(
+	puuids: string[],
+): Promise<Record<string, RankInfo | null>> {
+	if (!service) return Object.fromEntries(puuids.filter(Boolean).map((p) => [p, null]))
+	return service.getRanksForPuuids(puuids)
 }
