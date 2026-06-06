@@ -2,21 +2,17 @@ import { rankScore } from "@renderer/lib/rank-format"
 import { type DisplayRole, displayRole } from "@renderer/lib/roles"
 import { useMemo } from "react"
 
+import { suggestBans } from "@/shared/lib/bans"
 import { matchNotes } from "@/shared/lib/notes-match"
-import type {
-	BanListEntry,
-	ChampionStatic,
-	MatchupNote,
-	RankInfo,
-	SummonerSpellStatic,
-} from "@/shared/types"
+import { recommendSpells } from "@/shared/lib/spells"
+import type { ChampionStatic, MatchupNote, RankInfo, SummonerSpellStatic } from "@/shared/types"
 
 import { useBanList, useDDragon, useNotes, useSettings, useTeamRanks } from "./use-data"
 import { useChampSelectSession } from "./use-lcu"
 
 export interface SpellRec {
 	pair: [SummonerSpellStatic, SummonerSpellStatic] | null
-	source: "pinned" | "default"
+	source: "pinned" | "heuristic"
 	rolePending: boolean
 }
 export interface BanRowVM {
@@ -55,17 +51,6 @@ export interface ChampSelectVM {
 	ranksAvailable: boolean
 	mismatch: boolean
 }
-
-/* PHASE-1 GLUE — replaced by src/shared/lib/spells.ts in Phase 6 */
-const DEFAULT_SECOND_SPELL: Record<string, number> = {
-	jungle: 11, // Smite
-	top: 12, // Teleport
-	middle: 12, // Teleport
-	bottom: 7, // Heal
-	utility: 14, // Ignite
-	"": 14, // Ignite
-}
-const FLASH = 4
 
 export function useChampSelect(): ChampSelectVM | null {
 	const session = useChampSelectSession()
@@ -121,40 +106,28 @@ export function useChampSelect(): ChampSelectVM | null {
 		)
 		const note = matching[0] ?? null
 
-		// PHASE-1 GLUE — replaced by src/shared/lib/spells.ts in Phase 6
+		// pinned pre-validated against DDragon (§6.1: unresolvable pin → heuristic)
 		const pinned = note?.pinnedSpells
 		const pinnedValid = !!(pinned && spell(pinned[0]) && spell(pinned[1]))
-		const pairIds: [number, number] = pinnedValid
-			? pinned
-			: [FLASH, DEFAULT_SECOND_SPELL[me.assignedPosition] ?? 14]
-		const s0 = spell(pairIds[0])
-		const s1 = spell(pairIds[1])
+		const rec = recommendSpells({
+			assignedPosition: me.assignedPosition,
+			pinnedSpells: pinnedValid ? pinned : undefined,
+		})
+		const s0 = spell(rec.pair[0])
+		const s1 = spell(rec.pair[1])
 		const spells: SpellRec = {
 			pair: s0 && s1 ? [s0, s1] : null,
-			source: pinnedValid ? "pinned" : "default",
-			rolePending,
+			source: rec.source,
+			rolePending: rec.rolePending,
 		}
 
-		// PHASE-1 GLUE — replaced by src/shared/lib/bans.ts in Phase 6
-		const bannedIds = new Set([...session.bans.myTeamBans, ...session.bans.theirTeamBans])
-		const pickedIds = new Set(
-			[...session.myTeam, ...session.theirTeam].map((p) => p.championId).filter((id) => id > 0),
-		)
-		const visibleEnemyIds = new Set(enemyVisible.map((p) => p.championId))
-		const rows: BanRowVM[] = [...(banlist ?? [])]
-			.sort((a, b) => a.priority - b.priority)
-			.map((e: BanListEntry) => ({
-				championId: e.championId,
-				champion: champ(e.championId),
-				reason: e.reason,
-				status: bannedIds.has(e.championId)
-					? ("banned" as const)
-					: pickedIds.has(e.championId)
-						? ("picked" as const)
-						: ("open" as const),
-				threat: visibleEnemyIds.has(e.championId),
-			}))
-			.sort((a, b) => Number(b.threat) - Number(a.threat))
+		const rows: BanRowVM[] = suggestBans(banlist ?? [], session).entries.map((row) => ({
+			championId: row.entry.championId,
+			champion: champ(row.entry.championId),
+			reason: row.entry.reason,
+			status: row.status,
+			threat: row.threat,
+		}))
 
 		const team: TeamRowVM[] = session.myTeam.map((p) => ({
 			cellId: p.cellId,
