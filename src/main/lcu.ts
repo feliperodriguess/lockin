@@ -8,7 +8,21 @@ import {
 } from "league-connect"
 
 import { IPC } from "@/shared/constants"
-import { DISCONNECTED_SNAPSHOT, type GameflowPhase, type LcuSnapshot } from "@/shared/types"
+import {
+	type ChampSelectSession,
+	DISCONNECTED_SNAPSHOT,
+	type GameflowPhase,
+	type LcuSnapshot,
+	type ReadyCheck,
+} from "@/shared/types"
+
+import {
+	type RawChampSelectSession,
+	type RawReadyCheck,
+	toChampSelectSession,
+	toReadyCheck,
+} from "./lcu-mappers"
+import { getSettings } from "./store"
 
 const PROCESS_POLL_MS = 2500 // league-connect's default cadence for process scans
 const WS_RETRY_MS = 1000
@@ -27,6 +41,11 @@ class LcuService {
 	private running = false
 	private snapshot: LcuSnapshot = { ...DISCONNECTED_SNAPSHOT }
 	private endSession: (() => void) | null = null
+	private credentials: Credentials | null = null
+	// per-ready-check-cycle auto-accept state (PRD §6.4: a decline is final)
+	private aaDeclined = false
+	private aaFired = false
+	private aaTimer: NodeJS.Timeout | null = null
 
 	constructor(private emit: Emit) {}
 
@@ -78,6 +97,8 @@ class LcuService {
 				if (settled) return
 				settled = true
 				this.endSession = null
+				this.credentials = null
+				this.resetAutoAccept()
 				watcher?.stop()
 				ws?.close()
 				if (error) reject(error)
@@ -100,19 +121,31 @@ class LcuService {
 					socket.on("close", () => finish())
 					// log only — a 'close' always follows; without a listener Node throws
 					socket.on("error", (error) => console.error("[lcu] ws error:", error))
+					this.credentials = credentials
 					socket.subscribe<GameflowPhase>("/lol-gameflow/v1/gameflow-phase", (data) => {
 						this.setPhase(data ?? "None")
 					})
+					socket.subscribe<RawReadyCheck>("/lol-matchmaking/v1/ready-check", (data) => {
+						this.handleReadyCheck(data ? toReadyCheck(data) : null)
+					})
+					socket.subscribe<RawChampSelectSession>("/lol-champ-select/v1/session", (data) => {
+						this.setChampSelect(data ? toChampSelectSession(data) : null)
+					})
 
-					// initial phase AFTER subscribing so no transition is missed in between
-					const response = await createHttp1Request(
-						{ method: "GET", url: "/lol-gameflow/v1/gameflow-phase" },
-						credentials,
-					)
-					const phase = response.json<GameflowPhase>()
+					// initial state after subscribing; a later push reconciles any
+					// in-between transition (last-writer race, self-heals within ~1 WS tick).
+					// ready-check + session 404 while idle (verified live) → null.
+					const [phase, readyCheck, champSelect] = await Promise.all([
+						this.fetchJson<GameflowPhase>("/lol-gameflow/v1/gameflow-phase", credentials),
+						this.fetchJson<RawReadyCheck>("/lol-matchmaking/v1/ready-check", credentials),
+						this.fetchJson<RawChampSelectSession>("/lol-champ-select/v1/session", credentials),
+					])
+					if (settled) return // client died during the GETs — emit nothing on a dead session
 
 					this.setConnected(true)
-					this.setPhase(phase)
+					this.setPhase(phase ?? "None")
+					this.handleReadyCheck(readyCheck ? toReadyCheck(readyCheck) : null)
+					this.setChampSelect(champSelect ? toChampSelectSession(champSelect) : null)
 
 					watcher = new LeagueClient(credentials, { pollInterval: PROCESS_POLL_MS })
 					watcher.on("disconnect", () => finish())
@@ -126,10 +159,17 @@ class LcuService {
 
 	private setConnected(connected: boolean): void {
 		if (this.snapshot.connected === connected) return
-		this.snapshot = connected ? { ...this.snapshot, connected } : { ...DISCONNECTED_SNAPSHOT } // disconnect resets phase + live state
+		const prev = this.snapshot
+		this.snapshot = connected ? { ...this.snapshot, connected } : { ...DISCONNECTED_SNAPSHOT }
 		console.log(`[lcu] status: ${connected ? "connected" : "disconnected"}`)
 		this.emit(IPC.LCU_STATUS, { connected })
-		if (!connected) this.emit(IPC.LCU_PHASE, { phase: this.snapshot.phase })
+		if (!connected) {
+			// disconnect resets phase + live state in the renderer too
+			this.resetAutoAccept()
+			if (prev.phase !== "None") this.emit(IPC.LCU_PHASE, { phase: this.snapshot.phase })
+			if (prev.readyCheck !== null) this.emit(IPC.LCU_READY_CHECK, null)
+			if (prev.champSelect !== null) this.emit(IPC.LCU_CHAMP_SELECT, null)
+		}
 	}
 
 	private setPhase(phase: GameflowPhase): void {
@@ -137,6 +177,102 @@ class LcuService {
 		this.snapshot = { ...this.snapshot, phase }
 		console.log(`[lcu] phase: ${phase}`)
 		this.emit(IPC.LCU_PHASE, { phase })
+	}
+
+	/** GET that treats non-ok (404 while idle) and transport hiccups as null. */
+	private async fetchJson<T>(url: string, credentials: Credentials): Promise<T | null> {
+		try {
+			const response = await createHttp1Request({ method: "GET", url }, credentials)
+			return response.ok ? response.json<T>() : null
+		} catch (error) {
+			console.warn(`[lcu] GET ${url} failed:`, error)
+			return null // transient transport failure must not kill the session — WS close decides
+		}
+	}
+
+	private async request(method: "POST", url: string): Promise<void> {
+		if (!this.credentials) throw new Error("LCU not connected")
+		const response = await createHttp1Request({ method, url }, this.credentials)
+		if (!response.ok) throw new Error(`LCU ${method} ${url} → ${response.status}`)
+	}
+
+	async acceptReadyCheck(): Promise<void> {
+		await this.request("POST", "/lol-matchmaking/v1/ready-check/accept")
+	}
+
+	async declineReadyCheck(): Promise<void> {
+		// the guard flips BEFORE the POST — even on request failure we never auto-accept after
+		this.aaDeclined = true
+		this.cancelAutoAcceptTimer()
+		await this.request("POST", "/lol-matchmaking/v1/ready-check/decline")
+	}
+
+	private handleReadyCheck(readyCheck: ReadyCheck | null): void {
+		if (readyCheck?.state !== "InProgress") {
+			this.resetAutoAccept() // check over/gone → next pop is a fresh cycle
+		} else {
+			// transition INTO InProgress = a new pop; flags/timers never leak across
+			// cycles even if no null/Invalid push separated them (back-to-back pops)
+			if (this.snapshot.readyCheck?.state !== "InProgress") this.resetAutoAccept()
+			if (readyCheck.playerResponse === "Declined") {
+				this.aaDeclined = true // decline observed (either surface) is final for this cycle
+				this.cancelAutoAcceptTimer()
+			} else if (readyCheck.playerResponse === "None") {
+				this.maybeScheduleAutoAccept()
+			}
+		}
+		this.setReadyCheck(readyCheck)
+	}
+
+	private maybeScheduleAutoAccept(): void {
+		if (this.aaTimer || this.aaFired || this.aaDeclined) return
+		const settings = getSettings()
+		if (!settings.autoAccept) return
+		this.aaTimer = setTimeout(
+			() => {
+				this.aaTimer = null
+				void this.fireAutoAccept()
+			},
+			Math.max(0, settings.autoAcceptDelayMs),
+		)
+	}
+
+	private async fireAutoAccept(): Promise<void> {
+		// revalidate EVERYTHING at fire time — never override a decline (PRD §6.4)
+		const readyCheck = this.snapshot.readyCheck
+		if (this.aaDeclined || this.aaFired || !getSettings().autoAccept) return
+		if (readyCheck?.state !== "InProgress" || readyCheck.playerResponse !== "None") return
+		this.aaFired = true
+		try {
+			await this.acceptReadyCheck()
+			console.log("[lcu] auto-accepted ready check")
+		} catch (error) {
+			this.aaFired = false // a later push may reschedule if the check is still live
+			console.error("[lcu] auto-accept failed:", error)
+		}
+	}
+
+	private cancelAutoAcceptTimer(): void {
+		if (this.aaTimer) clearTimeout(this.aaTimer)
+		this.aaTimer = null
+	}
+
+	private resetAutoAccept(): void {
+		this.cancelAutoAcceptTimer()
+		this.aaDeclined = false
+		this.aaFired = false
+	}
+
+	private setReadyCheck(readyCheck: ReadyCheck | null): void {
+		if (readyCheck === null && this.snapshot.readyCheck === null) return
+		this.snapshot = { ...this.snapshot, readyCheck }
+		this.emit(IPC.LCU_READY_CHECK, readyCheck)
+	}
+
+	private setChampSelect(champSelect: ChampSelectSession | null): void {
+		if (champSelect === null && this.snapshot.champSelect === null) return
+		this.snapshot = { ...this.snapshot, champSelect }
+		this.emit(IPC.LCU_CHAMP_SELECT, champSelect)
 	}
 }
 
@@ -160,4 +296,14 @@ export function stopLcuService(): void {
 
 export function getLcuSnapshot(): LcuSnapshot {
 	return service?.getSnapshot() ?? { ...DISCONNECTED_SNAPSHOT }
+}
+
+export async function acceptReadyCheck(): Promise<void> {
+	if (!service) throw new Error("LCU service not started")
+	await service.acceptReadyCheck()
+}
+
+export async function declineReadyCheck(): Promise<void> {
+	if (!service) throw new Error("LCU service not started")
+	await service.declineReadyCheck()
 }
