@@ -37,9 +37,12 @@ function subscribeWithSnapshot<T>(
 	}
 }
 
-// Real channels land here phase-by-phase (Phase 2: status/phase pushes).
-// getApi() in the renderer merges this over the fake bridge — real keys win.
+// Real channels land here phase-by-phase (Phase 2: status/phase; Phase 3:
+// settings + ready-check + champ-select). getApi() in the renderer merges
+// this over the fake bridge — real keys win.
 const api: Partial<Api> = {
+	getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
+	setSettings: (partial) => ipcRenderer.invoke(IPC.SETTINGS_SET, partial),
 	onLcuStatus: (cb) =>
 		subscribeWithSnapshot(IPC.LCU_STATUS, cb, (s) => ({ connected: s.connected })),
 	onGameflowPhase: (cb) => subscribeWithSnapshot(IPC.LCU_PHASE, cb, (s) => ({ phase: s.phase })),
