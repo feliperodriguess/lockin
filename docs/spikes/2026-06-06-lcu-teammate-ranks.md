@@ -13,12 +13,12 @@ given the champ-select session exposes `myTeam[].puuid`?
 **Yes.** `GET /lol-ranked/v1/ranked-stats/{puuid}` returns the full ranked payload for
 **arbitrary** puuids, not just the local player:
 
-| Probe | Result |
-|---|---|
-| Self (`current-ranked-stats`) | 200 — GOLD IV, 96 LP |
-| Self (by-puuid) | 200 — identical payload |
-| **Other player 1** (friend puuid from `/lol-chat/v1/friends`) | 200 — `queueMap.RANKED_SOLO_5x5 = { tier: "GOLD", division: "IV", leaguePoints: 3, isProvisional: false }` |
-| **Other player 2** (friend puuid, unranked) | 200 — `{ tier: "", division: "NA", leaguePoints: 0 }` |
+| Probe | puuid | Result |
+|---|---|---|
+| Self (`current-ranked-stats`) | `21126cd9-4102-502e-b9ab-4023315523c6` | 200 — GOLD IV, 96 LP |
+| Self (by-puuid) | same | 200 — identical payload |
+| **Other player 1** ("Malkinho", friend puuid from `/lol-chat/v1/friends`) | `0025a82b-a624-5d72-be51-435b9f9c6c32` | 200 — `queueMap.RANKED_SOLO_5x5 = { tier: "GOLD", division: "IV", leaguePoints: 3, isProvisional: false }` |
+| **Other player 2** ("Loyola", friend puuid, unranked) | `01994359-2948-5df2-b553-1687a49ca401` | 200 — `{ tier: "", division: "NA", leaguePoints: 0 }` |
 
 ## Payload mapping → `RankInfo` (PRD §7)
 

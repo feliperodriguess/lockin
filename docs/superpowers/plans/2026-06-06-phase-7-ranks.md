@@ -52,6 +52,13 @@ describe("rankScore (§6.5 ordinal scoring)", () => {
 	it("normalizes apex divisions (MASTER NA == MASTER I)", () => {
 		expect(rankScore(rank("MASTER", "NA"))).toBe(rankScore(rank("MASTER", "I")))
 		expect(rankScore(rank("MASTER", "NA"))).toBeGreaterThan(rankScore(rank("DIAMOND", "I")))
+		expect(rankScore(rank("GRANDMASTER", "IV"))).toBe(rankScore(rank("GRANDMASTER")))
+	})
+
+	it("scores EMERALD in the post-2023 ladder (between PLATINUM and DIAMOND)", () => {
+		expect(rankScore(rank("EMERALD", "IV"))).toBe(20)
+		expect(rankScore(rank("EMERALD", "IV"))).toBeGreaterThan(rankScore(rank("PLATINUM", "I")))
+		expect(rankScore(rank("DIAMOND", "IV"))).toBeGreaterThan(rankScore(rank("EMERALD", "I")))
 	})
 
 	it("unknown division scores as the tier floor", () => {
@@ -110,6 +117,9 @@ import type { RankInfo } from "@/shared/types"
  * = 39) so deltas are comparable. Unranked/unknown → -1 and excluded from the
  * spread. Apex tiers (MASTER+) have no real division — the LCU reports "I" or
  * "NA" — so they normalize to the tier's top step. Pure + deterministic.
+ *
+ * Supersedes the design §4 shorthand signatures: rankScore takes the whole
+ * RankInfo (not tier+div), and the flag helper is singular `flagMismatch`.
  */
 
 const TIER_ORDER = [
@@ -157,7 +167,7 @@ export function flagMismatch(ranks: readonly (RankInfo | null)[], threshold: num
 - [ ] **Step 4: Run, watch it pass**
 
 Run: `pnpm test`
-Expected: all green (24 prior + rank specs).
+Expected: all green (all prior engine specs + the new rank specs).
 
 - [ ] **Step 5: Typecheck + format, commit**
 
