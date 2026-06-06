@@ -68,10 +68,10 @@ Replace the comment line `// pushes → LcuProvider context (never into the Quer
 	// answers from lcu:getSnapshot. Subscribers must not assume sync delivery.
 ```
 
-- [ ] **Step 4: Typecheck**
+- [ ] **Step 4: Typecheck + format**
 
-Run: `pnpm typecheck`
-Expected: clean exit, no errors.
+Run: `pnpm typecheck && pnpm format`
+Expected: both clean (re-stage if format rewrites).
 
 - [ ] **Step 5: Commit**
 
@@ -263,10 +263,10 @@ Design notes the implementer must preserve:
 - **`finish()` is idempotent** (`settled` flag) — WS `close` and watcher `disconnect` race on client quit; both call it.
 - The phase event `data` is cast loosely on purpose: unknown future phases (e.g. `"TerminatedInError"`) flow through as strings; the renderer's phase→screen mapping defaults to idle for anything unrecognized.
 
-- [ ] **Step 2: Typecheck**
+- [ ] **Step 2: Typecheck + format**
 
-Run: `pnpm typecheck`
-Expected: clean.
+Run: `pnpm typecheck && pnpm format`
+Expected: both clean (re-stage if format rewrites).
 
 - [ ] **Step 3: Commit**
 
@@ -325,10 +325,10 @@ app.on("will-quit", () => {
 })
 ```
 
-- [ ] **Step 3: Typecheck**
+- [ ] **Step 3: Typecheck + format**
 
-Run: `pnpm typecheck`
-Expected: clean.
+Run: `pnpm typecheck && pnpm format`
+Expected: both clean (re-stage if format rewrites).
 
 - [ ] **Step 4: Commit**
 
@@ -406,10 +406,12 @@ if (process.contextIsolated) {
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [ ] **Step 2: Typecheck + format**
 
-Run: `pnpm typecheck`
-Expected: clean.
+Run: `pnpm typecheck && pnpm format`
+Expected: both clean — biome will reflow the ~101-char `onLcuStatus` line; re-stage after it does.
+
+Note: after this task, fake `readyCheck`/`champSelect` channels remain live alongside the real status/phase (progressive merge). The fake ticker keeps emitting a fresh champ-select session every second in DEV — that churn is intended Phase 2 behavior, not a defect; it resolves when those channels go real (Phases 3–4).
 
 - [ ] **Step 3: Commit**
 
@@ -488,8 +490,10 @@ Expected in order:
 1. `[lcu] waiting for League client…`
 2. `[lcu] client found (port NNNNN)`
 3. `[lcu] status: connected`
-4. `[lcu] phase: <current phase, likely None or Lobby>`
-5. Renderer `CONSOLE` lines containing `[lcu-provider] {type: 'status', connected: true}` and the matching phase event.
+4. `[lcu] phase: <X>` — **only if** the client's live phase ≠ `None`. `setPhase` de-dupes against the `"None"` seed, so an idle client correctly produces **no** main-side phase line; that is a PASS, not a failure. The phase still must surface in the renderer via #5.
+5. Renderer `CONSOLE` lines containing `[lcu-provider] {type: 'status', connected: true}` and a phase event (`[lcu-provider] {type: 'phase', phase: '<X>'}` — from the push, or from the snapshot delivery when the phase never changed).
+
+Note: per-second fake champ-select emissions in the logs are the still-merged fake bridge ticking (see Task 4 note) — ignore them.
 
 - [ ] **Step 3: Kill the dev app**
 
@@ -499,3 +503,5 @@ Stop the background process (SIGTERM to the pnpm dev process group). Confirm no 
 - [ ] **Step 4: Record results**
 
 Append a short "Phase 2 smoke evidence" section (log excerpts) to the morning report notes. If any expectation failed: STOP, debug with superpowers:systematic-debugging, fix, re-run, commit fixes individually.
+
+**Deliberately NOT exercised overnight:** the client-quit → Disconnected → reconnect transition (`setConnected(false)` reset + re-discovery loop). Exercising it means quitting Felipe's logged-in League client, which risks an interactive re-login and would torpedo live testing for all later phases. It goes on the morning live-verification checklist as a first-class item (quit client → expect `[lcu] status: disconnected`, phase reset push, Disconnected screen, `[lcu] waiting for League client…`; reopen → reconnect + Idle). The renderer's disconnected rendering itself is already Phase-1-verified via the fake.
