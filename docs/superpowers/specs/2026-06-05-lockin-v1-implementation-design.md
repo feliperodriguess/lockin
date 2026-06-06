@@ -188,7 +188,7 @@ Phases 2–8 run unattended in one overnight session. Decisions locked with Feli
 
 | # | Decision | Ruling |
 |---|---|---|
-| E1 | Live-LCU verification | **Build + checklist.** Implement against the LCU API spec (league-connect source verified in `node_modules`, not from memory). Verify via typecheck, vitest, and Playwright on the fake bridge. Real-client paths get a step-by-step `docs/superpowers/2026-06-06-live-verification-checklist.md` run by Felipe in the morning |
+| E1 | Live-LCU verification | **Build + checklist, plus live smoke tests.** Implement against the LCU API spec (league-connect source verified in `node_modules`, not from memory). Verify via typecheck, vitest, and Playwright on the fake bridge. Felipe left the League client **open and logged in** for the run: connection/status/phase paths and read-only LCU GETs (incl. the Phase 7 rank spike) get smoke-tested against the real client overnight. Queue-dependent flows (ready check, champ select) still go on the step-by-step `docs/superpowers/2026-06-06-live-verification-checklist.md` for the morning |
 | E2 | Packaging | **Skipped.** Phase 8 reduces to the final visual polish pass + PRD §14 compliance checklist. No `.dmg`, no signing/notarization — deferred until Felipe is back |
 | E3 | Git | Stay on `integration`, granular commits per logical change, no merge to `main` until Felipe reviews |
 | E4 | Review gates | Self-review per phase: plan written (writing-plans) → adversarial plan review → implement → verify (`typecheck`/`format`/`test`/Playwright) → multi-agent code review → fix confirmed findings. Morning report summarizes everything for Felipe's review |
