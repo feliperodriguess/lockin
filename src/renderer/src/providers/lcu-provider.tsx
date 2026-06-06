@@ -45,11 +45,18 @@ export function LcuProvider({ children }: { children: React.ReactNode }): React.
 
 	// subscribe exactly once (spec §3.3)
 	useEffect(() => {
+		const log = (e: LcuEvent): void => {
+			// DEV-only breadcrumb for live smoke tests; high-churn events excluded
+			if (import.meta.env.DEV && (e.type === "status" || e.type === "phase")) {
+				console.log("[lcu-provider]", e)
+			}
+			dispatch(e)
+		}
 		const offs = [
-			api.onLcuStatus(({ connected }) => dispatch({ type: "status", connected })),
-			api.onGameflowPhase(({ phase }) => dispatch({ type: "phase", phase })),
-			api.onReadyCheck((readyCheck) => dispatch({ type: "readyCheck", readyCheck })),
-			api.onChampSelect((champSelect) => dispatch({ type: "champSelect", champSelect })),
+			api.onLcuStatus(({ connected }) => log({ type: "status", connected })),
+			api.onGameflowPhase(({ phase }) => log({ type: "phase", phase })),
+			api.onReadyCheck((readyCheck) => log({ type: "readyCheck", readyCheck })),
+			api.onChampSelect((champSelect) => log({ type: "champSelect", champSelect })),
 		]
 		return () => {
 			for (const off of offs) off()
