@@ -74,7 +74,9 @@ export interface ChampSelectSession {
 }
 
 export interface ReadyCheck {
-	state: "Invalid" | "InProgress"
+	// LCU emits more states (EveryoneReady, PartyNotReady, Error, …); we consume
+	// the two named ones and pass the rest through (renderer keys on playerResponse)
+	state: "Invalid" | "InProgress" | (string & {})
 	playerResponse: "None" | "Accepted" | "Declined"
 	timer: number // seconds elapsed since the check appeared
 	declinerIds: number[]
