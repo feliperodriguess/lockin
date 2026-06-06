@@ -8,6 +8,7 @@ import icon from "~/resources/icon.png"
 import "./ipc"
 import "./store"
 
+import { startLcuService, stopLcuService } from "./lcu"
 import { createTray } from "./tray"
 
 function createWindow(): void {
@@ -58,6 +59,12 @@ app.whenReady().then(() => {
 
 	createWindow()
 
+	startLcuService((channel, payload) => {
+		for (const w of BrowserWindow.getAllWindows()) {
+			w.webContents.send(channel, payload)
+		}
+	})
+
 	app.on("activate", () => {
 		// On macOS it's common to re-create a window in the app when the
 		// dock icon is clicked and there are no other windows open.
@@ -69,4 +76,8 @@ app.on("window-all-closed", () => {
 	if (process.platform !== "darwin") {
 		app.quit()
 	}
+})
+
+app.on("will-quit", () => {
+	stopLcuService()
 })
