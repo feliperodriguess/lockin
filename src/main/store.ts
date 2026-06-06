@@ -71,3 +71,15 @@ export function deleteNote(id: string): void {
 		listNotes().filter((n) => n.id !== id),
 	)
 }
+
+export function getBanList(): BanListEntry[] {
+	// order is guaranteed by renumber-on-set below — exactly mirrors the fake (no sort)
+	return store.get("banlist").map((e) => ({ ...e }))
+}
+
+export function setBanList(entries: BanListEntry[]): BanListEntry[] {
+	// renumber 1..n in given order — matches the fake bridge's contract
+	const next = entries.map((e, i) => ({ ...e, priority: i + 1 }))
+	store.set("banlist", next)
+	return next
+}

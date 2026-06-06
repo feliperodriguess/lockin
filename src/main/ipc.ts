@@ -1,11 +1,19 @@
 import { ipcMain } from "electron"
 
 import { IPC } from "@/shared/constants"
-import type { AppSettings, MatchupNote } from "@/shared/types"
+import type { AppSettings, BanListEntry, MatchupNote } from "@/shared/types"
 
 import { getDDragonBundle } from "./ddragon"
 import { acceptReadyCheck, declineReadyCheck, getLcuSnapshot } from "./lcu"
-import { deleteNote, getSettings, listNotes, setSettings, upsertNote } from "./store"
+import {
+	deleteNote,
+	getBanList,
+	getSettings,
+	listNotes,
+	setBanList,
+	setSettings,
+	upsertNote,
+} from "./store"
 
 // ALL invoke handlers live here (CLAUDE.md). Channels not yet implemented
 // still answer from the renderer's fake bridge via the progressive merge.
@@ -22,3 +30,6 @@ ipcMain.handle(IPC.DDRAGON_GET_BUNDLE, () => getDDragonBundle())
 ipcMain.handle(IPC.NOTES_LIST, () => listNotes())
 ipcMain.handle(IPC.NOTES_UPSERT, (_event, note: Partial<MatchupNote>) => upsertNote(note))
 ipcMain.handle(IPC.NOTES_DELETE, (_event, id: string) => deleteNote(id))
+
+ipcMain.handle(IPC.BANLIST_GET, () => getBanList())
+ipcMain.handle(IPC.BANLIST_SET, (_event, entries: BanListEntry[]) => setBanList(entries))
