@@ -9,6 +9,10 @@ export function useDDragon() {
 		queryFn: () => api.getDDragonBundle(),
 		staleTime: Infinity,
 		gcTime: Infinity,
+		// real network behind IPC (unlike the local-IPC queries the global
+		// retry:false targets) — transient failures must not freeze the bundle
+		retry: 3,
+		retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30_000),
 	})
 }
 

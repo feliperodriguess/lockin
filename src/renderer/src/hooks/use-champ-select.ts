@@ -79,9 +79,11 @@ export function useChampSelect(): ChampSelectVM | null {
 	const { data: ranks } = useTeamRanks(myPuuids)
 
 	return useMemo(() => {
-		if (!session || !bundle) return null
-		const champ = (id: number): ChampionStatic | null => bundle.championsByKey[id] ?? null
-		const spell = (id: number): SummonerSpellStatic | null => bundle.spellsByKey[id] ?? null
+		// bundle-optional: with no bundle (first-run offline) every lookup misses and
+		// the rail renders D15 fallback tiles — champ select is never blocked
+		if (!session) return null
+		const champ = (id: number): ChampionStatic | null => bundle?.championsByKey[id] ?? null
+		const spell = (id: number): SummonerSpellStatic | null => bundle?.spellsByKey[id] ?? null
 
 		const me = session.myTeam.find((p) => p.cellId === session.localPlayerCellId)
 		if (!me) return null
@@ -89,11 +91,18 @@ export function useChampSelect(): ChampSelectVM | null {
 		const role = displayRole(me.assignedPosition)
 		const rolePending = !role
 
-		// sub-phase from actions: any in-progress ban → ban (PHASE-1 GLUE, Phase 4 refines)
+		// sub-phase: FINALIZATION → pick; PLANNING → ban (bans come first);
+		// BAN_PICK → ban while any ban action is in progress (real sessions mix turns)
 		const flat = session.actions.flat()
-		const subPhase: "ban" | "pick" = flat.some((a) => a.type === "ban" && a.isInProgress)
-			? "ban"
-			: "pick"
+		const timerPhase = session.timer.phase
+		const subPhase: "ban" | "pick" =
+			timerPhase === "FINALIZATION"
+				? "pick"
+				: timerPhase === "PLANNING"
+					? "ban"
+					: flat.some((a) => a.type === "ban" && a.isInProgress)
+						? "ban"
+						: "pick"
 
 		const enemyVisible = session.theirTeam.filter((p) => p.championId > 0)
 		const enemyHidden = enemyVisible.length === 0
