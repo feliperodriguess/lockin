@@ -12,18 +12,14 @@ import { createTray } from "./tray"
 
 function createWindow(): void {
 	const mainWindow = new BrowserWindow({
-		width: 1080,
-		height: 740,
-		minWidth: 850,
-		minHeight: 500,
+		width: 1320,
+		height: 860,
+		minWidth: 1000,
+		minHeight: 600,
 		show: false,
 		autoHideMenuBar: true,
 		backgroundColor: "#17141f",
 		titleBarStyle: "hiddenInset",
-		trafficLightPosition: {
-			x: 20,
-			y: 20,
-		},
 		...(process.platform === "linux" ? { icon } : {}),
 		webPreferences: {
 			preload: join(__dirname, "../preload/index.js"),
