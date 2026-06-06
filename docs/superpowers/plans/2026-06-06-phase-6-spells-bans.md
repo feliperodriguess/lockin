@@ -6,6 +6,8 @@
 
 **Architecture:** Both engines live in `src/shared/lib/` (zero deps, types only, deterministic — design §4). `recommendSpells` returns spell **keys**; the hook resolves keys → DDragon statics and pre-validates pinned resolvability (the bundle is renderer-held; §6.1's "spell not resolvable → fail gracefully" stays at the seam). `suggestBans` takes the banlist + the full session and derives banned/picked/visible sets itself (robust to `session.bans` lagging behind completed ban actions). Banlist accessors mirror the fake's contract (priority renumbered 1..n on set).
 
+**Deferred (explicit):** §6.1's parenthetical archetype fallbacks (middle→Ignite for assassins, utility→Exhaust) and the `ChampionStatic.tags` input the spec reserves for them are **deliberately out of scope** — the v1 engine emits role primaries only (identical to the Phase-1 glue; no §6.1 acceptance box needs tags). Also: enemy-hover threat lift (`championPickIntent`) is spec-aligned per §6.3 "hover/pick" but the real LCU hides enemy intent, so that branch is exercised only by fixtures/tests — the morning checklist verifies pick-based threat lift only.
+
 **Layout finding (consumer-verified):** `SpellPair` renders `pair[0]` first and maps D/F key hints from the `layout` prop itself (`"DF"` → first icon labeled D; `"FD"` → first labeled F). Under **both** layouts `pair[0]` is the user's flash-key slot, so the engine always puts Flash at `pair[0]` and takes **no layout input** — §6.1's "placement respects the D/F setting" is satisfied at render. `HeaderStrip` shows "Your pick" off `source === "pinned"`; the VM's `source` union widens from `"pinned" | "default"` to `"pinned" | "heuristic"` (only the `"pinned"` literal is consumed).
 
 ---
@@ -89,6 +91,8 @@ Expected: FAIL — `spells.ts` does not exist.
 
 export const FLASH = 4
 
+// §6.1's archetype-aware secondary fallbacks (mid assassins→Ignite, support→Exhaust)
+// are deliberately out of scope for the deterministic v1 table — role primaries only.
 const SECOND_BY_ROLE: Record<string, number> = {
 	jungle: 11, // Smite
 	top: 12, // Teleport
@@ -345,7 +349,8 @@ git commit -m "feat(shared): bans engine + vitest spec (§6.3)"
 
 ```ts
 export function getBanList(): BanListEntry[] {
-	return [...store.get("banlist")].sort((a, b) => a.priority - b.priority)
+	// order is guaranteed by renumber-on-set below — exactly mirrors the fake (no sort)
+	return store.get("banlist").map((e) => ({ ...e }))
 }
 
 export function setBanList(entries: BanListEntry[]): BanListEntry[] {
@@ -510,10 +515,14 @@ Run (background): `ELECTRON_ENABLE_LOGGING=1 pnpm dev > /tmp/lockin-phase6-smoke
 
 - [ ] **Step 2: Banlist CRUD via CDP**
 
+Precondition (cache semantics): run this **on a fresh boot, before any settings-page visit** — `useBanList` has `staleTime: Infinity`, and the direct `window.api.setBanList` below bypasses the mutation's invalidation, so Step 3's screenshot relies on settings mounting the query for the first time *after* the set.
+
+First, **snapshot the pre-existing list** — never assume it is empty and never destroy real data:
+
 ```bash
-node scripts/cdp.mjs eval 'window.api.getBanList()'
+node scripts/cdp.mjs eval 'window.api.getBanList()' | tee /tmp/lockin-banlist-before.json
 ```
-Expected: `[]` (real store).
+Expected: whatever the real store holds (likely `[]` on this install).
 
 ```bash
 node scripts/cdp.mjs eval 'window.api.setBanList([{ championId: 114, priority: 9, reason: "smoke" }, { championId: 122, priority: 1 }])'
@@ -536,12 +545,14 @@ node scripts/cdp.mjs shot /tmp/lockin-phase6-settings.png
 ```
 Read the PNG — Match group (auto-accept toggle off + delay), Champ-select group (D/F, threshold), ban editor showing Fiora (smoke) + Darius rows with real icons.
 
-- [ ] **Step 4: Cleanup — MANDATORY**
+- [ ] **Step 4: Cleanup — MANDATORY, restore the snapshot**
+
+Restore exactly what Step 2 captured (substitute the snapshot contents):
 
 ```bash
-node scripts/cdp.mjs eval 'window.api.setBanList([]).then(() => window.api.getBanList())'
+node scripts/cdp.mjs eval "window.api.setBanList($(cat /tmp/lockin-banlist-before.json)).then(() => window.api.getBanList())"
 ```
-Expected: `[]` — leave Felipe's store empty as found. (Settings were not touched in this smoke.)
+Expected: identical to the Step-2 snapshot — Felipe's store left as found. (Settings keys untouched throughout this smoke.)
 
 - [ ] **Step 5: Kill, record evidence**
 
