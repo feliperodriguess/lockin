@@ -99,16 +99,24 @@ export interface RawRankedStats {
 
 export type RankedQueue = "RANKED_SOLO_5x5" | "RANKED_FLEX_SR"
 
+/** Stable Riot LCU queue IDs (catalog: GET /lol-game-queues/v1/queues). */
+export const RANKED_QUEUE_ID = {
+	SOLO_DUO: 420,
+	FLEX: 440,
+} as const
+
 export interface RawGameflowSession {
 	gameData?: { queue?: { id?: number; type?: string } }
 }
 
 /** Queue-aware rank: show the rank for the queue this lobby is actually in —
  *  a flex lobby shows flex rank, everything else (solo/duo, draft, normals)
- *  shows solo/duo rank. Queue id 440 = flex (the `type` string is a backup). */
+ *  shows solo/duo rank. Keys off the queue id; the `type` string is a backup. */
 export function rankedQueueOf(session: RawGameflowSession | null): RankedQueue {
 	const queue = session?.gameData?.queue
-	if (queue?.id === 440 || queue?.type === "RANKED_FLEX_SR") return "RANKED_FLEX_SR"
+	if (queue?.id === RANKED_QUEUE_ID.FLEX || queue?.type === "RANKED_FLEX_SR") {
+		return "RANKED_FLEX_SR"
+	}
 	return "RANKED_SOLO_5x5"
 }
 
