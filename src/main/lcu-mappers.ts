@@ -97,15 +97,31 @@ export interface RawRankedStats {
 	queueMap?: Record<string, { tier?: string; division?: string; leaguePoints?: number }>
 }
 
-/** Spike-verified (docs/spikes/2026-06-06-lcu-teammate-ranks.md): empty tier = unranked → null. */
-export function toRankInfo(raw: RawRankedStats): RankInfo | null {
-	const solo = raw.queueMap?.RANKED_SOLO_5x5
-	if (!solo?.tier) return null
+export type RankedQueue = "RANKED_SOLO_5x5" | "RANKED_FLEX_SR"
+
+export interface RawGameflowSession {
+	gameData?: { queue?: { id?: number; type?: string } }
+}
+
+/** Queue-aware rank: show the rank for the queue this lobby is actually in —
+ *  a flex lobby shows flex rank, everything else (solo/duo, draft, normals)
+ *  shows solo/duo rank. Queue id 440 = flex (the `type` string is a backup). */
+export function rankedQueueOf(session: RawGameflowSession | null): RankedQueue {
+	const queue = session?.gameData?.queue
+	if (queue?.id === 440 || queue?.type === "RANKED_FLEX_SR") return "RANKED_FLEX_SR"
+	return "RANKED_SOLO_5x5"
+}
+
+/** Reads the chosen queue's entry from the ranked-stats payload (which carries
+ *  every queue). Spike-verified: empty tier = unranked → null. */
+export function toRankInfo(raw: RawRankedStats, queue: RankedQueue): RankInfo | null {
+	const entry = raw.queueMap?.[queue]
+	if (!entry?.tier) return null
 	return {
-		tier: solo.tier,
-		division: solo.division ?? "NA",
-		lp: solo.leaguePoints ?? 0,
-		queueType: "RANKED_SOLO_5x5",
+		tier: entry.tier,
+		division: entry.division ?? "NA",
+		lp: entry.leaguePoints ?? 0,
+		queueType: queue,
 	}
 }
 

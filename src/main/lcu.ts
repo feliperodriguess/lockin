@@ -19,8 +19,10 @@ import {
 
 import {
 	type RawChampSelectSession,
+	type RawGameflowSession,
 	type RawRankedStats,
 	type RawReadyCheck,
+	rankedQueueOf,
 	toChampSelectSession,
 	toRankInfo,
 	toReadyCheck,
@@ -287,13 +289,20 @@ class LcuService {
 			for (const puuid of targets) out[puuid] = null
 			return out
 		}
+		// queue-aware: read the lobby's queue once, then show each player's rank
+		// for THAT queue (flex lobby → flex rank). Falls back to solo if unknown.
+		const gameflow = await this.fetchJson<RawGameflowSession>(
+			"/lol-gameflow/v1/session",
+			credentials,
+		)
+		const queue = rankedQueueOf(gameflow)
 		await Promise.all(
 			targets.map(async (puuid) => {
 				const raw = await this.fetchJson<RawRankedStats>(
 					`/lol-ranked/v1/ranked-stats/${puuid}`,
 					credentials,
 				)
-				out[puuid] = raw ? toRankInfo(raw) : null
+				out[puuid] = raw ? toRankInfo(raw, queue) : null
 			}),
 		)
 		return out
