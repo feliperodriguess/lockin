@@ -110,7 +110,7 @@ export function NotesPage(): React.JSX.Element {
 					)}
 				</Card>
 			) : (
-				<div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-2 auto-rows-[minmax(186px,auto)] gap-[14px] pb-1">
+				<div className="-mr-6 grid min-h-0 flex-1 auto-rows-[220px] grid-cols-[repeat(auto-fill,minmax(340px,1fr))] content-start gap-[14px] overflow-y-auto pb-1 pr-6">
 					{sorted.map((n) => (
 						<NoteCard
 							key={n.id}

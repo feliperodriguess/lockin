@@ -73,9 +73,11 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 
 			<footer className="border-t border-(--stroke-default) pt-3 flex flex-col gap-[6px]">
 				<ConnectionIndicator connected={connected} />
-				<span className="font-mono text-[10px] font-normal leading-none text-paper-400 pl-4 whitespace-nowrap">
-					{connected ? "LCU · 127.0.0.1" : "retrying every 2s…"}
-				</span>
+				{connected && (
+					<span className="font-mono text-[10px] font-normal leading-none text-paper-400 pl-4 whitespace-nowrap">
+						LCU · 127.0.0.1
+					</span>
+				)}
 			</footer>
 		</aside>
 	)

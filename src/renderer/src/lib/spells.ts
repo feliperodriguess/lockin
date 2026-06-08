@@ -1,0 +1,26 @@
+export const SPELL = {
+	CLEANSE: 1,
+	EXHAUST: 3,
+	FLASH: 4,
+	GHOST: 6,
+	HEAL: 7,
+	SMITE: 11,
+	TELEPORT: 12,
+	CLARITY: 13,
+	IGNITE: 14,
+	BARRIER: 21,
+} as const
+
+// Pin only the standard summoner spells.
+export const PINNABLE_SPELL_KEYS = new Set<number>([
+	SPELL.CLEANSE,
+	SPELL.EXHAUST,
+	SPELL.FLASH,
+	SPELL.GHOST,
+	SPELL.HEAL,
+	SPELL.SMITE,
+	SPELL.TELEPORT,
+	SPELL.CLARITY,
+	SPELL.IGNITE,
+	SPELL.BARRIER,
+])

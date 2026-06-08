@@ -1,5 +1,6 @@
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { Input } from "@renderer/components/ui/input"
+import { championLane, ROLE_ABBR } from "@renderer/lib/roles"
 import { cn } from "@renderer/lib/utils"
 import { ChevronDown, Search, X } from "lucide-react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
@@ -196,36 +197,41 @@ export function ChampionPicker({
 						{list.length === 0 && (
 							<p className="py-[14px] text-center text-[12px] text-paper-400">No champions match</p>
 						)}
-						{list.map((c) => (
-							<button
-								key={c.key}
-								type="button"
-								onClick={() => {
-									onChange(c.key)
-									setOpen(false)
-									setQ("")
-								}}
-								className={cn(
-									"flex items-center gap-[9px] w-full px-2 py-[6px]",
-									"border-none cursor-pointer rounded-sm text-left text-paper-100",
-									"transition-colors duration-(--dur-base) ease-(--ease-standard)",
-									value === c.key ? "bg-(--accent-bg)" : "bg-transparent hover:bg-ink-800",
-								)}
-							>
-								<ChampionPortrait champion={c} version={version} size={26} />
-								<span
+						{list.map((c) => {
+							const lane = championLane(c.id)
+							return (
+								<button
+									key={c.key}
+									type="button"
+									onClick={() => {
+										onChange(c.key)
+										setOpen(false)
+										setQ("")
+									}}
 									className={cn(
-										"flex-1 text-[13px] font-medium leading-[1.2]",
-										value === c.key ? "text-accent" : "text-paper-100",
+										"flex items-center gap-[9px] w-full px-2 py-[6px]",
+										"border-none cursor-pointer rounded-sm text-left text-paper-100",
+										"transition-colors duration-(--dur-base) ease-(--ease-standard)",
+										value === c.key ? "bg-(--accent-bg)" : "bg-transparent hover:bg-ink-800",
 									)}
 								>
-									{c.name}
-								</span>
-								<span className="font-mono text-[9px] font-semibold tracking-[0.08em] text-paper-400">
-									{c.title}
-								</span>
-							</button>
-						))}
+									<ChampionPortrait champion={c} version={version} size={26} />
+									<span
+										className={cn(
+											"flex-1 text-[13px] font-medium leading-[1.2]",
+											value === c.key ? "text-accent" : "text-paper-100",
+										)}
+									>
+										{c.name}
+									</span>
+									{lane && (
+										<span className="font-mono text-[9px] font-semibold tracking-[0.08em] text-paper-400">
+											{ROLE_ABBR[lane]}
+										</span>
+									)}
+								</button>
+							)
+						})}
 					</div>
 				</div>
 			)}

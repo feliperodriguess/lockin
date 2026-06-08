@@ -1,6 +1,3 @@
-// settings.jsx:242-335 — Settings page: scrollable column with header, Match group,
-// Champ select group, BanEditor, bottom spacer.
-
 import { Segmented } from "@renderer/components/app/segmented"
 import { SpellIcon } from "@renderer/components/game/spell-icon"
 import { BanEditor } from "@renderer/components/settings/ban-editor"
@@ -8,29 +5,28 @@ import { Group, Row } from "@renderer/components/settings/settings-rows"
 import { Switch } from "@renderer/components/ui/switch"
 import { useDDragon, useSetSettings, useSettings } from "@renderer/hooks/use-data"
 
+import { SPELL } from "../lib/spells"
+
 export function SettingsPage(): React.JSX.Element | null {
 	const { data: settings } = useSettings()
 	const { data: bundle } = useDDragon()
 	const setSettings = useSetSettings()
 
-	// Loading — data is local, resolves in one tick; render nothing until ready
 	if (!settings || !bundle) return null
 
 	const dLeft = settings.spellSlotLayout === "DF"
-	const flashSpell = bundle.spellsByKey[4] ?? null // SummonerFlash key=4
-	const teleportSpell = bundle.spellsByKey[12] ?? null // SummonerTeleport key=12
+	const flashSpell = bundle.spellsByKey[SPELL.FLASH] ?? null
+	const teleportSpell = bundle.spellsByKey[SPELL.TELEPORT] ?? null
 
 	return (
-		<div className="flex h-full flex-col gap-[22px] overflow-y-auto px-6 py-5">
-			{/* Header */}
-			<div className="flex flex-col gap-1">
-				<h1 className="m-0 text-[24px] font-semibold leading-[1.2] text-[var(--fg-1)]">Settings</h1>
-				<span className="font-mono text-[12px] font-normal leading-none text-[var(--fg-4)]">
-					Preferences · ban list
+		<div className="-mr-6 flex h-full flex-col gap-[22px] overflow-y-auto pr-6">
+			<header className="flex flex-col gap-1">
+				<h1 className="m-0 text-[24px] font-semibold leading-[1.2] text-(--fg-1)">Settings</h1>
+				<span className="font-mono text-[12px] font-normal leading-none text-(--fg-4)">
+					Preferences
 				</span>
-			</div>
+			</header>
 
-			{/* Match group */}
 			<Group label="Match">
 				<Row
 					title="Auto-accept ready check"
@@ -64,7 +60,6 @@ export function SettingsPage(): React.JSX.Element | null {
 				/>
 			</Group>
 
-			{/* Champ select group */}
 			<Group label="Champ select">
 				<Row
 					title="Summoner-spell keys"
@@ -114,10 +109,8 @@ export function SettingsPage(): React.JSX.Element | null {
 				/>
 			</Group>
 
-			{/* Ban list editor */}
 			<BanEditor />
 
-			{/* Bottom spacer */}
 			<div className="h-1" />
 		</div>
 	)

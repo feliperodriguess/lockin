@@ -11,6 +11,8 @@ import { useEffect, useState } from "react"
 
 import type { AppSettings, DDragonBundle, MatchupNote } from "@/shared/types"
 
+import { PINNABLE_SPELL_KEYS } from "../../lib/spells"
+
 interface NoteEditorProps {
 	note: MatchupNote | null
 	bundle: DDragonBundle
@@ -70,7 +72,9 @@ export function NoteEditor({
 		onClose()
 	}
 
-	const allSpells = Object.values(bundle.spellsByKey).sort((a, b) => a.key - b.key)
+	const allSpells = Object.values(bundle.spellsByKey)
+		.filter((s) => PINNABLE_SPELL_KEYS.has(s.key))
+		.sort((a, b) => a.key - b.key)
 
 	useEffect(() => {
 		const h = (e: KeyboardEvent) => {
