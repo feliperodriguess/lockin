@@ -43,6 +43,10 @@ Also available if ever needed: `.isProvisional` (PRD §6.5 mentions labeling pro
 - Caveat recorded: probed on patch 16.11/BR with friends' puuids (the closest live proxy for
   "arbitrary teammate" outside a queue). Morning checklist re-confirms with a real champ-select
   roster; if Riot ever locks this endpoint down, the fallback path is already wired.
-- **Product nuance for Felipe:** §6.5 scopes to solo queue, so flex-only players (currently
-  including Felipe himself) render as "Unranked". A flex fallback would be a post-v1 product
-  decision, not a bug.
+- **Queue-aware ranks (2026-06-07, commit `c43db45`):** the displayed rank now follows the
+  lobby's actual queue — a flex lobby shows flex rank, everything else (solo/duo, draft, normals)
+  shows solo/duo rank. `getRanksForPuuids` reads `/lol-gameflow/v1/session` once (`gameData.queue.id`:
+  440 = flex, else solo) and maps each player's rank from the matching `queueMap` key. So a flex
+  game now shows Felipe's GOLD IV instead of "Unranked". The full `queueMap` (every queue) is in
+  the same payload we already fetch — no extra per-player cost. Live confirmation of `queue.id == 440`
+  for a real flex lobby is on the verification checklist.

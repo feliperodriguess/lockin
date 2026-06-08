@@ -48,10 +48,14 @@
 
 > Lobby type matters: a solo bot game gives you 4 bots with no puuids — no rank data and no
 > mismatch flag is **correct** there. Use a co-op/PvP lobby with ranked humans to exercise the
-> rank render + mismatch flag. Reminder: your own account is flex-ranked only, so your row
-> correctly shows "Unranked" (§6.5 reads solo queue; see the spike doc).
+> rank render + mismatch flag.
+>
+> Ranks are now **queue-aware** (commit `c43db45`): the rank shown follows the lobby's queue —
+> a **flex** lobby shows flex rank, a **solo/duo** lobby shows solo rank. Since your account is
+> flex-ranked only, you'll see your **GOLD IV in a flex lobby** and "Unranked" in a solo lobby.
 
 - [ ] In champ select, your 5-player side shows ranks (or "Unranked"/— where missing); never blocks the rail.
+- [ ] **Queue-aware check:** in a **flex** ranked champ select, your own row shows your flex rank (GOLD IV), not "Unranked". (Confirms `gameData.queue.id == 440` maps to flex as expected.)
 - [ ] Mismatch flag appears when the lobby spread ≥ the configured sensitivity (test with Strict if your lobby is even).
 - [ ] Apex-tier players (Master+) show tier only, no division.
 
