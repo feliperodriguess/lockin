@@ -42,7 +42,7 @@ export interface ChampSelectPlayer {
 	assignedPosition: string // "top"|"jungle"|"middle"|"bottom"|"utility"|""
 	summonerId: number
 	puuid: string
-	gameName?: string // present in modern LCU payloads; §7 is "subset we consume" — confirm in Phase 4
+	gameName?: string // present in modern LCU payloads
 	spell1Id: number
 	spell2Id: number
 	team: number

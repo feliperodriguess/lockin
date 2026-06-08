@@ -1,5 +1,4 @@
 export const IPC = {
-	// Renderer → Main (invoke)
 	ACCEPT_READY_CHECK: "lcu:acceptReadyCheck",
 	DECLINE_READY_CHECK: "lcu:declineReadyCheck",
 	DDRAGON_GET_BUNDLE: "ddragon:getBundle",
@@ -11,10 +10,7 @@ export const IPC = {
 	BANLIST_GET: "banlist:get",
 	BANLIST_SET: "banlist:set",
 	RANK_GET_FOR_PUUIDS: "rank:getForPuuids",
-	// Renderer → Main (invoke, preload-internal — not part of the public Api;
-	// the bridge uses it to deliver current state on subscribe, matching the fake)
 	LCU_GET_SNAPSHOT: "lcu:getSnapshot",
-	// Main → Renderer (push)
 	LCU_STATUS: "lcu:status",
 	LCU_PHASE: "lcu:phase",
 	LCU_READY_CHECK: "lcu:readyCheck",
