@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **lockin** — an unofficial Electron companion for the League of Legends client. It reads the local League Client (LCU) API and surfaces matchup-aware help during champion select: spell recommendations, personal matchup notes, ban suggestions, ready-check auto-accept, and team rank diffs. No backend, no login — all user data is local; static data comes from Riot's Data Dragon CDN.
 
 - **`PRD.md`** is the source of truth for behavior, data models, IPC contract, and architecture. Read the relevant section before implementing a feature.
-- **`lockin-design-handoff/`** is the source of truth for all visuals: theme, screens, components, and states. Read `project/Lockin - Prototype.html` and the files it imports (`tokens.css`, the `*.jsx` parts) directly — match the visual output, don't copy the prototype's internal structure.
+- **Visuals:** the `lockin-design-handoff/` prototype was consumed during Phase 1 and removed. The implemented `src/renderer/` is now the source of truth for the look — theme tokens live in `src/renderer/src/global.css`; match the existing screens/components when extending the UI.
 
 ## Commands
 
@@ -55,8 +55,8 @@ Path aliases (tsconfig + vite): `@renderer/*` → `src/renderer/src/*`, `@/*` �
 - **No inline `style` objects for static values.** Style with Tailwind utility classes only (arbitrary values like `text-[13px]`/`tracking-[0.06em]` where exact values matter); conditional styling via `cn()` (clsx + tailwind-merge). A `style` prop is acceptable only for values computed at runtime from props/data (SVG dash offsets, data-driven colors, dynamic sizes).
 - **Use semantic HTML** — prefer `nav`, `main`, `section`, `header`, `button`, `ul`, `time`, `p`, `fieldset`/`legend`, etc. over div/span soup. When a richer accessible tag fits naturally, use it.
 - **Text inputs build on `ui/input.tsx`/`ui/textarea.tsx`** (shadcn-based) — don't hand-roll one-off inputs per screen.
-- **shadcn/ui** primitives live in `src/renderer/src/components/ui/` (style `base-vega`, lucide icons — see `components.json`). Some are already scaffolded; when you need another, pull it from shadcn (`pnpm dlx shadcn@latest add <component>`) and customize it to match the design handoff.
-- Tailwind v4 (CSS-first config in `src/renderer/src/global.css`, `@tailwindcss/vite` plugin). Theme tokens should follow `lockin-design-handoff/project/tokens.css`.
+- **shadcn/ui** primitives live in `src/renderer/src/components/ui/` (style `base-vega`, lucide icons — see `components.json`). Some are already scaffolded; when you need another, pull it from shadcn (`pnpm dlx shadcn@latest add <component>`) and customize it to match the existing design system.
+- Tailwind v4 (CSS-first config in `src/renderer/src/global.css`, `@tailwindcss/vite` plugin). Theme tokens are defined in `global.css` (ported from the original handoff during Phase 1).
 - Biome formats with tabs, 100-char lines, no semicolons (`asNeeded`) — let `pnpm format` handle style.
 
 ## Compliance constraints (PRD §14)

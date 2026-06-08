@@ -2,7 +2,7 @@
 
 > **Status:** Approved 2026-06-05 (brainstorm with Felipe).
 > **Scope:** Cross-cutting implementation decisions for all of v1. One implementation plan per phase gets written from this doc as each phase is reached, starting with Phase 1.
-> **Authority:** `PRD.md` governs behavior/data/IPC; `lockin-design-handoff/` governs visuals; this doc locks the implementation decisions that bridge them. Where this doc deviates from either, the deviation is explicit and marked **Δ**.
+> **Authority:** `PRD.md` governs behavior/data/IPC; the implemented `src/renderer/` governs visuals (the `lockin-design-handoff/` prototype that originally governed them was consumed in Phase 1 and removed); this doc locks the implementation decisions that bridge them. Where this doc deviates from either, the deviation is explicit and marked **Δ**.
 
 ## 1. Decisions log
 

@@ -1,5 +1,7 @@
 # Phase 1 — UI on Mock Data Implementation Plan
 
+> **Historical note (2026-06-07):** this plan references `lockin-design-handoff/`, which was the design prototype used as the visual source during Phase 1. It was consumed and **removed** once the UI was implemented — those paths no longer exist. The implemented `src/renderer/` is now the visual source of truth. Kept as-is below for the historical record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the entire lockin UI — shell + all six screens — running on a fake `window.api` bridge with typed fixtures and a dev state switcher, pixel-matched to `lockin-design-handoff/`, with zero LCU/network/persistence.

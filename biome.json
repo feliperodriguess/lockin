@@ -1,6 +1,6 @@
 {
 	"files": {
-		"includes": ["**", "!**/lockin-design-handoff", "!**/out", "!**/.playwright-mcp"]
+		"includes": ["**", "!**/out", "!**/.playwright-mcp"]
 	},
 	"css": {
 		"parser": {
