@@ -25,7 +25,7 @@ export function SpellIcon({
 	return (
 		<div
 			title={spell.name}
-			className="relative overflow-hidden shrink-0 bg-ink-800 border border-[var(--stroke-default)] rounded-xs"
+			className="relative overflow-hidden shrink-0 bg-ink-800 border border-(--stroke-default) rounded-xs"
 			// dynamic: width/height derived from size prop
 			style={{ width: size, height: size }}
 		>
@@ -42,7 +42,7 @@ export function SpellIcon({
 				</div>
 			)}
 			{keyHint && (
-				<span className="absolute bottom-[-1px] right-[-1px] px-[3px] py-[1px] bg-ink-950 rounded-tl-[4px] font-mono text-[8px] font-semibold leading-none text-accent">
+				<span className="absolute -bottom-px -right-px px-[3px] py-px bg-ink-950 rounded-tl-[4px] font-mono text-[8px] font-semibold leading-none text-accent">
 					{keyHint}
 				</span>
 			)}

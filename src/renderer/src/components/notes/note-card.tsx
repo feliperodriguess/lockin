@@ -1,6 +1,3 @@
-// components.jsx:8-253 — NoteTitle + NoteCard (full/compact variants).
-// bundle/version passed as props — no internal useDDragon (anti-pattern).
-
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { SpellPair } from "@renderer/components/game/spell-pair"
 import { Textarea } from "@renderer/components/ui/textarea"
@@ -91,8 +88,6 @@ export function NoteCard(props: NoteCardProps): React.JSX.Element {
 	)
 }
 
-/* ---------- full (library) ---------- */
-
 interface FullCardProps {
 	note: MatchupNote
 	bundle: DDragonBundle
@@ -104,7 +99,6 @@ interface FullCardProps {
 function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardProps) {
 	const [hover, setHover] = useState(false)
 
-	// Build spell pair from pinnedSpells
 	let spellPair: [SummonerSpellStatic, SummonerSpellStatic] | null = null
 	if (note.pinnedSpells && note.pinnedSpells.length === 2) {
 		const s0 = bundle.spellsByKey[note.pinnedSpells[0]] ?? null
@@ -120,8 +114,8 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 			onMouseLeave={() => setHover(false)}
 			className={cn(
 				"flex h-full w-full cursor-pointer flex-col gap-[11px] overflow-hidden rounded-md p-4 text-left",
-				"border border-[var(--stroke-default)]",
-				"transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+				"border border-(--stroke-default)",
+				"transition-colors duration-(--dur-base) ease-(--ease-standard)",
 				hover ? "bg-ink-800" : "bg-ink-850",
 			)}
 		>
@@ -132,12 +126,12 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 				<SquarePen
 					size={14}
 					className={cn(
-						"mt-[2px] shrink-0 transition-colors duration-[160ms]",
+						"mt-[2px] shrink-0 transition-colors duration-160",
 						hover ? "text-paper-200" : "text-paper-400",
 					)}
 				/>
 			</div>
-			<p className="m-0 flex-1 line-clamp-3 text-[13px] leading-[1.55] text-paper-200 [text-wrap:pretty]">
+			<p className="m-0 flex-1 line-clamp-3 text-[13px] leading-[1.55] text-paper-200 text-pretty">
 				{note.body}
 			</p>
 			<div className="flex items-center justify-between gap-2">
@@ -162,8 +156,6 @@ function FullCard({ note, bundle, version, spellSlotLayout, onClick }: FullCardP
 		</button>
 	)
 }
-
-/* ---------- compact (champ-select) ---------- */
 
 interface CompactCardProps {
 	note: MatchupNote
@@ -205,11 +197,11 @@ function CompactCard({ note, bundle, version, onSaveBody, saving = false }: Comp
 						"inline-flex items-center gap-[5px]",
 						"rounded-sm px-2 py-1",
 						"border text-[11px] font-medium leading-none",
-						"transition-all duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+						"transition-all duration-(--dur-base) ease-(--ease-standard)",
 						editing
-							? "border-transparent bg-[var(--accent-bg)] text-accent"
+							? "border-transparent bg-(--accent-bg) text-accent"
 							: hover
-								? "border-[var(--stroke-default)] bg-transparent text-paper-300"
+								? "border-(--stroke-default) bg-transparent text-paper-300"
 								: "border-transparent bg-transparent text-paper-300",
 						saving && "cursor-not-allowed opacity-50",
 					)}
@@ -227,7 +219,7 @@ function CompactCard({ note, bundle, version, onSaveBody, saving = false }: Comp
 					className="min-h-0 flex-1 resize-none text-[14px] leading-[1.6] text-paper-100"
 				/>
 			) : (
-				<p className="m-0 min-h-0 flex-1 overflow-y-auto text-[14.5px] leading-[1.62] tracking-[0.005em] [text-wrap:pretty] whitespace-pre-wrap text-paper-100">
+				<p className="m-0 min-h-0 flex-1 overflow-y-auto text-[14.5px] leading-[1.62] tracking-[0.005em] text-pretty whitespace-pre-wrap text-paper-100">
 					{note.body}
 				</p>
 			)}

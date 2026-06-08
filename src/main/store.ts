@@ -13,7 +13,6 @@ type StoreSchema = {
 	banlist: BanListEntry[]
 }
 
-// Single store under userData (PRD §3). Notes/banlist accessors land in Phases 5/6.
 export const store = new Store<StoreSchema>({
 	defaults: {
 		settings: DEFAULT_SETTINGS,
@@ -23,7 +22,6 @@ export const store = new Store<StoreSchema>({
 })
 
 export function getSettings(): AppSettings {
-	// spread over defaults so settings keys added in app updates are always present
 	return { ...DEFAULT_SETTINGS, ...store.get("settings") }
 }
 
@@ -34,8 +32,6 @@ export function setSettings(partial: Partial<AppSettings>): AppSettings {
 }
 
 export function listNotes(): MatchupNote[] {
-	// sorted copy — matches the fake bridge's contract (consumers re-sort only defensively);
-	// spreading also avoids handing out electron-store's internal array reference
 	return [...store.get("notes")].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 }
 
@@ -73,12 +69,10 @@ export function deleteNote(id: string): void {
 }
 
 export function getBanList(): BanListEntry[] {
-	// order is guaranteed by renumber-on-set below — exactly mirrors the fake (no sort)
 	return store.get("banlist").map((e) => ({ ...e }))
 }
 
 export function setBanList(entries: BanListEntry[]): BanListEntry[] {
-	// renumber 1..n in given order — matches the fake bridge's contract
 	const next = entries.map((e, i) => ({ ...e, priority: i + 1 }))
 	store.set("banlist", next)
 	return next

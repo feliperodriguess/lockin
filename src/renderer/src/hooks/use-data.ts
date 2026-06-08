@@ -58,7 +58,6 @@ export function useSetBanList() {
 
 export function useTeamRanks(puuids: string[]) {
 	return useQuery({
-		// sorted copy → stable cache key regardless of caller's puuid order
 		queryKey: ["ranks", ...[...puuids].sort()],
 		queryFn: () => api.getRanksForPuuids(puuids),
 		enabled: puuids.length > 0,

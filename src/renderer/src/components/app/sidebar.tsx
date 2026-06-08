@@ -1,5 +1,3 @@
-/* Sidebar — ported from app.jsx:223-349 */
-
 import { phaseSub } from "@renderer/lib/phase"
 import { cn } from "@renderer/lib/utils"
 import { useMatchRoute, useNavigate } from "@tanstack/react-router"
@@ -51,13 +49,11 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 	]
 
 	return (
-		<aside className="w-[198px] shrink-0 bg-ink-900 border-r border-[var(--stroke-default)] flex flex-col p-[14px_12px]">
-			{/* wordmark block */}
+		<aside className="w-[198px] shrink-0 bg-ink-900 border-r border-(--stroke-default) flex flex-col p-[14px_12px]">
 			<div className="px-2 pt-1 pb-4">
 				<Wordmark size={15} />
 			</div>
 
-			{/* nav items */}
 			<nav className="flex flex-col gap-[3px]">
 				{items.map((item) => (
 					<SidebarItem
@@ -73,11 +69,9 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 				))}
 			</nav>
 
-			{/* spacer */}
 			<div className="flex-1" />
 
-			{/* footer */}
-			<footer className="border-t border-[var(--stroke-default)] pt-3 flex flex-col gap-[6px]">
+			<footer className="border-t border-(--stroke-default) pt-3 flex flex-col gap-[6px]">
 				<ConnectionIndicator connected={connected} />
 				<span className="font-mono text-[10px] font-normal leading-none text-paper-400 pl-4 whitespace-nowrap">
 					{connected ? "LCU · 127.0.0.1" : "retrying every 2s…"}
@@ -114,9 +108,9 @@ function SidebarItem({
 			className={cn(
 				"region-no-drag relative flex items-center gap-[10px] w-full",
 				"px-[10px] py-[9px] rounded-sm cursor-pointer border text-left",
-				"transition-[background-color,color] duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+				"transition-[background-color,color] duration-(--dur-base) ease-(--ease-standard)",
 				active
-					? "bg-ink-800 border-[var(--stroke-default)] text-paper-100"
+					? "bg-ink-800 border-(--stroke-default) text-paper-100"
 					: "bg-transparent border-transparent text-paper-300 hover:bg-[rgba(255,255,255,0.03)]",
 			)}
 		>
@@ -127,7 +121,7 @@ function SidebarItem({
 
 			{icon}
 
-			<span className="flex-1 flex flex-col gap-[1px]">
+			<span className="flex-1 flex flex-col gap-px">
 				<span className="text-[13px] font-medium leading-[1.1]">{label}</span>
 				{sub && (
 					<span

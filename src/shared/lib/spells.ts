@@ -9,6 +9,7 @@
  */
 
 export const FLASH = 4
+const IGNITE = 14 // unknown/empty role fallback
 
 // §6.1's archetype-aware secondary fallbacks (mid assassins→Ignite, support→Exhaust)
 // are deliberately out of scope for the deterministic v1 table — role primaries only.
@@ -19,8 +20,6 @@ const SECOND_BY_ROLE: Record<string, number> = {
 	bottom: 7, // Heal
 	utility: 14, // Ignite
 }
-
-const IGNITE = 14 // unknown/empty role fallback
 
 export interface SpellRecommendation {
 	pair: [number, number]

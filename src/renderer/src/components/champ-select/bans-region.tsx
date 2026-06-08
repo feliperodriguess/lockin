@@ -1,15 +1,3 @@
-// champ-select-parts.jsx:399-513 — "Ban suggestions" region.
-//   BanRow per BanRowVM: portrait (dim when gone) + name (strikethrough+fg-3 when
-//   gone) + ThreatBadge (when threat && !enemyHidden) + reason line + status
-//   caption (Open=accent / Banned|Picked=fg-4). Visible-threat rows get a
-//   fail-tinted bg + border; gone rows fade to 0.42.
-//   The region's `right` slot shows "N/M gone".
-//   Pick phase collapses the whole region to a clickable "Ban phase complete ·
-//   N of your targets gone" card; collapse state lives here and flips when the
-//   sub-phase changes (pick → collapsed). The collapsed card and a chevron-up in
-//   the expanded header (pick phase only) both toggle it.
-//   Empty ban list → compact EmptyState + "Manage ban list" → /settings.
-
 import { Card } from "@renderer/components/app/card"
 import { EmptyState } from "@renderer/components/app/empty-state"
 import { Section } from "@renderer/components/champ-select/section"
@@ -39,9 +27,8 @@ export function BansRegion({
 	version,
 	grow,
 }: BansRegionProps): React.JSX.Element {
-	// collapse on the pick phase, expand on the ban phase (subPhase is referenced
-	// in the effect body → biome's exhaustive-deps autofix leaves it alone)
 	const [collapsed, setCollapsed] = useState(subPhase === "pick")
+
 	useEffect(() => {
 		setCollapsed(subPhase === "pick")
 	}, [subPhase])
@@ -106,7 +93,7 @@ function BanRow({
 			className={cn(
 				"flex items-center gap-[10px] rounded-sm border px-[9px] py-[7px]",
 				showThreat
-					? "border-[rgba(255,107,94,0.22)] bg-[var(--fail-bg)]"
+					? "border-[rgba(255,107,94,0.22)] bg-(--fail-bg)"
 					: "border-transparent bg-transparent",
 				gone && "opacity-[0.42]",
 			)}

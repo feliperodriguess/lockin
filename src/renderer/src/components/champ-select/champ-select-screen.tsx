@@ -1,10 +1,3 @@
-// champ-select.jsx:169-199 — the rail layout (the hero screen).
-// A two-column grid (left 1fr / right 314px) at cozy density (gap 14).
-//   left  = HeaderStrip + NotesRegion (grows to fill)
-//   right = ban phase ? TeamRegion (fixed) + BansRegion (grows)
-//                     : TeamRegion (grows) + BansRegion (fixed/collapsed)
-// All regions consume slices of the ChampSelectVM — never the raw session.
-
 import { BansRegion } from "@renderer/components/champ-select/bans-region"
 import { HeaderStrip } from "@renderer/components/champ-select/header-strip"
 import { NotesRegion } from "@renderer/components/champ-select/notes-region"

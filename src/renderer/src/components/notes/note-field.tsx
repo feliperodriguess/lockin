@@ -9,7 +9,6 @@ interface FieldProps {
 
 export function Field({ label, hint, req, children }: FieldProps) {
 	return (
-		// Using div so biome's noLabelWithoutControl doesn't fire on dynamic children
 		<div className="flex flex-col gap-[7px]">
 			<span className="flex items-center gap-[6px] font-mono text-[11px] font-medium leading-none tracking-[0.06em] uppercase text-paper-300">
 				{label}

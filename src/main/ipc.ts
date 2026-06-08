@@ -15,8 +15,6 @@ import {
 	upsertNote,
 } from "./store"
 
-// ALL invoke handlers live here (CLAUDE.md). Channels not yet implemented
-// still answer from the renderer's fake bridge via the progressive merge.
 ipcMain.handle(IPC.LCU_GET_SNAPSHOT, () => getLcuSnapshot())
 
 ipcMain.handle(IPC.SETTINGS_GET, () => getSettings())

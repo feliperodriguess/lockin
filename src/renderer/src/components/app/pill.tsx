@@ -1,10 +1,3 @@
-// Primitives.jsx:420-451 — Pill component.
-// Tones: neutral/accent/info/warn/fail — bg/fg pairs from prototype.
-// neutral: ink-800/paper-300; accent: --accent-bg/accent; info: --info-bg/info;
-// warn: --warn-bg/warn; fail: --fail-bg/fail.
-// Optional `dot` (5px circle) and `icon` (lucide component, 11px).
-// mono 600 10px uppercase tracking 0.06em, pill shape (radius 999).
-
 import { cn } from "@renderer/lib/utils"
 import type { LucideIcon } from "lucide-react"
 

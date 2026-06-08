@@ -37,9 +37,6 @@ function subscribeWithSnapshot<T>(
 	}
 }
 
-// Real channels land here phase-by-phase (Phase 2: status/phase; Phase 3:
-// settings + ready-check + champ-select). getApi() in the renderer merges
-// this over the fake bridge — real keys win.
 const api: Partial<Api> = {
 	acceptReadyCheck: () => ipcRenderer.invoke(IPC.ACCEPT_READY_CHECK),
 	declineReadyCheck: () => ipcRenderer.invoke(IPC.DECLINE_READY_CHECK),

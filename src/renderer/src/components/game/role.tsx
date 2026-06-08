@@ -51,7 +51,7 @@ export function RoleTag({ role, active }: RoleTagProps): React.JSX.Element {
 				"inline-flex items-center gap-[5px]",
 				"px-2 py-[3px] rounded-sm",
 				"font-mono text-[10px] font-semibold leading-none tracking-[0.08em]",
-				active ? "bg-[var(--accent-bg)] text-accent" : "bg-ink-800 text-paper-200",
+				active ? "bg-(--accent-bg) text-accent" : "bg-ink-800 text-paper-200",
 			)}
 		>
 			<RoleGlyph role={role} size={12} />

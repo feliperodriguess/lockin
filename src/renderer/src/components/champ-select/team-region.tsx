@@ -1,12 +1,3 @@
-// champ-select-parts.jsx:516-599 — "Your team" region (single-column rail).
-//   TeamRow per TeamRowVM: RoleGlyph (15, fg-4) + portrait (30, accent ring when
-//   it's you) + name (600/12.5, accent + " (you)" when you) + champion caption
-//   (mono 10, fg-4) + RankBadge sm — or an em-dash when the rank is null and it's
-//   not you (your own rank always shows). The region's `right` slot prefers the
-//   MismatchFlag, falling back to a neutral "Ranks unavailable" pill (WifiOff)
-//   when no teammate rank is available. Rows are centered when fixed, top-aligned
-//   when grown + scrolling.
-
 import { Pill } from "@renderer/components/app/pill"
 import { Section } from "@renderer/components/champ-select/section"
 import { MismatchFlag } from "@renderer/components/game/badges"
@@ -47,9 +38,7 @@ export function TeamRegion({
 				) : null
 			}
 		>
-			<ul
-				className={cn("flex flex-1 flex-col gap-[1px]", grow ? "justify-start" : "justify-center")}
-			>
+			<ul className={cn("flex flex-1 flex-col gap-px", grow ? "justify-start" : "justify-center")}>
 				{team.map((p) => (
 					<TeamRow key={p.cellId} p={p} version={version} />
 				))}
@@ -59,7 +48,6 @@ export function TeamRegion({
 }
 
 function TeamRow({ p, version }: { p: TeamRowVM; version: string }): React.JSX.Element {
-	// your own rank always renders; teammates show "—" when their rank is unknown
 	const showRank = p.rank != null || p.you
 	return (
 		<li className="flex items-center gap-[10px] px-1 py-[6px]">

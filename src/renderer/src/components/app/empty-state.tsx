@@ -1,10 +1,3 @@
-// Primitives.jsx:514-563 — EmptyState.
-// Icon tile: 60px (compact: 44px), ink-850 bg, border stroke-default, radius-lg.
-// `pulse` adds ccp-breathe animation (defined in global.css).
-// title: 500 15px (compact: 14px); line: 400 13px (compact: 12px); maxWidth 280.
-// Gap: 14 default, 10 compact. Padding: 36 default, 20 compact.
-// Icon passed as a lucide component (not rendered as 'name' string).
-
 import { cn } from "@renderer/lib/utils"
 import type { LucideIcon } from "lucide-react"
 
@@ -37,11 +30,10 @@ function EmptyState({
 				className,
 			)}
 		>
-			{/* icon tile */}
 			<div
 				className={cn(
 					"grid place-items-center shrink-0",
-					"bg-ink-850 border border-[var(--stroke-default)]",
+					"bg-ink-850 border border-(--stroke-default)",
 					"rounded-lg text-paper-300",
 					compact ? "size-[44px]" : "size-[60px]",
 					pulse && "ccp-breathe",
@@ -50,7 +42,6 @@ function EmptyState({
 				<Icon size={iconSize} strokeWidth={1.5} />
 			</div>
 
-			{/* text block */}
 			{(title || line) && (
 				<div className="flex flex-col gap-[5px] max-w-[280px]">
 					{title && (
@@ -66,7 +57,7 @@ function EmptyState({
 					{line && (
 						<p
 							className={cn(
-								"text-paper-300 leading-[1.5]",
+								"text-paper-300 leading-normal",
 								compact ? "text-[12px]" : "text-[13px]",
 							)}
 						>

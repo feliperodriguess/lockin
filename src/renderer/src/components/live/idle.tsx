@@ -1,6 +1,3 @@
-// live-view.jsx:93-161 — Idle state (connected, no active game flow).
-// Hero card + recent notes grid (real NoteCard full variant).
-
 import { Card } from "@renderer/components/app/card"
 import { EmptyState } from "@renderer/components/app/empty-state"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
@@ -18,20 +15,17 @@ export function Idle(): React.JSX.Element {
 
 	const version = bundle?.version ?? ""
 	const spellSlotLayout = settings?.spellSlotLayout ?? "DF"
-
-	// 4 most-recently-updated notes — listNotes() already sorts desc; re-sort defensively
 	const recent = [...notes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4)
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-[18px]">
-			{/* hero card */}
 			<Card className="flex items-center justify-between gap-4 p-5">
 				<div className="flex flex-col gap-[10px]">
 					<Eyebrow line={22}>Connected · standing by</Eyebrow>
 					<p className="m-0 font-display text-[24px] font-normal leading-[1.3] text-paper-100">
 						Back at it. Queue up when you're ready.
 					</p>
-					<p className="m-0 max-w-[420px] text-[13px] leading-[1.5] text-paper-300">
+					<p className="m-0 max-w-[420px] text-[13px] leading-normal text-paper-300">
 						Lockin wakes up the moment champ select begins. Until then, sharpen your notes.
 					</p>
 				</div>
@@ -41,7 +35,6 @@ export function Idle(): React.JSX.Element {
 				</Button>
 			</Card>
 
-			{/* recent notes row header */}
 			<div className="flex items-center justify-between">
 				<Eyebrow line={22}>Recent notes</Eyebrow>
 				<button
@@ -55,7 +48,6 @@ export function Idle(): React.JSX.Element {
 				</button>
 			</div>
 
-			{/* recent notes grid */}
 			{recent.length === 0 ? (
 				<EmptyState
 					icon={BookOpen}

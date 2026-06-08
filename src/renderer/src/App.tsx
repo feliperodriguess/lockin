@@ -4,7 +4,6 @@ import { RouterProvider } from "@tanstack/react-router"
 import { LcuProvider } from "./providers/lcu-provider"
 import { router } from "./routes"
 
-/* Local-IPC data source: no flaky network — don't retry, don't refetch on focus. */
 const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: { retry: false, refetchOnWindowFocus: false },

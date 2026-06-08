@@ -1,7 +1,4 @@
 // Primitives.jsx:329-381 — SearchField.
-// 34px height, ink-950 bg, border stroke-default (focus: accent + glow).
-// Search icon 15px fg-3 on left. Clear X button when value is non-empty.
-// Controlled: value/onChange strings. Focus ring via focus-within: on the wrapper (no JS state).
 
 import { Input } from "@renderer/components/ui/input"
 import { cn } from "@renderer/lib/utils"

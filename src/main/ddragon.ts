@@ -6,7 +6,7 @@ import { app } from "electron"
 import type { ChampionStatic, DDragonBundle, SummonerSpellStatic } from "@/shared/types"
 
 const BASE = "https://ddragon.leagueoflegends.com"
-const LOCALE = "en_US" // fixed internal constant (PRD §10)
+const LOCALE = "en_US"
 const FETCH_TIMEOUT_MS = 10_000
 
 interface RawEntry {
@@ -114,7 +114,7 @@ async function refreshIfStale(cachedVersion: string): Promise<void> {
 async function loadBundle(): Promise<DDragonBundle> {
 	const cached = await readCache()
 	if (cached) {
-		void refreshIfStale(cached.version) // background; the NEXT launch picks up a new patch (Δ PRD §10)
+		void refreshIfStale(cached.version) // background; the NEXT launch picks up a new patch
 		console.log(`[ddragon] serving cached bundle ${cached.version}`)
 		return cached
 	}

@@ -1,6 +1,3 @@
-/* ConnectionIndicator — ported from champ-art.jsx:510-545
-   ONLINE_GREEN = #3fd07a, ccp-ping pulse animation */
-
 import { cn } from "@renderer/lib/utils"
 
 interface ConnectionIndicatorProps {
@@ -16,12 +13,9 @@ export function ConnectionIndicator({
 		<span className="inline-flex items-center gap-[7px]">
 			<span className="relative w-2 h-2 shrink-0">
 				<span
-					className={cn(
-						"absolute inset-0 rounded-full",
-						connected ? "bg-[#3fd07a]" : "bg-paper-400",
-					)}
+					className={cn("absolute inset-0 rounded-full", connected ? "bg-online" : "bg-paper-400")}
 				/>
-				{connected && <span className="ccp-ping absolute inset-0 rounded-full bg-[#3fd07a]" />}
+				{connected && <span className="ccp-ping absolute inset-0 rounded-full bg-online" />}
 			</span>
 			{!compact && (
 				<p

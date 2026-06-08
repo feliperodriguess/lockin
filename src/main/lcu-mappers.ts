@@ -6,11 +6,6 @@ import type {
 	ReadyCheck,
 } from "@/shared/types"
 
-/* Raw LCU payload subsets (everything optional — the wire shape is not ours).
-   Mapping rules: never throw; missing numerics → 0, strings → "", and
-   timer.isInfinite defaults TRUE so an unknown timer hides the countdown
-   instead of showing garbage (PRD §6.4 edge). */
-
 export interface RawReadyCheck {
 	state?: string
 	playerResponse?: string
@@ -121,7 +116,7 @@ export function rankedQueueOf(session: RawGameflowSession | null): RankedQueue {
 }
 
 /** Reads the chosen queue's entry from the ranked-stats payload (which carries
- *  every queue). Spike-verified: empty tier = unranked → null. */
+ *  every queue). Empty tier = unranked → null. */
 export function toRankInfo(raw: RawRankedStats, queue: RankedQueue): RankInfo | null {
 	const entry = raw.queueMap?.[queue]
 	if (!entry?.tier) return null

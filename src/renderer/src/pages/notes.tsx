@@ -1,7 +1,3 @@
-// notes.jsx:235-335 — Notes library page.
-// Header (title + count + SearchField + New note button) + grid of NoteCard full
-// or empty states; NoteEditor drawer on top.
-
 import { Card } from "@renderer/components/app/card"
 import { EmptyState } from "@renderer/components/app/empty-state"
 import { SearchField } from "@renderer/components/app/search-field"
@@ -22,7 +18,6 @@ export function NotesPage(): React.JSX.Element {
 	const { data: settings } = useSettings()
 
 	const [q, setQ] = useState("")
-	// editingId: "new" | note.id | null
 	const [editingId, setEditingId] = useState<string | null>(null)
 
 	// On mount, open the editor from route search params (?new / ?edit), then clear
@@ -39,14 +34,12 @@ export function NotesPage(): React.JSX.Element {
 				navigate({ to: "/notes", search: {}, replace: true })
 			}
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot on mount
 		[navigate, initSearch.new, initSearch.edit], // intentionally empty — values captured in closure at mount time
 	)
 
 	const version = bundle?.version ?? ""
 	const spellSlotLayout = settings?.spellSlotLayout ?? "DF"
 
-	// Renderer-side search filter (D9 — no IPC round trip)
 	const filtered = notes.filter((n) => {
 		if (!q) return true
 		const t = q.toLowerCase()
@@ -72,11 +65,10 @@ export function NotesPage(): React.JSX.Element {
 
 	return (
 		<div className="relative flex h-full min-h-0 flex-col gap-4">
-			{/* header */}
-			<div className="flex items-center justify-between gap-4">
+			<header className="flex items-center justify-between gap-4">
 				<div className="flex flex-col gap-1">
-					<h1 className="m-0 text-[24px] font-semibold leading-none text-[var(--fg-1)]">Notes</h1>
-					<span className="font-mono text-[12px] font-normal leading-none text-[var(--fg-4)]">
+					<h1 className="m-0 text-[24px] font-semibold leading-none text-(--fg-1)">Notes</h1>
+					<span className="font-mono text-[12px] font-normal leading-none text-(--fg-4)">
 						{notes.length} matchup{notes.length === 1 ? "" : "s"}
 					</span>
 				</div>
@@ -92,9 +84,8 @@ export function NotesPage(): React.JSX.Element {
 						New note
 					</Button>
 				</div>
-			</div>
+			</header>
 
-			{/* content */}
 			{sorted.length === 0 ? (
 				<Card className="flex flex-1 items-center justify-center">
 					{notes.length === 0 ? (
@@ -119,7 +110,7 @@ export function NotesPage(): React.JSX.Element {
 					)}
 				</Card>
 			) : (
-				<div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-[repeat(2,minmax(0,1fr))] auto-rows-[minmax(186px,auto)] gap-[14px] pb-1">
+				<div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-2 auto-rows-[minmax(186px,auto)] gap-[14px] pb-1">
 					{sorted.map((n) => (
 						<NoteCard
 							key={n.id}
@@ -134,7 +125,6 @@ export function NotesPage(): React.JSX.Element {
 				</div>
 			)}
 
-			{/* editor drawer */}
 			{editorOpen && (
 				<NoteEditor
 					note={editingId === "new" ? null : editingNote}

@@ -8,8 +8,6 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Play, X } from "lucide-react"
 import { useState } from "react"
 
-/* ---------------------------------------------------------------- sub-components */
-
 interface SegOption<T> {
 	value: T
 	label: string
@@ -27,7 +25,7 @@ function Seg<T extends string | null>({
 	accentActive?: boolean
 }) {
 	return (
-		<div className="inline-flex gap-[2px] rounded-sm border border-[var(--stroke-default)] bg-[rgba(0,0,0,0.35)] p-[2px]">
+		<div className="inline-flex gap-[2px] rounded-sm border border-(--stroke-default) bg-[rgba(0,0,0,0.35)] p-[2px]">
 			{options.map((o) => {
 				const on = value === o.value
 				return (
@@ -38,10 +36,10 @@ function Seg<T extends string | null>({
 						className={cn(
 							"cursor-pointer whitespace-nowrap rounded-[4px] border-none px-[10px] py-[5px]",
 							"text-[11px] font-semibold leading-none",
-							"transition-colors duration-[var(--dur-fast)] ease-[var(--ease-standard)]",
+							"transition-colors duration-(--dur-fast) ease-(--ease-standard)",
 							on
 								? accentActive
-									? "bg-accent text-[var(--color-accent-fg)]"
+									? "bg-accent text-accent-fg"
 									: "bg-ink-700 text-paper-100"
 								: "bg-transparent text-paper-300",
 						)}
@@ -56,7 +54,7 @@ function Seg<T extends string | null>({
 
 function DemoLabel({ children }: { children: React.ReactNode }) {
 	return (
-		<span className="mr-[2px] font-mono text-[9px] font-semibold leading-none tracking-[0.1em] uppercase text-paper-400">
+		<span className="mr-[2px] font-mono text-[9px] font-semibold leading-none tracking-widest uppercase text-paper-400">
 			{children}
 		</span>
 	)
@@ -94,7 +92,7 @@ export default function StateSwitcher(): React.JSX.Element {
 				className={cn(
 					"absolute bottom-3 right-3 z-50",
 					"inline-flex cursor-pointer items-center gap-[6px]",
-					"rounded-full border border-[var(--stroke-default)] px-3 py-[6px]",
+					"rounded-full border border-(--stroke-default) px-3 py-[6px]",
 					"bg-[rgba(14,16,18,0.9)] text-accent shadow-[0_4px_12px_rgba(0,0,0,0.5)]",
 					"text-[11px] font-semibold leading-none",
 				)}
@@ -110,12 +108,12 @@ export default function StateSwitcher(): React.JSX.Element {
 			className={cn(
 				"absolute bottom-3 left-1/2 -translate-x-1/2 z-50",
 				"flex min-h-[54px] flex-wrap items-center gap-[18px]",
-				"rounded-[12px] border border-[var(--stroke-default)] px-4 py-2",
+				"rounded-lg border border-(--stroke-default) px-4 py-2",
 				"bg-[rgba(14,16,18,0.9)] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]",
 			)}
 		>
 			{/* label block */}
-			<div className="flex flex-col gap-[3px] border-r border-[var(--stroke-default)] pr-4">
+			<div className="flex flex-col gap-[3px] border-r border-(--stroke-default) pr-4">
 				<span className="inline-flex items-center gap-[6px] font-mono text-[9px] font-semibold leading-none tracking-[0.14em] uppercase text-accent">
 					<Play size={10} />
 					Prototype
@@ -243,7 +241,7 @@ export default function StateSwitcher(): React.JSX.Element {
 			)}
 
 			{/* Force fake API toggle */}
-			<div className="flex items-center gap-[7px] border-l border-[var(--stroke-default)] pl-4">
+			<div className="flex items-center gap-[7px] border-l border-(--stroke-default) pl-4">
 				<DemoLabel>Fake api</DemoLabel>
 				{/* switch restyled in Task 9 */}
 				<Switch
@@ -267,7 +265,7 @@ export default function StateSwitcher(): React.JSX.Element {
 				className={cn(
 					"inline-flex cursor-pointer items-center justify-center rounded-[4px]",
 					"border-none bg-transparent p-1 text-paper-400",
-					"transition-colors duration-[var(--dur-fast)] ease-[var(--ease-standard)]",
+					"transition-colors duration-(--dur-fast) ease-(--ease-standard)",
 				)}
 				aria-label="Collapse dev bar"
 			>

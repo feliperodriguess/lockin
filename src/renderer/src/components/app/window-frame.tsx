@@ -1,6 +1,3 @@
-/* WindowFrame — real Electron titlebar with hiddenInset traffic lights
-   Ported from app.jsx:351-449. NO painted traffic-light dots. */
-
 import { phaseSub } from "@renderer/lib/phase"
 import { useEffect, useState } from "react"
 
@@ -33,12 +30,9 @@ export function WindowFrame({ children, connected, phase }: WindowFrameProps): R
 
 	return (
 		<div className="flex h-full w-full flex-col overflow-hidden bg-ink-950">
-			{/* titlebar */}
-			<header className="region-drag h-9 shrink-0 flex items-center justify-between px-[14px] border-b border-[var(--stroke-default)] bg-[rgba(17,19,21,0.86)] backdrop-blur-[12px]">
-				{/* left spacer — clears the real hiddenInset traffic lights (trafficLightPosition x:20) */}
+			<header className="region-drag h-9 shrink-0 flex items-center justify-between px-[14px] border-b border-(--stroke-default) bg-[rgba(17,19,21,0.86)] backdrop-blur-md">
 				<div className="w-[120px]" />
 
-				{/* center: wordmark + phase sub-label */}
 				<span className="region-no-drag inline-flex items-center gap-2 text-[12px] font-medium leading-none text-paper-300">
 					<Wordmark size={12} mark={false} />
 					<span className="text-paper-400">·</span>
@@ -47,7 +41,6 @@ export function WindowFrame({ children, connected, phase }: WindowFrameProps): R
 					</span>
 				</span>
 
-				{/* right: connection indicator + clock */}
 				<div className="w-[120px] flex justify-end items-center gap-[10px]">
 					<ConnectionIndicator connected={connected} compact />
 					<time

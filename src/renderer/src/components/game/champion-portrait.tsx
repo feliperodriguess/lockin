@@ -71,10 +71,9 @@ export function ChampionPortrait({
 	return (
 		<div
 			className={cn(
-				"relative overflow-hidden shrink-0 border border-[var(--stroke-default)]",
+				"relative overflow-hidden shrink-0 border border-(--stroke-default)",
 				className,
 			)}
-			// dynamic: width/height/borderRadius/boxShadow/background derived from props & data
 			style={{
 				width: size,
 				height: size,

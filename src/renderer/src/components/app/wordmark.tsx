@@ -1,5 +1,3 @@
-/* AppMark gem SVG + Wordmark — ported verbatim from app.jsx:9-79 */
-
 interface AppMarkProps {
 	size?: number
 	radius?: number
@@ -10,8 +8,7 @@ export function AppMark({ size = 22, radius }: AppMarkProps): React.JSX.Element 
 	const v = size * 0.68
 	return (
 		<span
-			className="relative overflow-hidden grid place-items-center shrink-0 bg-[linear-gradient(155deg,#24272c_0%,#0b0c0d_78%)] border border-[var(--stroke-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
-			// dynamic: width, height, and borderRadius are prop-driven
+			className="relative overflow-hidden grid place-items-center shrink-0 bg-[linear-gradient(155deg,#24272c_0%,#0b0c0d_78%)] border border-(--stroke-strong) shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
 			style={{
 				width: size,
 				height: size,
@@ -20,7 +17,6 @@ export function AppMark({ size = 22, radius }: AppMarkProps): React.JSX.Element 
 		>
 			<span
 				className="[grid-area:1/1] rounded-full"
-				// dynamic: width/height derived from size prop; radial-gradient color is static but non-standard
 				style={{
 					width: size * 0.78,
 					height: size * 0.78,
@@ -64,15 +60,10 @@ interface WordmarkProps {
 
 export function Wordmark({ size = 15, mark = true }: WordmarkProps): React.JSX.Element {
 	return (
-		<span
-			className="inline-flex items-center"
-			// dynamic: gap is proportional to size prop
-			style={{ gap: size * 0.5 }}
-		>
+		<span className="inline-flex items-center" style={{ gap: size * 0.5 }}>
 			{mark && <AppMark size={size * 1.55} />}
 			<span
 				className="text-paper-100 font-semibold tracking-[-0.015em] leading-none"
-				// dynamic: font-size is prop-driven
 				style={{ fontSize: size }}
 			>
 				lockin

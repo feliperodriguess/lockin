@@ -1,8 +1,3 @@
-// components.jsx:256-451 — ChampionPicker combobox.
-// Trigger button (portrait or dashed placeholder + name + optional clear X + ChevronDown),
-// dropdown (search input + scrollable list with portraits + champion title 9px mono fg-4),
-// click-outside close, "No champions match".
-
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { Input } from "@renderer/components/ui/input"
 import { cn } from "@renderer/lib/utils"
@@ -11,8 +6,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import type { DDragonBundle } from "@/shared/types"
 
-// Dropdown sizing constants (px). The panel = search block + scrollable list; the
-// list height is bounded by DROPDOWN_MAX_H on tall windows and shrinks to fit on short ones.
 const DROPDOWN_MAX_H = 232 // list max height when there is ample room
 const DROPDOWN_MIN_H = 96 // never shrink the list below this; it scrolls instead
 const DROPDOWN_GAP = 6 // offset between trigger and panel
@@ -127,7 +120,6 @@ export function ChampionPicker({
 
 	return (
 		<div ref={ref} className="relative">
-			{/* Wrapper so the clear X button can sit alongside the trigger without nesting */}
 			<div className="relative">
 				<button
 					type="button"
@@ -135,22 +127,19 @@ export function ChampionPicker({
 					className={cn(
 						"flex items-center gap-[9px] w-full text-left cursor-pointer",
 						"bg-ink-950 border rounded-sm",
-						"transition-[border-color,box-shadow] duration-[160ms] ease-[var(--ease-standard)]",
+						"transition-[border-color,box-shadow] duration-160 ease-(--ease-standard)",
 						"text-paper-100",
 						open
 							? "border-accent shadow-[0_0_0_1px_var(--color-accent),0_0_16px_var(--accent-glow)]"
-							: "border-[var(--stroke-default)]",
-						// dynamic: height and padding depend on size prop
+							: "border-(--stroke-default)",
 					)}
-					// dynamic: height and padding derived from `size` prop
 					style={{ height: h, padding: allowClear && sel ? "0 28px 0 8px" : "0 10px 0 8px" }}
 				>
 					{sel ? (
 						<ChampionPortrait champion={sel} version={version} size={portraitSize} />
 					) : (
 						<span
-							className="shrink-0 block rounded-xs border border-dashed border-[var(--stroke-strong)]"
-							// dynamic: size derived from `size` prop
+							className="shrink-0 block rounded-xs border border-dashed border-(--stroke-strong)"
 							style={{ width: portraitSize, height: portraitSize }}
 						/>
 					)}
@@ -165,7 +154,6 @@ export function ChampionPicker({
 					<ChevronDown size={14} className="text-paper-300 shrink-0" />
 				</button>
 
-				{/* Clear X — sibling of trigger, absolutely positioned to avoid nested button */}
 				{allowClear && sel && (
 					<button
 						type="button"
@@ -173,7 +161,7 @@ export function ChampionPicker({
 							e.stopPropagation()
 							onChange(null)
 						}}
-						className="absolute right-7 top-1/2 -translate-y-1/2 flex text-paper-400 p-0.5 cursor-pointer bg-none border-none z-[1]"
+						className="absolute right-7 top-1/2 -translate-y-1/2 flex text-paper-400 p-0.5 cursor-pointer bg-none border-none z-1"
 					>
 						<X size={13} />
 					</button>
@@ -182,12 +170,12 @@ export function ChampionPicker({
 
 			{open && (
 				<div
-					className="absolute left-0 right-0 z-50 bg-ink-900 border border-[var(--stroke-strong)] rounded-md shadow-[var(--shadow-lg)] overflow-hidden"
+					className="absolute left-0 right-0 z-50 bg-ink-900 border border-(--stroke-strong) rounded-md shadow-(--shadow-lg) overflow-hidden"
 					// dynamic: anchor below the trigger, or above it when space is tight
 					style={placement.dir === "up" ? { bottom: h + DROPDOWN_GAP } : { top: h + DROPDOWN_GAP }}
 				>
 					{/* search */}
-					<div className="p-2 border-b border-[var(--stroke-default)]">
+					<div className="p-2 border-b border-(--stroke-default)">
 						<div className="relative flex items-center">
 							<Search
 								size={13}
@@ -204,7 +192,6 @@ export function ChampionPicker({
 					</div>
 
 					{/* list */}
-					{/* dynamic: max height bounded to the space available in the viewport */}
 					<div className="overflow-y-auto p-1" style={{ maxHeight: placement.maxH }}>
 						{list.length === 0 && (
 							<p className="py-[14px] text-center text-[12px] text-paper-400">No champions match</p>
@@ -221,8 +208,8 @@ export function ChampionPicker({
 								className={cn(
 									"flex items-center gap-[9px] w-full px-2 py-[6px]",
 									"border-none cursor-pointer rounded-sm text-left text-paper-100",
-									"transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]",
-									value === c.key ? "bg-[var(--accent-bg)]" : "bg-transparent hover:bg-ink-800",
+									"transition-colors duration-(--dur-base) ease-(--ease-standard)",
+									value === c.key ? "bg-(--accent-bg)" : "bg-transparent hover:bg-ink-800",
 								)}
 							>
 								<ChampionPortrait champion={c} version={version} size={26} />
@@ -234,7 +221,6 @@ export function ChampionPicker({
 								>
 									{c.name}
 								</span>
-								{/* champion title instead of role abbr (ChampionStatic has no role field) */}
 								<span className="font-mono text-[9px] font-semibold tracking-[0.08em] text-paper-400">
 									{c.title}
 								</span>

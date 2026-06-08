@@ -49,7 +49,7 @@ export function RankBadge({
 				(unranked ? (
 					<span
 						className={cn(
-							"inline-block shrink-0 rounded-xs border border-dashed border-[var(--stroke-strong)]",
+							"inline-block shrink-0 rounded-xs border border-dashed border-(--stroke-strong)",
 							small ? "w-[14px] h-[14px]" : "w-[18px] h-[18px]",
 						)}
 					/>

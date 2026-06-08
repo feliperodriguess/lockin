@@ -28,11 +28,7 @@ export function SpellPair({
 	const [firstKey, secondKey]: ["D" | "F", "D" | "F"] = layout === "DF" ? ["D", "F"] : ["F", "D"]
 
 	return (
-		<div
-			className="flex"
-			// dynamic: gap is prop-driven
-			style={{ gap }}
-		>
+		<div className="flex" style={{ gap }}>
 			<SpellIcon
 				spell={pair[0]}
 				version={version}

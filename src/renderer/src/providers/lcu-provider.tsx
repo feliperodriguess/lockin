@@ -43,11 +43,9 @@ export function LcuProvider({ children }: { children: React.ReactNode }): React.
 		champSelect: null,
 	})
 
-	// subscribe exactly once (spec §3.3)
+	// LOGGING (DEV only)
 	useEffect(() => {
 		const log = (e: LcuEvent): void => {
-			// DEV-only breadcrumb for live smoke tests; high-churn events excluded.
-			// Stringified so ELECTRON_ENABLE_LOGGING shows the payload, not [object Object]
 			if (import.meta.env.DEV && (e.type === "status" || e.type === "phase")) {
 				console.log(`[lcu-provider] ${JSON.stringify(e)}`)
 			}

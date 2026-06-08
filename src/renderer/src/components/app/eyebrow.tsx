@@ -1,8 +1,3 @@
-// Primitives.jsx:478-511 — Eyebrow label + AfterLine accent dash.
-// Eyebrow: mono 600 10px uppercase tracking 0.16em fg-3.
-// AfterLine: accent bg, 1.5px tall, width controlled by prop.
-// Eyebrow `line` prop: number (explicit px width) | true (24px default).
-
 import { cn } from "@renderer/lib/utils"
 
 interface AfterLineProps {
@@ -14,7 +9,6 @@ function AfterLine({ width = 28, className }: AfterLineProps): React.JSX.Element
 	return (
 		<span
 			className={cn("inline-block shrink-0 h-[1.5px] bg-accent align-middle", className)}
-			// dynamic: width is prop-driven
 			style={{ width }}
 		/>
 	)

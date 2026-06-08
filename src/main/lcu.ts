@@ -36,18 +36,11 @@ const SESSION_RETRY_MS = 3000 // pause after an unexpected session failure befor
 
 type Emit = (channel: string, payload: unknown) => void
 
-/**
- * Owns all LCU connectivity (PRD §9). Lifecycle: discovery loop →
- * authenticated session (WS subscriptions + process watcher) → on client
- * death, emit disconnected and re-enter discovery. Never throws out of the
- * loop; the app must stay alive without a client.
- */
 class LcuService {
 	private running = false
 	private snapshot: LcuSnapshot = { ...DISCONNECTED_SNAPSHOT }
 	private endSession: (() => void) | null = null
 	private credentials: Credentials | null = null
-	// per-ready-check-cycle auto-accept state (PRD §6.4: a decline is final)
 	private aaDeclined = false
 	private aaFired = false
 	private aaTimer: NodeJS.Timeout | null = null
@@ -243,7 +236,7 @@ class LcuService {
 	}
 
 	private async fireAutoAccept(): Promise<void> {
-		// revalidate EVERYTHING at fire time — never override a decline (PRD §6.4)
+		// revalidate EVERYTHING at fire time, never override a decline
 		const readyCheck = this.snapshot.readyCheck
 		if (this.aaDeclined || this.aaFired || !getSettings().autoAccept) return
 		if (readyCheck?.state !== "InProgress" || readyCheck.playerResponse !== "None") return
@@ -280,7 +273,6 @@ class LcuService {
 		this.emit(IPC.LCU_CHAMP_SELECT, champSelect)
 	}
 
-	/** §6.5: per-puuid failures → null — ranks degrade, never block champ select. */
 	async getRanksForPuuids(puuids: string[]): Promise<Record<string, RankInfo | null>> {
 		const out: Record<string, RankInfo | null> = {}
 		const credentials = this.credentials

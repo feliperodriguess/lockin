@@ -1,8 +1,3 @@
-// champ-select-parts.jsx:231-320 — the "Your note" region, three bodies:
-//   1. enemyHidden  → EyeOff + "Enemy laner not revealed yet" + champion-name copy
-//   2. note present → NoteCard compact (inline read/edit toggle via onSaveBody)
-//   3. no note      → portraits row + "No note yet for X vs Y." + "Add a note" CTA
-
 import { Section } from "@renderer/components/champ-select/section"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { NoteCard } from "@renderer/components/notes/note-card"
@@ -45,14 +40,13 @@ export function NotesRegion({
 				<p className="m-0 text-[14px] font-medium leading-[1.4] text-paper-200">
 					Enemy laner not revealed yet
 				</p>
-				<p className="m-0 max-w-[280px] text-[12.5px] leading-[1.5] text-paper-400">
+				<p className="m-0 max-w-[280px] text-[12.5px] leading-normal text-paper-400">
 					Your <b className="font-semibold text-paper-200">{me.champion?.name}</b> matchup notes
 					appear here the moment they lock in.
 				</p>
 			</div>
 		)
 	} else if (note && bundle) {
-		// key on note.id → different matchup remounts NoteCard, resetting local draft/editing state
 		body = (
 			<NoteCard
 				key={note.id}
@@ -74,7 +68,7 @@ export function NotesRegion({
 					<span className="font-mono text-[11px] leading-none text-paper-400">vs</span>
 					<ChampionPortrait champion={opponent} version={version} size={24} />
 				</div>
-				<p className="m-0 text-[14px] leading-[1.5] text-paper-200">
+				<p className="m-0 text-[14px] leading-normal text-paper-200">
 					No note yet for <b className="font-semibold text-paper-100">{me.champion?.name}</b> vs{" "}
 					<b className="font-semibold text-paper-100">{opponent?.name}</b>.
 				</p>

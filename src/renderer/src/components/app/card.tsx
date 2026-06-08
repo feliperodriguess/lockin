@@ -1,9 +1,3 @@
-// Primitives.jsx:454-476 — Card with hover and emphasis props.
-// bg-raised, border stroke-default; emphasis: accent border + double accent glow shadow;
-// hover: bg-hover when hover prop set; cursor-pointer when onClick given.
-// Cards may contain interactive children, so we keep the div with onClick rather
-// than wrapping in a button element (matching prototype behavior).
-
 import { cn } from "@renderer/lib/utils"
 
 interface CardProps {
@@ -32,22 +26,15 @@ function Card({ children, hover, emphasis, onClick, className }: CardProps): Rea
 					: undefined
 			}
 			className={cn(
-				// base
-				"rounded-[var(--radius-md)] border border-[var(--stroke-default)]",
-				"bg-[var(--bg-raised)]",
-				"transition-[background-color,border-color,box-shadow] duration-[160ms] ease-[var(--ease-standard)]",
-				// hover variant: bg-hover when hovered
-				hover && "hover:bg-[var(--bg-hover)]",
-				// emphasis: accent border + glow shadow
-				emphasis && [
-					"border-[var(--color-accent)]",
-					"shadow-[0_0_0_1px_var(--color-accent),0_0_28px_var(--accent-glow)]",
-				],
-				// clickable cursor and keyboard focus styles
-				onClick && [
-					"cursor-pointer",
-					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
-				],
+				"bg-(--bg-raised) rounded-md border border-(--stroke-default)",
+				"transition-[background-color,border-color,box-shadow] duration-160 ease-(--ease-standard)",
+				{
+					"hover:bg-(--bg-hover)": hover,
+					"border-accent shadow-[0_0_0_1px_var(--color-accent),0_0_28px_var(--accent-glow)]":
+						emphasis,
+					"cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent":
+						onClick,
+				},
 				className,
 			)}
 		>

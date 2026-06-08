@@ -84,8 +84,6 @@ export function useChampSelect(): ChampSelectVM | null {
 	const elapsedMs = Math.max(0, nowMs - receivedAt)
 
 	return useMemo(() => {
-		// bundle-optional: with no bundle (first-run offline) every lookup misses and
-		// the rail renders D15 fallback tiles — champ select is never blocked
 		if (!session) return null
 		const champ = (id: number): ChampionStatic | null => bundle?.championsByKey[id] ?? null
 		const spell = (id: number): SummonerSpellStatic | null => bundle?.spellsByKey[id] ?? null

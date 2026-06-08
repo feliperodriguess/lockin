@@ -4,6 +4,6 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
-		include: ["src/shared/lib/**/*.test.ts"], // pure engines only (design D4)
+		include: ["src/shared/lib/**/*.test.ts"],
 	},
 })

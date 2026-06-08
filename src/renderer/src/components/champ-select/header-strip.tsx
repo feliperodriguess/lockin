@@ -1,14 +1,3 @@
-// champ-select-parts.jsx:64-228 — COMPACT (rail) variant only.
-// Left: champion portrait (46, accent ring, radius 10) + name (600/16) + role
-// (RoleTag when assigned, else warn "Role pending" chip) + summoner name (mono
-// 11, fg-4, ellipsis); a 1px/40 divider; then the summoner-spell pair (32,
-// showKeys, layout from settings) with a YourPickBadge beside it when the pair
-// is pinned (PRD §6.1 — the rail has no Loadout card, so the "Your pick" label
-// lives here). Right: phase label (mono 600/10 uppercase, warn at ≤10s) over a
-// CountdownRing (54/5, value=secondsLeft, progress=secondsLeft/phaseTotal, warn
-// + pulsing at ≤10). The demo advance button is dropped (the bridge drives the
-// timer); the whole timer block is hidden when the phase is infinite.
-
 import { Card } from "@renderer/components/app/card"
 import { YourPickBadge } from "@renderer/components/game/badges"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
@@ -63,7 +52,7 @@ export function HeaderStrip({
 									"inline-flex shrink-0 items-center gap-[5px]",
 									"rounded-sm px-2 py-[3px]",
 									"font-mono text-[10px] font-medium leading-none tracking-[0.06em] uppercase",
-									"text-[var(--color-warn)] bg-[var(--warn-bg)]",
+									"text-warn bg-(--warn-bg)",
 								)}
 							>
 								<CircleHelp size={11} strokeWidth={2} />
@@ -76,7 +65,7 @@ export function HeaderStrip({
 					</div>
 				</div>
 				{/* 1px × 40px divider */}
-				<span className="shrink-0 w-px h-10 bg-[var(--stroke-default)]" />
+				<span className="shrink-0 w-px h-10 bg-(--stroke-default)" />
 				<div className="flex shrink-0 items-center gap-2">
 					<SpellPair pair={spells.pair} version={version} layout={layout} size={32} showKeys />
 					{showYourPick && <YourPickBadge />}
@@ -89,7 +78,7 @@ export function HeaderStrip({
 						<span
 							className={cn(
 								"font-mono text-[10px] font-semibold leading-none tracking-[0.14em] uppercase",
-								danger ? "text-[var(--color-warn)]" : "text-paper-300",
+								danger ? "text-warn" : "text-paper-300",
 							)}
 						>
 							{subPhase === "ban" ? "Ban phase" : "Pick phase"}

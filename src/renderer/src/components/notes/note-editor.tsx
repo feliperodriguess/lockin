@@ -1,8 +1,3 @@
-// notes.jsx:18-196 — Note editor right drawer.
-// ccp-fade backdrop + ccp-drawer 392px panel; header Eyebrow + X;
-// body: Champion (req), Opponent (allowClear), Note textarea, Pinned spells chip-toggles;
-// footer: Delete (destructive, edit only) + Cancel (ghost) + Create/Save (default).
-
 import { ChampionPicker } from "@renderer/components/app/champion-picker"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
 import { SpellIcon } from "@renderer/components/game/spell-icon"
@@ -17,7 +12,6 @@ import { useEffect, useState } from "react"
 import type { AppSettings, DDragonBundle, MatchupNote } from "@/shared/types"
 
 interface NoteEditorProps {
-	/** null = new note */
 	note: MatchupNote | null
 	bundle: DDragonBundle
 	version: string
@@ -36,25 +30,13 @@ export function NoteEditor({
 	const upsert = useUpsertNote()
 	const del = useDeleteNote()
 
-	// Draft state — seeded from existing note or blank
 	const [championId, setChampionId] = useState<number | null>(note?.championId ?? null)
 	const [opponentChampionId, setOpponentChampionId] = useState<number | null>(
 		note?.opponentChampionId ?? null,
 	)
 	const [body, setBody] = useState(note?.body ?? "")
-	// pinnedSpells as mutable array of spell keys (max 2 at a time)
 	const [spells, setSpells] = useState<number[]>(note?.pinnedSpells ? [...note.pinnedSpells] : [])
 
-	// Close on Escape
-	useEffect(() => {
-		const h = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose()
-		}
-		document.addEventListener("keydown", h)
-		return () => document.removeEventListener("keydown", h)
-	}, [onClose])
-
-	// toggleSpell: exact notes.jsx:20-29 semantics
 	const toggleSpell = (s: number) => {
 		setSpells((cur) => {
 			if (cur.includes(s)) return cur.filter((x) => x !== s)
@@ -69,10 +51,8 @@ export function NoteEditor({
 
 	const handleSave = async () => {
 		if (!canSave || isPending) return
-		// pinnedSpells: persist only when exactly 2 selected
 		const pinnedSpells: [number, number] | undefined =
 			spells.length === 2 ? [spells[0], spells[1]] : undefined
-		// canSave guarantees championId != null here
 		if (championId == null) return
 		await upsert.mutateAsync({
 			...(note ? { id: note.id } : {}),
@@ -90,8 +70,15 @@ export function NoteEditor({
 		onClose()
 	}
 
-	// All spells sorted by key for display
 	const allSpells = Object.values(bundle.spellsByKey).sort((a, b) => a.key - b.key)
+
+	useEffect(() => {
+		const h = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose()
+		}
+		document.addEventListener("keydown", h)
+		return () => document.removeEventListener("keydown", h)
+	}, [onClose])
 
 	return (
 		<>
@@ -100,34 +87,31 @@ export function NoteEditor({
 			{/* biome-ignore lint/a11y/useKeyWithClickEvents: same */}
 			<div
 				onClick={onClose}
-				className="ccp-fade absolute inset-0 z-[60] bg-[rgba(0,0,0,0.55)] backdrop-blur-[2px]"
+				className="ccp-fade absolute inset-0 z-60 bg-[rgba(0,0,0,0.55)] backdrop-blur-[2px]"
 			/>
 
-			{/* drawer panel */}
 			<aside
 				role="dialog"
 				aria-modal
 				aria-label={isNew ? "New note" : "Edit note"}
 				className={cn(
-					"ccp-drawer absolute inset-y-0 right-0 z-[61]",
+					"ccp-drawer absolute inset-y-0 right-0 z-61",
 					"flex flex-col",
-					"bg-ink-900 border-l border-[var(--stroke-strong)] shadow-[var(--shadow-lg)]",
+					"bg-ink-900 border-l border-(--stroke-strong) shadow-(--shadow-lg)",
 					"max-w-[92%] w-[392px]",
 				)}
 			>
-				{/* header */}
-				<div className="flex items-center justify-between border-b border-[var(--stroke-default)] px-[18px] py-4">
+				<div className="flex items-center justify-between border-b border-(--stroke-default) px-[18px] py-4">
 					<Eyebrow line={20}>{isNew ? "New note" : "Edit note"}</Eyebrow>
 					<button
-						type="button"
-						onClick={onClose}
 						className="flex cursor-pointer border-none bg-transparent p-1 text-paper-300"
+						onClick={onClose}
+						type="button"
 					>
 						<X size={18} />
 					</button>
 				</div>
 
-				{/* body — form semantics */}
 				<form
 					onSubmit={(e) => {
 						e.preventDefault()
@@ -135,7 +119,6 @@ export function NoteEditor({
 					}}
 					className="flex flex-1 flex-col gap-[18px] overflow-y-auto p-[18px]"
 				>
-					{/* champion + opponent row */}
 					<div className="grid grid-cols-2 gap-3">
 						<Field label="Champion" req>
 							<ChampionPicker
@@ -158,7 +141,6 @@ export function NoteEditor({
 						</Field>
 					</div>
 
-					{/* note textarea */}
 					<Field label="Note">
 						<Textarea
 							rows={7}
@@ -193,10 +175,10 @@ export function NoteEditor({
 										className={cn(
 											"relative flex cursor-pointer items-center gap-[7px] rounded-sm px-[9px] py-[5px] pl-[6px]",
 											"border text-[12px] font-medium leading-none",
-											"transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]",
+											"transition-colors duration-(--dur-base) ease-(--ease-standard)",
 											on
-												? "border-accent bg-[var(--accent-bg)] text-accent"
-												: "border-[var(--stroke-default)] bg-ink-950 text-paper-200",
+												? "border-accent bg-(--accent-bg) text-accent"
+												: "border-(--stroke-default) bg-ink-950 text-paper-200",
 										)}
 									>
 										<SpellIcon spell={s} version={version} size={22} />
@@ -213,8 +195,7 @@ export function NoteEditor({
 					</Field>
 				</form>
 
-				{/* footer */}
-				<div className="flex items-center justify-between gap-[10px] border-t border-[var(--stroke-default)] px-[18px] py-[14px]">
+				<div className="flex items-center justify-between gap-[10px] border-t border-(--stroke-default) px-[18px] py-[14px]">
 					{!isNew ? (
 						<Button variant="destructive" disabled={isPending} onClick={handleDelete}>
 							<Trash2 size={14} />
