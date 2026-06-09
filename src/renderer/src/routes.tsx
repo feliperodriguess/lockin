@@ -10,7 +10,8 @@ import { lazy, Suspense } from "react"
 
 import { Sidebar } from "./components/app/sidebar"
 import { WindowFrame } from "./components/app/window-frame"
-import { useLcuStatus, usePhase } from "./hooks/use-lcu"
+import { ReadyCheckScreen } from "./components/ready-check/ready-check-screen"
+import { useLcuStatus, usePhase, useReadyCheck } from "./hooks/use-lcu"
 import { HomePage } from "./pages/home"
 import { NotesPage } from "./pages/notes"
 import { SettingsPage } from "./pages/settings"
@@ -27,6 +28,7 @@ const rootRoute = createRootRoute({
 function RootLayout(): React.JSX.Element {
 	const { connected } = useLcuStatus()
 	const phase = usePhase()
+	const readyCheck = useReadyCheck()
 	const routePath = useRouterState({ select: (s) => s.location.pathname })
 	return (
 		<WindowFrame connected={connected} phase={phase}>
@@ -36,6 +38,11 @@ function RootLayout(): React.JSX.Element {
 					<div key={`${routePath}:${phase}`} className="ccp-screen absolute inset-0 px-6 py-5">
 						<Outlet />
 					</div>
+					{phase === "ReadyCheck" && readyCheck && (
+						<div className="ccp-screen absolute inset-0 z-30 bg-ink-950 px-6 py-5">
+							<ReadyCheckScreen />
+						</div>
+					)}
 					{import.meta.env.DEV && StateSwitcher && (
 						<Suspense fallback={null}>
 							<StateSwitcher />

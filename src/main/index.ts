@@ -3,6 +3,8 @@ import { join } from "node:path"
 import { electronApp, is, optimizer } from "@electron-toolkit/utils"
 import { app, BrowserWindow, nativeImage, shell } from "electron"
 
+import { IPC } from "@/shared/constants"
+import type { GameflowPhase } from "@/shared/types"
 import icon from "~/resources/icon.png"
 
 import "./ipc"
@@ -50,6 +52,18 @@ function createWindow(): void {
 	}
 }
 
+function surfaceWindows(): void {
+	for (const w of BrowserWindow.getAllWindows()) {
+		if (w.isMinimized()) w.restore()
+		w.show()
+		w.focus()
+	}
+	if (process.platform === "darwin") {
+		app.focus({ steal: true })
+		app.dock?.bounce("informational")
+	}
+}
+
 if (process.platform === "darwin") {
 	app.dock?.setIcon(nativeImage.createFromDataURL(icon))
 }
@@ -66,6 +80,9 @@ app.whenReady().then(() => {
 	startLcuService((channel, payload) => {
 		for (const w of BrowserWindow.getAllWindows()) {
 			w.webContents.send(channel, payload)
+		}
+		if (channel === IPC.LCU_PHASE && (payload as { phase: GameflowPhase }).phase === "ReadyCheck") {
+			surfaceWindows()
 		}
 	})
 

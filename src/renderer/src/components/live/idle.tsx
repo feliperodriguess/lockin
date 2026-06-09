@@ -4,11 +4,33 @@ import { Eyebrow } from "@renderer/components/app/eyebrow"
 import { NoteCard } from "@renderer/components/notes/note-card"
 import { Button } from "@renderer/components/ui/button"
 import { useDDragon, useNotes, useSettings } from "@renderer/hooks/use-data"
+import { usePhase } from "@renderer/hooks/use-lcu"
 import { useNavigate } from "@tanstack/react-router"
 import { BookOpen, ChevronRight, Plus, Shield } from "lucide-react"
 
+type Standby = "idle" | "lobby" | "queue"
+
+const STANDBY_COPY: Record<Standby, { eyebrow: string; title: string; sub: string }> = {
+	idle: {
+		eyebrow: "Connected · standing by",
+		title: "Back at it. Queue up when you're ready.",
+		sub: "Lockin wakes up the moment champ select begins. Until then, sharpen your notes.",
+	},
+	lobby: {
+		eyebrow: "In lobby",
+		title: "In the lobby. Lock in your queue.",
+		sub: "Line up your matchups while the squad gets ready.",
+	},
+	queue: {
+		eyebrow: "In queue · searching",
+		title: "Searching for a match…",
+		sub: "Hang tight — champ select pops the moment a game is found.",
+	},
+}
+
 export function Idle(): React.JSX.Element {
 	const navigate = useNavigate()
+	const phase = usePhase()
 	const { data: notes = [] } = useNotes()
 	const { data: bundle } = useDDragon()
 	const { data: settings } = useSettings()
@@ -17,17 +39,23 @@ export function Idle(): React.JSX.Element {
 	const spellSlotLayout = settings?.spellSlotLayout ?? "DF"
 	const recent = [...notes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4)
 
+	const standby: Standby = phase === "Matchmaking" ? "queue" : phase === "Lobby" ? "lobby" : "idle"
+	const copy = STANDBY_COPY[standby]
+
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-[18px]">
 			<Card className="flex items-center justify-between gap-4 p-5">
 				<div className="flex flex-col gap-[10px]">
-					<Eyebrow line={22}>Connected · standing by</Eyebrow>
+					<Eyebrow line={22}>
+						{standby === "queue" && (
+							<span className="ccp-breathe mr-[6px] inline-block size-1.5 rounded-full bg-accent align-middle" />
+						)}
+						{copy.eyebrow}
+					</Eyebrow>
 					<p className="m-0 font-display text-[24px] font-normal leading-[1.3] text-paper-100">
-						Back at it. Queue up when you're ready.
+						{copy.title}
 					</p>
-					<p className="m-0 max-w-[420px] text-[13px] leading-normal text-paper-300">
-						Lockin wakes up the moment champ select begins. Until then, sharpen your notes.
-					</p>
+					<p className="m-0 max-w-[420px] text-[13px] leading-normal text-paper-300">{copy.sub}</p>
 				</div>
 				<Button size="lg" onClick={() => navigate({ to: "/notes", search: { new: true } })}>
 					<Plus size={16} />
