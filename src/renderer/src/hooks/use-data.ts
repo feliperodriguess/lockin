@@ -1,7 +1,7 @@
 import { api } from "@renderer/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-import type { AppSettings, BanListEntry, MatchupNote } from "@/shared/types"
+import type { AppSettings, BanListEntry, BuildRecommendation, MatchupNote } from "@/shared/types"
 
 export function useDDragon() {
 	return useQuery({
@@ -70,4 +70,13 @@ export function useAcceptReadyCheck() {
 }
 export function useDeclineReadyCheck() {
 	return useMutation({ mutationFn: () => api.declineReadyCheck() })
+}
+
+export function useBuild(championKey: number | null, position: string | null) {
+	return useQuery<BuildRecommendation | null>({
+		queryKey: ["build", championKey, position],
+		queryFn: () => api.getBuild(championKey as number, position as string),
+		enabled: championKey != null && position != null,
+		staleTime: Infinity,
+	})
 }
