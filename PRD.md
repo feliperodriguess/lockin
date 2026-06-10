@@ -451,6 +451,9 @@ Exposed via `contextBridge` in the preload script. The renderer never imports No
 | `lcu:phase` | `{ phase: GameflowPhase }` |
 | `lcu:readyCheck` | `ReadyCheck \| null` |
 | `lcu:champSelect` | `ChampSelectSession \| null` |
+| `lcu:summoner` *(v1.1)* | `SummonerIdentity \| null` |
+| `lcu:inGame` *(v1.1)* | `InGameState \| null` |
+| `nav:go` *(v1.1)* | `{ to: string; search?: Record<string, unknown> }` (tray-driven navigation) |
 
 **Renderer → Main (`invoke`, request/response):**
 | Channel | Args → Returns | Query role |
@@ -465,6 +468,11 @@ Exposed via `contextBridge` in the preload script. The renderer never imports No
 | `banlist:get` | `() → BanListEntry[]` | query |
 | `banlist:set` | `(entries: BanListEntry[]) → BanListEntry[]` | mutation |
 | `rank:getForPuuids` | `(puuids: string[]) → Record<string, RankInfo \| null>` *(spike)* | query |
+| `build:get` *(v1.1)* | `(championKey, position, tier?) → BuildRecommendation \| null` | query (long cache) |
+| `lcu:setSpells` *(v1.1)* | `(spell1Id, spell2Id) → void` | mutation |
+| `lcu:applyRunes` *(v1.1)* | `(page: RunePageRec) → { ok: boolean; error?: string }` | mutation |
+| `lcu:startQueue` *(v1.1)* | `(queueId) → { ok: boolean; error?: string }` | mutation |
+| `lcu:stopQueue` *(v1.1)* | `() → void` | mutation |
 
 ### 8.1 Wiring the IPC (TanStack Query + client store)
 - Wrap each request/response channel in a typed function and expose via the preload bridge; call those from `useQuery`/`useMutation`.
@@ -522,7 +530,8 @@ Exposed via `contextBridge` in the preload script. The renderer never imports No
 - **Disconnected** (client closed)
 - **Idle / dashboard** (connected, not in queue)
 - **Ready Check** (queue pop — countdown + accept/decline)
-- **Champ Select** (the hero screen: recommended spells, matchup notes, ban suggestions, phase/dodge timer, team ranks)
+- **Champ Select** (the hero screen: recommended spells + OP.GG runes/build recommendation, matchup notes, "Your mains," ban suggestions, phase/dodge timer, team ranks)
+- **In-Game** *(v1.1)* (the `InProgress`/`GameStart` view: champion header, matchup note, item build, skill order, team + read-only runes reference)
 - **Notes Library + note editor**
 - **Settings**
 
