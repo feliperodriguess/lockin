@@ -5,6 +5,8 @@ import { app } from "electron"
 
 import type { ChampionStatic, DDragonBundle, SummonerSpellStatic } from "@/shared/types"
 
+import { normalizeItems, normalizeRunes, type RawRuneStyle } from "./ddragon-normalize"
+
 const BASE = "https://ddragon.leagueoflegends.com"
 const LOCALE = "en_US"
 const FETCH_TIMEOUT_MS = 10_000
@@ -68,25 +70,38 @@ function normalizeSpells(data: Record<string, RawEntry>): Record<number, Summone
 }
 
 async function fetchBundle(version: string): Promise<DDragonBundle> {
-	const [champions, spells] = await Promise.all([
+	const [champions, spells, runes, items] = await Promise.all([
 		fetchJson<{ data: Record<string, RawEntry> }>(
 			`${BASE}/cdn/${version}/data/${LOCALE}/champion.json`,
 		),
 		fetchJson<{ data: Record<string, RawEntry> }>(
 			`${BASE}/cdn/${version}/data/${LOCALE}/summoner.json`,
 		),
+		fetchJson<RawRuneStyle[]>(`${BASE}/cdn/${version}/data/${LOCALE}/runesReforged.json`),
+		fetchJson<{ data: Record<string, { name?: string; image?: { full?: string } }> }>(
+			`${BASE}/cdn/${version}/data/${LOCALE}/item.json`,
+		),
 	])
 	return {
 		version,
 		championsByKey: normalizeChampions(champions.data),
 		spellsByKey: normalizeSpells(spells.data),
+		runesById: normalizeRunes(runes),
+		itemsById: normalizeItems(items.data),
 	}
 }
 
 async function readCache(): Promise<DDragonBundle | null> {
 	try {
 		const bundle = JSON.parse(await readFile(cachePath(), "utf8")) as DDragonBundle
-		return bundle.version && bundle.championsByKey && bundle.spellsByKey ? bundle : null
+		// require the runes/items keys so caches written before this version refetch
+		return bundle.version &&
+			bundle.championsByKey &&
+			bundle.spellsByKey &&
+			bundle.runesById &&
+			bundle.itemsById
+			? bundle
+			: null
 	} catch {
 		return null // no cache / corrupt cache — treated as absent
 	}
