@@ -16,6 +16,7 @@ import {
 	type LcuSnapshot,
 	type RankInfo,
 	type ReadyCheck,
+	type RunePageRec,
 	type SummonerIdentity,
 } from "@/shared/types"
 
@@ -32,7 +33,7 @@ import {
 	toReadyCheck,
 	toSummonerIdentity,
 } from "./lcu-mappers"
-import { getSettings } from "./store"
+import { getLockinRunePageId, getSettings, setLockinRunePageId } from "./store"
 
 const PROCESS_POLL_MS = 2500 // league-connect's default cadence for process scans
 const WS_RETRY_MS = 1000
@@ -241,6 +242,99 @@ class LcuService {
 		await this.request("POST", "/lol-matchmaking/v1/ready-check/decline")
 	}
 
+	async setSummonerSpells(spell1Id: number, spell2Id: number): Promise<void> {
+		await this.request("PATCH", "/lol-champ-select/v1/session/my-selection", {
+			spell1Id,
+			spell2Id,
+		})
+	}
+
+	async applyRunePage(page: RunePageRec): Promise<{ ok: boolean; error?: string }> {
+		if (!this.credentials) return { ok: false, error: "League client not connected" }
+		try {
+			const inventory = (await this.request("GET", "/lol-perks/v1/inventory")) as {
+				canAddCustomPage?: boolean
+			} | null
+			const existingId = getLockinRunePageId()
+			if (inventory && inventory.canAddCustomPage === false && existingId === null) {
+				return { ok: false, error: "Rune page slots are full. Delete a page and try again." }
+			}
+
+			if (existingId !== null) {
+				try {
+					await this.request("DELETE", `/lol-perks/v1/pages/${existingId}`)
+				} catch (error) {
+					// known LCU bug: DELETE can 403. Fall back to overwriting in place.
+					if (String(error).includes("403")) {
+						try {
+							await this.request("PUT", `/lol-perks/v1/pages/${existingId}`, {
+								id: existingId,
+								name: this.runePageName(page),
+								primaryStyleId: page.primaryStyleId,
+								subStyleId: page.subStyleId,
+								selectedPerkIds: page.selectedPerkIds,
+								current: true,
+							})
+							return { ok: true }
+						} catch (putError) {
+							console.warn("[lcu] rune PUT fallback failed:", putError)
+							// fall through to creating a fresh page
+						}
+					}
+					// non-403 delete failures: the page may already be gone — continue to POST
+				}
+			}
+
+			const created = (await this.request("POST", "/lol-perks/v1/pages", {
+				name: this.runePageName(page),
+				primaryStyleId: page.primaryStyleId,
+				subStyleId: page.subStyleId,
+				selectedPerkIds: page.selectedPerkIds,
+				current: true,
+			})) as { id?: number } | null
+			if (created?.id != null) setLockinRunePageId(created.id)
+			return { ok: true }
+		} catch (error) {
+			console.error("[lcu] applyRunePage failed:", error)
+			return { ok: false, error: "Could not apply runes. Pages can't change once locked in." }
+		}
+	}
+
+	private runePageName(page: RunePageRec): string {
+		// keep it short + lockin-namespaced so we only ever touch our own page
+		return `lockin: ${page.primaryName}`
+	}
+
+	async startQueue(queueId: number): Promise<{ ok: boolean; error?: string }> {
+		if (!this.credentials) return { ok: false, error: "League client not connected" }
+		try {
+			await this.request("POST", "/lol-lobby/v2/lobby", { queueId })
+			if (queueId === 420 || queueId === 440) {
+				try {
+					await this.request(
+						"PUT",
+						"/lol-lobby/v1/lobby/members/localMember/position-preferences",
+						{ firstPreference: "FILL", secondPreference: "UNSELECTED" },
+					)
+				} catch (error) {
+					console.warn("[lcu] position-preferences (best-effort) failed:", error)
+				}
+			}
+			await this.request("POST", "/lol-matchmaking/v1/search")
+			return { ok: true }
+		} catch (error) {
+			console.error("[lcu] startQueue failed:", error)
+			return {
+				ok: false,
+				error: "Could not start the queue. Check you're in a lobby-eligible state.",
+			}
+		}
+	}
+
+	async stopQueue(): Promise<void> {
+		await this.request("DELETE", "/lol-matchmaking/v1/search")
+	}
+
 	private handleReadyCheck(readyCheck: ReadyCheck | null): void {
 		if (readyCheck?.state !== "InProgress") {
 			this.resetAutoAccept() // check over/gone → next pop is a fresh cycle
@@ -387,4 +481,24 @@ export async function getRanksForPuuids(
 ): Promise<Record<string, RankInfo | null>> {
 	if (!service) return Object.fromEntries(puuids.filter(Boolean).map((p) => [p, null]))
 	return service.getRanksForPuuids(puuids)
+}
+
+export async function setSummonerSpells(spell1Id: number, spell2Id: number): Promise<void> {
+	if (!service) throw new Error("LCU service not started")
+	await service.setSummonerSpells(spell1Id, spell2Id)
+}
+
+export async function applyRunePage(page: RunePageRec): Promise<{ ok: boolean; error?: string }> {
+	if (!service) return { ok: false, error: "LCU service not started" }
+	return service.applyRunePage(page)
+}
+
+export async function startQueue(queueId: number): Promise<{ ok: boolean; error?: string }> {
+	if (!service) return { ok: false, error: "LCU service not started" }
+	return service.startQueue(queueId)
+}
+
+export async function stopQueue(): Promise<void> {
+	if (!service) return
+	await service.stopQueue()
 }
