@@ -92,6 +92,41 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 				<Row
+					title="Auto-set runes on hover"
+					desc="When you hover a champion, create a lockin rune page from the recommendation and set it active. Off by default, so nothing happens without you. Your own pages are never touched."
+					control={
+						<Switch
+							checked={settings.autoRunes}
+							onCheckedChange={(v) => setSettings.mutate({ autoRunes: v })}
+						/>
+					}
+				/>
+				<Row
+					title="Auto-set spells on hover"
+					desc="Set your summoner spells to the recommendation when you hover a champion. Off by default."
+					control={
+						<Switch
+							checked={settings.autoSpells}
+							onCheckedChange={(v) => setSettings.mutate({ autoSpells: v })}
+						/>
+					}
+				/>
+				<Row
+					title="Build tier"
+					desc="Which rank bracket the recommendations are pulled from."
+					control={
+						<Segmented
+							value={settings.buildTier}
+							onChange={(v) => setSettings.mutate({ buildTier: v })}
+							options={[
+								{ value: "emerald_plus", label: "Emerald+" },
+								{ value: "platinum_plus", label: "Plat+" },
+								{ value: "all", label: "All" },
+							]}
+						/>
+					}
+				/>
+				<Row
 					last
 					title="Rank-mismatch sensitivity"
 					desc="How wide a rank spread must be before the team card flags it."

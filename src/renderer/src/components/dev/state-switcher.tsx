@@ -168,33 +168,6 @@ export default function StateSwitcher(): React.JSX.Element {
 			{/* Champ Select controls */}
 			{snapshot.phase === "select" && (
 				<div className="flex flex-wrap items-center justify-end gap-3">
-					<Switch
-						id="dev-cs-auto-runes"
-						checked={settingsQuery.data?.autoRunes ?? false}
-						onCheckedChange={(checked) => setSettingsMutation.mutate({ autoRunes: checked })}
-					/>
-					<label htmlFor="dev-cs-auto-runes" className={LABEL_CLASS}>
-						Auto-runes
-					</label>
-					<Switch
-						id="dev-cs-auto-spells"
-						checked={settingsQuery.data?.autoSpells ?? false}
-						onCheckedChange={(checked) => setSettingsMutation.mutate({ autoSpells: checked })}
-					/>
-					<label htmlFor="dev-cs-auto-spells" className={LABEL_CLASS}>
-						Auto-spells
-					</label>
-					<div className="flex items-center gap-[7px]">
-						<DemoLabel>Build</DemoLabel>
-						<Seg
-							value={snapshot.buildAvailable ? "on" : "off"}
-							onChange={(v) => drive({ buildAvailable: v === "on" })}
-							options={[
-								{ value: "on", label: "Available" },
-								{ value: "off", label: "None" },
-							]}
-						/>
-					</div>
 					<div className="flex items-center gap-[7px]">
 						<DemoLabel>Phase</DemoLabel>
 						<Seg
@@ -255,6 +228,35 @@ export default function StateSwitcher(): React.JSX.Element {
 								{ value: "off", label: "Pending" },
 							]}
 						/>
+					</div>
+					<div className="flex items-center gap-[7px]">
+						<DemoLabel>Build</DemoLabel>
+						<Seg
+							value={snapshot.buildAvailable ? "on" : "off"}
+							onChange={(v) => drive({ buildAvailable: v === "on" })}
+							options={[
+								{ value: "on", label: "Available" },
+								{ value: "off", label: "None" },
+							]}
+						/>
+					</div>
+					<div className="flex items-center gap-[10px] border-l border-(--stroke-default) pl-3">
+						<Switch
+							id="dev-auto-runes"
+							checked={settingsQuery.data?.autoRunes ?? false}
+							onCheckedChange={(checked) => setSettingsMutation.mutate({ autoRunes: checked })}
+						/>
+						<label htmlFor="dev-auto-runes" className={LABEL_CLASS}>
+							Auto runes
+						</label>
+						<Switch
+							id="dev-auto-spells"
+							checked={settingsQuery.data?.autoSpells ?? false}
+							onCheckedChange={(checked) => setSettingsMutation.mutate({ autoSpells: checked })}
+						/>
+						<label htmlFor="dev-auto-spells" className={LABEL_CLASS}>
+							Auto spells
+						</label>
 					</div>
 				</div>
 			)}
