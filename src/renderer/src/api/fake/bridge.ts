@@ -18,6 +18,7 @@ import {
 	FIXTURE_BANLIST,
 	FIXTURE_BUILD,
 	FIXTURE_BUNDLE,
+	FIXTURE_IN_GAME,
 	FIXTURE_NOTES,
 	FIXTURE_RANKS,
 	FIXTURE_SETTINGS,
@@ -55,11 +56,6 @@ const champCh = channel<ChampSelectSession | null>()
 const summonerCh = channel<SummonerIdentity | null>()
 const inGameCh = channel<InGameState | null>()
 
-/* the in-game champion mirrors my champ-select pick (Aatrox top, Flash/TP) */
-function buildInGame(): InGameState {
-	return { championId: C.aatrox, spell1Id: 4, spell2Id: 12, queueId: 420 }
-}
-
 /* ----------------------------------------------------------- mutable state */
 let scenario: ScenarioState = { ...INITIAL_SCENARIO }
 let settings: AppSettings = { ...FIXTURE_SETTINGS }
@@ -85,7 +81,7 @@ function emitAll() {
 	)
 	champCh.emit(scenario.phase === "select" ? buildSession(scenario, subPhase, csMsLeft) : null)
 	summonerCh.emit(connected ? FIXTURE_SUMMONER : null)
-	inGameCh.emit(scenario.phase === "game" ? buildInGame() : null)
+	inGameCh.emit(scenario.phase === "game" ? FIXTURE_IN_GAME : null)
 }
 
 function effectiveReadyResponse(): ReadyCheck["playerResponse"] {
@@ -267,7 +263,7 @@ export const fakeBridge: Api = {
 	},
 	onInGame: (cb) => {
 		const off = inGameCh.on(cb)
-		cb(scenario.phase === "game" ? buildInGame() : null)
+		cb(scenario.phase === "game" ? FIXTURE_IN_GAME : null)
 		return off
 	},
 	onNav: () => {

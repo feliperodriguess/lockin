@@ -4,6 +4,7 @@ import type {
 	BuildRecommendation,
 	ChampionStatic,
 	DDragonBundle,
+	InGameState,
 	MatchupNote,
 	RankInfo,
 	SummonerIdentity,
@@ -399,6 +400,13 @@ export const FIXTURE_SUMMONER: SummonerIdentity = {
 	profileIconId: 4567,
 	summonerLevel: 312,
 	puuid: "p-me",
+}
+
+export const FIXTURE_IN_GAME: InGameState = {
+	championId: C.aatrox,
+	spell1Id: 4, // Flash
+	spell2Id: 12, // Teleport
+	queueId: 420, // Ranked Solo
 }
 
 /* a complete Aatrox-top build the in-game + champ-select panels render against */
