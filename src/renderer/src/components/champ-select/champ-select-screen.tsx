@@ -3,6 +3,7 @@ import { HeaderStrip } from "@renderer/components/champ-select/header-strip"
 import { NotesRegion } from "@renderer/components/champ-select/notes-region"
 import { RecommendationPanel } from "@renderer/components/champ-select/recommendation-panel"
 import { TeamRegion } from "@renderer/components/champ-select/team-region"
+import { YourMains } from "@renderer/components/champ-select/your-mains"
 import { useChampSelect } from "@renderer/hooks/use-champ-select"
 import { useDDragon, useSettings } from "@renderer/hooks/use-data"
 
@@ -46,6 +47,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 					version={version}
 					grow
 				/>
+				<YourMains />
 			</div>
 
 			<div className="flex min-h-0 flex-col gap-[14px]">

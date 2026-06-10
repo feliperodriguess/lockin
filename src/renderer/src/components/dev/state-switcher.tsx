@@ -303,6 +303,12 @@ export default function StateSwitcher(): React.JSX.Element {
 				</p>
 			)}
 
+			{snapshot.phase === "game" && (
+				<p className="m-0 max-w-[320px] text-right text-[11px] leading-[1.4] text-paper-400">
+					In a live game — showing the build, skill order, and runes for your champion.
+				</p>
+			)}
+
 			{/* Force fake API toggle */}
 			<div className="flex items-center gap-[7px] border-l border-(--stroke-default) pl-4">
 				<DemoLabel>Fake api</DemoLabel>
