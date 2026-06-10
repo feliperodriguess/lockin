@@ -120,9 +120,9 @@ Use the **latest stable version** of each library below. Pin exact versions at s
 
 Each feature lists: behavior, trigger, data source, edge cases, and acceptance criteria.
 
-### 6.1 Recommended Summoner Spells
+### 6.1 Recommendations: Summoner Spells, Runes, Items & Skill Order
 
-> **Honest scope note:** Data Dragon provides the **catalog** of summoner spells and their icons, but not per-matchup recommendations. v1 uses a deterministic **heuristic engine** plus **user overrides**. Starting-item recommendations and crowd-sourced data are deliberate non-goals.
+> **Scope note (v1.1):** Data Dragon is the **catalog** (what each rune/spell/item/ability *is*); it never says what's *good* for champion X in role Y. Per-champ/per-role recommendations come from **OP.GG MCP** (`mcp-api.op.gg/mcp`, keyless JSON-RPC, tool `lol_get_champion_analysis`), normalized into a `BuildRecommendation` and disk-cached per (championKey, role, patch). It is accessed only in the **main process** behind a swappable `BuildProvider` interface (`src/main/build/`), so the source can be replaced later; network or parse failure degrades to **null** (the UI hides the build, never crashes). The renderer reads recommendations via the `build:get` IPC query (TanStack Query, long `staleTime`). The deterministic **heuristic engine** below stays as the **offline fallback** for spells.
 
 **Behavior.** Once the user's champion + assigned role are known, show a suggested pair of summoner spells (2 icons). If the user has pinned spells on a matching note, **the pinned values win** and are labeled "Your pick."
 
@@ -137,7 +137,9 @@ Each feature lists: behavior, trigger, data source, edge cases, and acceptance c
   - unknown/empty role → Ignite
 - Suggestions resolve to DDragon icons + names for display.
 
-**User override.** Pinned spells on a matching note replace the heuristic output for that matchup.
+**User override & precedence.** Effective spells resolve in order: **pinned-note spells** (labeled "Your pick") > **OP.GG recommendation** > **heuristic** (offline fallback). The pinned-note value always wins for that matchup.
+
+**Auto-apply (opt-in, off by default).** When `autoSpells` / `autoRunes` are enabled, a change in the effective champion writes to the client during champ select — spells via `lcu:setSpells` (`PATCH /lol-champ-select/v1/session/my-selection`) and runes via `lcu:applyRunes`, which creates/replaces a **lockin-owned** rune page only (the user's own pages are never modified) and sets it current. Both default off; with them off, the panel only *displays* recommendations and performs no writes. See §6.6 and §14.
 
 **Edge cases.**
 - Role not yet assigned → show default spells with a subtle "role pending" hint.
@@ -148,6 +150,10 @@ Each feature lists: behavior, trigger, data source, edge cases, and acceptance c
 - [ ] Pinned note spells override heuristics and are visibly labeled "Your pick."
 - [ ] Spell A/B placement respects the D/F layout setting.
 - [ ] No crash when a spell ID doesn't resolve for the current patch.
+- [ ] The recommendation panel shows OP.GG runes, spells, and a win% · sample-size label for the hovered or locked champion + role.
+- [ ] With `autoRunes` on, a lockin-owned rune page is created/replaced and set current; the user's own pages are never modified.
+- [ ] With `autoSpells` on, summoner spells are written to the client.
+- [ ] Both toggles default off; with them off, no client writes happen and pinned-note spells still override and are labeled "Your pick."
 
 ---
 
