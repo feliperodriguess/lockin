@@ -26,7 +26,6 @@ export function SpellIcon({
 		<div
 			title={spell.name}
 			className="relative overflow-hidden shrink-0 bg-ink-800 border border-(--stroke-default) rounded-xs"
-			// dynamic: width/height derived from size prop
 			style={{ width: size, height: size }}
 		>
 			{!err ? (

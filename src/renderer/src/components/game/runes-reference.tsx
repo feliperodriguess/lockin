@@ -52,7 +52,6 @@ function RuneIcon({
 		return (
 			<span
 				className="grid shrink-0 place-items-center rounded-full bg-ink-800 font-mono text-[7px] font-semibold leading-none text-paper-400"
-				// dynamic: width/height from size
 				style={{ width: size, height: size }}
 			>
 				·
@@ -66,7 +65,6 @@ function RuneIcon({
 			title={rune.name}
 			onError={() => setErr(true)}
 			className={cn("shrink-0 rounded-full bg-ink-900 object-contain")}
-			// dynamic: width/height from size
 			style={{ width: size, height: size }}
 		/>
 	)

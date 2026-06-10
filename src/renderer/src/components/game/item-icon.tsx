@@ -30,7 +30,6 @@ export function ItemIcon({
 				"relative shrink-0 overflow-hidden rounded-xs border border-(--stroke-default) bg-ink-800",
 				className,
 			)}
-			// dynamic: width/height derived from size prop
 			style={{ width: size, height: size }}
 		>
 			{!err ? (

@@ -37,8 +37,6 @@ export function InGameScreen(): React.JSX.Element | null {
 	const layout = settings?.spellSlotLayout ?? "DF"
 
 	const champion = inGame && bundle ? (bundle.championsByKey[inGame.championId] ?? null) : null
-	// in-game role fallback: infer from the champion's lane, then last champ-select role isn't
-	// available here, so CHAMPION_LANE is the source of truth in-game.
 	const displayRole = champion ? championLane(champion.id) : null
 	const role: Role | null = displayRole ? displayToRole(displayRole) : null
 
@@ -68,7 +66,7 @@ export function InGameScreen(): React.JSX.Element | null {
 						<span className="h-10 w-px shrink-0 bg-(--stroke-default)" />
 						<SpellPair pair={spellPair} version={version} layout={layout} size={32} showKeys />
 					</div>
-					<span className="inline-flex items-center gap-[6px] rounded-sm bg-(--accent-bg) px-2 py-[5px] font-mono text-[10px] font-semibold uppercase leading-none tracking-[0.1em] text-accent">
+					<span className="inline-flex items-center gap-[6px] rounded-sm bg-(--accent-bg) px-2 py-[5px] font-mono text-[10px] font-semibold uppercase leading-none tracking-widest text-accent">
 						<Swords size={11} />
 						In game
 					</span>
@@ -105,7 +103,7 @@ export function InGameScreen(): React.JSX.Element | null {
 					)}
 				</Section>
 
-				{/* build */}
+				{/* recommended build */}
 				{build && (
 					<Section
 						label="Build"

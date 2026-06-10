@@ -10,9 +10,14 @@ import {
 
 import trayIcon from "~/resources/lockinTemplate.png"
 
-import { QUEUE_ACTIONS, queueErrorMessage } from "./tray-queues"
+import { RANKED_QUEUE_ID } from "./lcu-mappers"
 
 const AUTO_ACCEPT_ACCELERATOR = "Control+Alt+A"
+
+export const QUEUE_ACTIONS: { label: string; queueId: number }[] = [
+	{ label: "Start ranked queue", queueId: RANKED_QUEUE_ID.SOLO_DUO },
+	{ label: "Start flex queue", queueId: RANKED_QUEUE_ID.FLEX },
+]
 
 export interface TraySnapshot {
 	connected: boolean
@@ -34,13 +39,6 @@ export interface TrayDeps {
 	navigate: (to: string, search?: Record<string, unknown>) => void
 	/** Re-run the supplied callback whenever status/summoner/settings change. */
 	onChange: (rebuild: () => void) => void
-}
-
-function identityLabel(snapshot: TraySnapshot): string {
-	if (!snapshot.connected) return "○ Client not detected"
-	const id = snapshot.summoner
-	if (!id) return "● Connected"
-	return `● ${id.gameName}#${id.tagLine}`
 }
 
 function notifyQueueError(label: string, error?: string): void {
@@ -119,4 +117,17 @@ export function createTray(deps: TrayDeps): { unregister: () => void } {
 			globalShortcut.unregister(AUTO_ACCEPT_ACCELERATOR)
 		},
 	}
+}
+
+function identityLabel(snapshot: TraySnapshot): string {
+	if (!snapshot.connected) return "○ Client not detected"
+	const id = snapshot.summoner
+	if (!id) return "● Connected"
+	return `● ${id.gameName}#${id.tagLine}`
+}
+
+/** Human-readable notification body when a tray queue-start fails. */
+export function queueErrorMessage(label: string, error?: string): string {
+	if (error) return `${label} failed: ${error}`
+	return `${label} failed. Check the League client and try again.`
 }

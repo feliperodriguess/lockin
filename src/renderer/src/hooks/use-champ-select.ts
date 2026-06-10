@@ -57,7 +57,6 @@ export interface ChampSelectVM {
 	team: TeamRowVM[]
 	ranksAvailable: boolean
 	mismatch: boolean
-	// Build / responsiveness (design §7.1)
 	championKey: number | null // effective champion (locked || hovered)
 	position: string | null // raw LCU assignedPosition ("top"…), null when pending
 	build: BuildRecommendation | null
@@ -150,7 +149,6 @@ export function useChampSelect(): ChampSelectVM | null {
 		const note = matchupNote(notes ?? [], effectiveChampId, laneOpponent?.championId ?? null)
 
 		// spell precedence: pinned-note > OP.GG build > deterministic heuristic.
-		// pinned pre-validated against DDragon (§6.1: unresolvable pin → drop it).
 		const pinned = note?.pinnedSpells
 		const pinnedValid = !!(pinned && spell(pinned[0]) && spell(pinned[1]))
 		const opggPair = build?.spells ?? null

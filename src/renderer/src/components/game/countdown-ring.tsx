@@ -34,11 +34,7 @@ export function CountdownRing({
 				: "var(--color-fail)"
 
 	return (
-		<div
-			className="relative shrink-0"
-			// dynamic: width/height derived from size prop
-			style={{ width: size, height: size }}
-		>
+		<div className="relative shrink-0" style={{ width: size, height: size }}>
 			<svg width={size} height={size} aria-hidden="true" className="block -rotate-90">
 				{/* track */}
 				<circle
@@ -58,12 +54,10 @@ export function CountdownRing({
 					stroke={toneColor}
 					strokeWidth={stroke}
 					strokeLinecap="round"
-					// dynamic: dasharray/dashoffset are SVG geometry computed from radius/progress
 					strokeDasharray={circ}
 					strokeDashoffset={circ * (1 - clamped)}
 					className="[transition:stroke-dashoffset_980ms_linear,stroke_var(--dur-base)_var(--ease-standard)]"
 					style={{
-						// dynamic: drop-shadow color is tone-derived
 						filter: pulsing ? `drop-shadow(0 0 8px ${toneColor})` : "none",
 					}}
 				/>
@@ -77,7 +71,6 @@ export function CountdownRing({
 				{value != null && (
 					<div
 						className="text-paper-100 tabular-nums leading-none font-normal"
-						// dynamic: font-size derived from size prop; font-family is a CSS var
 						style={{
 							fontFamily: "var(--font-display)",
 							fontSize: `${Math.round(size * 0.32)}px`,
@@ -89,7 +82,6 @@ export function CountdownRing({
 				{label && (
 					<div
 						className="font-mono text-[10px] font-semibold leading-none tracking-[0.14em] uppercase"
-						// dynamic: color is tone-derived (accent uses brand accent color)
 						style={{ color: tone === "accent" ? "var(--color-accent)" : toneColor }}
 					>
 						{label}

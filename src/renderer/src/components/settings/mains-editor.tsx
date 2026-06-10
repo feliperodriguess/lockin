@@ -49,7 +49,7 @@ export function MainsEditor(): React.JSX.Element | null {
 
 			<Card className="flex flex-col gap-3 p-3">
 				{mains.length === 0 && (
-					<p className="m-0 px-6 py-5 text-center text-[13px] leading-[1.5] text-paper-400">
+					<p className="m-0 px-6 py-5 text-center text-[13px] leading-normal text-paper-400">
 						No mains yet. Add the champions you play, tagged by role.
 					</p>
 				)}
@@ -76,7 +76,7 @@ export function MainsEditor(): React.JSX.Element | null {
 												title="Remove"
 												className={cn(
 													"flex cursor-pointer border-none bg-transparent p-[2px] text-paper-400",
-													"transition-colors duration-(--dur-base) ease-(--ease-standard) hover:text-[var(--color-fail)]",
+													"transition-colors duration-(--dur-base) ease-(--ease-standard) hover:text-fail",
 												)}
 											>
 												<Trash2 size={14} />

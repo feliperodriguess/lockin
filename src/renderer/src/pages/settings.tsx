@@ -27,7 +27,6 @@ export function SettingsPage(): React.JSX.Element | null {
 					Preferences
 				</span>
 			</header>
-
 			<Group label="Match">
 				<Row
 					title="Auto-accept ready check"
@@ -93,8 +92,8 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 				<Row
-					title="Auto-set runes on hover"
-					desc="When you hover a champion, create a lockin rune page from the recommendation and set it active. Off by default, so nothing happens without you. Your own pages are never touched."
+					title="Auto-set Runes"
+					desc="When you select a champion, create a lockin rune page from the recommendation and set it active. Your own pages are never touched."
 					control={
 						<Switch
 							checked={settings.autoRunes}
@@ -103,8 +102,8 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 				<Row
-					title="Auto-set spells on hover"
-					desc="Set your summoner spells to the recommendation when you hover a champion. Off by default."
+					title="Auto-set Spells"
+					desc="Set your summoner spells to the recommendation when you select a champion."
 					control={
 						<Switch
 							checked={settings.autoSpells}
@@ -113,15 +112,19 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 				<Row
-					title="Build tier"
+					title="Build Tier"
 					desc="Which rank bracket the recommendations are pulled from."
 					control={
 						<Segmented
 							value={settings.buildTier}
 							onChange={(v) => setSettings.mutate({ buildTier: v })}
 							options={[
+								{ value: "challenger", label: "Challenger" },
+								{ value: "master_plus", label: "Master+" },
+								{ value: "diamond_plus", label: "Diamond+" },
 								{ value: "emerald_plus", label: "Emerald+" },
-								{ value: "platinum_plus", label: "Plat+" },
+								{ value: "platinum", label: "Plat" },
+								{ value: "gold", label: "Gold" },
 								{ value: "all", label: "All" },
 							]}
 						/>
@@ -144,11 +147,8 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 			</Group>
-
 			<BanEditor />
-
 			<MainsEditor />
-
 			<div className="h-1" />
 		</div>
 	)
