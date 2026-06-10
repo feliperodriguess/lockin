@@ -1,0 +1,7 @@
+class LolGetChampionAnalysis: data
+class Data: strong_counters,weak_counters,summary
+class StrongCounter: champion_id,champion_name,play,win,win_rate
+class Summary: average_stats
+class AverageStats: win_rate,play
+
+LolGetChampionAnalysis(Data([StrongCounter(67,"Vayne",101,62,0.61),StrongCounter(41,"Gangplank",101,52,0.51)],[StrongCounter(14,"Sion",149,62,0.58),StrongCounter(266,"Aatrox",110,46,0.58),StrongCounter(86,"Garen",117,52,0.56)],Summary(AverageStats(0.5,9951))))
