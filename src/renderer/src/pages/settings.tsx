@@ -1,6 +1,7 @@
 import { Segmented } from "@renderer/components/app/segmented"
 import { SpellIcon } from "@renderer/components/game/spell-icon"
 import { BanEditor } from "@renderer/components/settings/ban-editor"
+import { MainsEditor } from "@renderer/components/settings/mains-editor"
 import { Group, Row } from "@renderer/components/settings/settings-rows"
 import { Switch } from "@renderer/components/ui/switch"
 import { useDDragon, useSetSettings, useSettings } from "@renderer/hooks/use-data"
@@ -145,6 +146,8 @@ export function SettingsPage(): React.JSX.Element | null {
 			</Group>
 
 			<BanEditor />
+
+			<MainsEditor />
 
 			<div className="h-1" />
 		</div>
