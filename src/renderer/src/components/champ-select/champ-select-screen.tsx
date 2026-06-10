@@ -1,6 +1,7 @@
 import { BansRegion } from "@renderer/components/champ-select/bans-region"
 import { HeaderStrip } from "@renderer/components/champ-select/header-strip"
 import { NotesRegion } from "@renderer/components/champ-select/notes-region"
+import { RecommendationPanel } from "@renderer/components/champ-select/recommendation-panel"
 import { TeamRegion } from "@renderer/components/champ-select/team-region"
 import { useChampSelect } from "@renderer/hooks/use-champ-select"
 import { useDDragon, useSettings } from "@renderer/hooks/use-data"
@@ -28,6 +29,14 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 					secondsLeft={vm.secondsLeft}
 					phaseTotal={vm.phaseTotal}
 					timerVisible={vm.timerVisible}
+				/>
+				<RecommendationPanel
+					championKey={vm.championKey}
+					build={vm.build}
+					spellPair={vm.spells.pair}
+					layout={layout}
+					bundle={bundle}
+					version={version}
 				/>
 				<NotesRegion
 					note={vm.note}
