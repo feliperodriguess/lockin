@@ -1,7 +1,8 @@
-import { championLane, type DisplayRole, displayRole } from "@renderer/lib/roles"
+import { type DisplayRole, displayRole } from "@renderer/lib/roles"
 import { useEffect, useMemo, useRef, useState } from "react"
 
 import { suggestBans } from "@/shared/lib/bans"
+import { findLaneOpponent } from "@/shared/lib/lanes"
 import { matchupNote } from "@/shared/lib/notes-match"
 import { flagMismatch } from "@/shared/lib/rank"
 import { resolveSpells } from "@/shared/lib/spell-precedence"
@@ -106,6 +107,17 @@ export function useChampSelect(): ChampSelectVM | null {
 	const meRaw = session?.myTeam.find((p) => p.cellId === session.localPlayerCellId) ?? null
 	const championKey = meRaw ? meRaw.championId || meRaw.championPickIntent || null : null
 	const position = meRaw?.assignedPosition ? meRaw.assignedPosition : null
+
+	// lane opponent resolved OUTSIDE the memo so the counter queries (hooks) can key off it
+	const opponentChampionId = useMemo(
+		() =>
+			session && bundle
+				? findLaneOpponent(session, (key) => bundle.championsByKey[key]?.id ?? null)
+						.opponentChampionId
+				: null,
+		[session, bundle],
+	)
+
 	const { data: build } = useBuildRecommendation(championKey, position, settings?.buildTier)
 
 	return useMemo(() => {
@@ -139,17 +151,10 @@ export function useChampSelect(): ChampSelectVM | null {
 
 		const enemyVisible = session.theirTeam.filter((p) => p.championId > 0)
 		const enemyHidden = enemyVisible.length === 0
-		// matchup target = the enemy in MY lane. Riot doesn't expose enemy
-		// assignedPosition in champ select, so prefer it when present but otherwise
-		// infer the enemy's lane from the champion (CHAMPION_LANE). No confident
-		// match (role pending, or no enemy maps to my lane) → no specific matchup,
-		// rather than guessing the wrong enemy.
-		const laneOpponent = role
-			? (enemyVisible.find(
-					(p) =>
-						(displayRole(p.assignedPosition) ?? championLane(champ(p.championId)?.id ?? "")) ===
-						role,
-				) ?? null)
+		// matchup target = the enemy in MY lane — resolved by findLaneOpponent (shared)
+		// outside this memo so counter queries can key off opponentChampionId directly.
+		const laneOpponent = opponentChampionId
+			? (session.theirTeam.find((p) => p.championId === opponentChampionId) ?? null)
 			: null
 		const opponent = laneOpponent ? champ(laneOpponent.championId) : null
 
@@ -227,5 +232,5 @@ export function useChampSelect(): ChampSelectVM | null {
 			position: me.assignedPosition || null,
 			build: build ?? null,
 		}
-	}, [session, bundle, notes, banlist, settings, ranks, elapsedMs, build])
+	}, [session, bundle, notes, banlist, settings, ranks, elapsedMs, build, opponentChampionId])
 }
