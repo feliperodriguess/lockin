@@ -49,11 +49,27 @@ const api: Partial<Api> = {
 	getRanksForPuuids: (puuids) => ipcRenderer.invoke(IPC.RANK_GET_FOR_PUUIDS, puuids),
 	getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
 	setSettings: (partial) => ipcRenderer.invoke(IPC.SETTINGS_SET, partial),
+	getBuild: (championKey, position, tier) =>
+		ipcRenderer.invoke(IPC.BUILD_GET, championKey, position, tier),
+	setSpells: (spell1Id, spell2Id) => ipcRenderer.invoke(IPC.LCU_SET_SPELLS, spell1Id, spell2Id),
+	applyRunes: (page) => ipcRenderer.invoke(IPC.LCU_APPLY_RUNES, page),
+	startQueue: (queueId) => ipcRenderer.invoke(IPC.LCU_START_QUEUE, queueId),
+	stopQueue: () => ipcRenderer.invoke(IPC.LCU_STOP_QUEUE),
 	onLcuStatus: (cb) =>
 		subscribeWithSnapshot(IPC.LCU_STATUS, cb, (s) => ({ connected: s.connected })),
 	onGameflowPhase: (cb) => subscribeWithSnapshot(IPC.LCU_PHASE, cb, (s) => ({ phase: s.phase })),
 	onReadyCheck: (cb) => subscribeWithSnapshot(IPC.LCU_READY_CHECK, cb, (s) => s.readyCheck),
 	onChampSelect: (cb) => subscribeWithSnapshot(IPC.LCU_CHAMP_SELECT, cb, (s) => s.champSelect),
+	onSummoner: (cb) => subscribeWithSnapshot(IPC.LCU_SUMMONER, cb, (s) => s.summoner),
+	onInGame: (cb) => subscribeWithSnapshot(IPC.LCU_IN_GAME, cb, (s) => s.inGame),
+	onNav: (cb) => {
+		const listener = (
+			_event: Electron.IpcRendererEvent,
+			payload: { to: string; search?: Record<string, unknown> },
+		): void => cb(payload)
+		ipcRenderer.on(IPC.NAV_GO, listener)
+		return () => ipcRenderer.removeListener(IPC.NAV_GO, listener)
+	},
 }
 
 if (process.contextIsolated) {
