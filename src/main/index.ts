@@ -10,15 +10,19 @@ import icon from "~/resources/icon.png"
 import "./ipc"
 import "./store"
 
-import { startLcuService, stopLcuService } from "./lcu"
+import { getLcuSnapshot, startLcuService, startQueue, stopLcuService } from "./lcu"
+import { getSettings, onSettingsChange, setSettings } from "./store"
 import { createTray } from "./tray"
 
 if (is.dev) {
 	app.commandLine.appendSwitch("remote-debugging-port", "9223")
 }
 
+let mainWindow: BrowserWindow | null = null
+let rebuildTray: (() => void) | null = null
+
 function createWindow(): void {
-	const mainWindow = new BrowserWindow({
+	mainWindow = new BrowserWindow({
 		width: 1320,
 		height: 860,
 		minWidth: 1000,
@@ -34,10 +38,12 @@ function createWindow(): void {
 		},
 	})
 
-	createTray()
-
 	mainWindow.on("ready-to-show", () => {
-		mainWindow.show()
+		mainWindow?.show()
+	})
+
+	mainWindow.on("closed", () => {
+		mainWindow = null
 	})
 
 	mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -53,15 +59,21 @@ function createWindow(): void {
 }
 
 function surfaceWindows(): void {
-	for (const w of BrowserWindow.getAllWindows()) {
-		if (w.isMinimized()) w.restore()
-		w.show()
-		w.focus()
+	if (!mainWindow) {
+		createWindow()
+		return
 	}
+	if (mainWindow.isMinimized()) mainWindow.restore()
+	mainWindow.show()
+	mainWindow.focus()
 	if (process.platform === "darwin") {
 		app.focus({ steal: true })
 		app.dock?.bounce("informational")
 	}
+}
+
+function navigateRenderer(to: string, search?: Record<string, unknown>): void {
+	mainWindow?.webContents.send(IPC.NAV_GO, { to, search })
 }
 
 if (process.platform === "darwin") {
@@ -77,9 +89,36 @@ app.whenReady().then(() => {
 
 	createWindow()
 
+	const trayHandle = createTray({
+		getSnapshot: () => {
+			const snap = getLcuSnapshot()
+			return {
+				connected: snap.connected,
+				summoner: snap.summoner
+					? { gameName: snap.summoner.gameName, tagLine: snap.summoner.tagLine }
+					: null,
+			}
+		},
+		getSettings: () => ({ autoAccept: getSettings().autoAccept }),
+		setSettings: (partial) => {
+			setSettings(partial)
+		},
+		startQueue: (queueId) => startQueue(queueId),
+		surface: surfaceWindows,
+		navigate: navigateRenderer,
+		onChange: (rebuild) => {
+			rebuildTray = rebuild
+		},
+	})
+
+	const offSettings = onSettingsChange(() => rebuildTray?.())
+
 	startLcuService((channel, payload) => {
 		for (const w of BrowserWindow.getAllWindows()) {
 			w.webContents.send(channel, payload)
+		}
+		if (channel === IPC.LCU_STATUS || channel === IPC.LCU_SUMMONER) {
+			rebuildTray?.()
 		}
 		if (channel === IPC.LCU_PHASE && (payload as { phase: GameflowPhase }).phase === "ReadyCheck") {
 			surfaceWindows()
@@ -91,14 +130,16 @@ app.whenReady().then(() => {
 		// dock icon is clicked and there are no other windows open.
 		if (BrowserWindow.getAllWindows().length === 0) createWindow()
 	})
+
+	app.on("will-quit", () => {
+		offSettings()
+		trayHandle.unregister()
+		stopLcuService()
+	})
 })
 
 app.on("window-all-closed", () => {
 	if (process.platform !== "darwin") {
 		app.quit()
 	}
-})
-
-app.on("will-quit", () => {
-	stopLcuService()
 })

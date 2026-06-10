@@ -27,9 +27,18 @@ export function getSettings(): AppSettings {
 	return { ...DEFAULT_SETTINGS, ...store.get("settings") }
 }
 
+const settingsSubscribers = new Set<() => void>()
+
+/** Subscribe to any settings write; returns an unsubscribe. */
+export function onSettingsChange(cb: () => void): () => void {
+	settingsSubscribers.add(cb)
+	return () => settingsSubscribers.delete(cb)
+}
+
 export function setSettings(partial: Partial<AppSettings>): AppSettings {
 	const next = { ...getSettings(), ...partial }
 	store.set("settings", next)
+	for (const cb of settingsSubscribers) cb()
 	return next
 }
 
