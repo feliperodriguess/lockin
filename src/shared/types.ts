@@ -160,6 +160,16 @@ export interface InGameState {
 	queueId: number
 }
 
+/** LCU lobby position-preference strings (PUT /lol-lobby/v1/.../position-preferences). */
+export type RankedPosition =
+	| "FILL"
+	| "UNSELECTED"
+	| "TOP"
+	| "JUNGLE"
+	| "MIDDLE"
+	| "BOTTOM"
+	| "UTILITY"
+
 export interface AppSettings {
 	autoAccept: boolean // default false
 	autoAcceptDelayMs: number // default 0
@@ -169,6 +179,8 @@ export interface AppSettings {
 	autoSpells: boolean // default false — opt-in spell apply during champ select
 	buildTier: string // default "emerald_plus" — OP.GG tier bucket
 	mains: { championId: number; role: Role }[] // default [] — configured main champions
+	// roles requested when starting a ranked/flex queue from the tray; default Fill/none
+	rankedPositions: { first: RankedPosition; second: RankedPosition }
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -180,6 +192,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
 	autoSpells: false,
 	buildTier: "emerald_plus",
 	mains: [],
+	rankedPositions: { first: "FILL", second: "UNSELECTED" },
 }
 
 // ---------- LCU snapshot (preload-internal; current push-state on subscribe) ----------

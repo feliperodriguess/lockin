@@ -28,6 +28,7 @@ import {
 	type RawRankedStats,
 	type RawReadyCheck,
 	rankedQueueOf,
+	resolveRankedPreferences,
 	toChampSelectSession,
 	toInGameState,
 	toRankInfo,
@@ -328,7 +329,7 @@ class LcuService {
 					await this.request(
 						"PUT",
 						"/lol-lobby/v1/lobby/members/localMember/position-preferences",
-						{ firstPreference: "FILL", secondPreference: "UNSELECTED" },
+						resolveRankedPreferences(getSettings().rankedPositions),
 					)
 				} catch (error) {
 					console.warn("[lcu] position-preferences (best-effort) failed:", error)

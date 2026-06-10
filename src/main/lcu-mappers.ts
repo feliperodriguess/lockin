@@ -3,6 +3,7 @@ import type {
 	ChampSelectPlayer,
 	ChampSelectSession,
 	InGameState,
+	RankedPosition,
 	RankInfo,
 	ReadyCheck,
 	SummonerIdentity,
@@ -101,6 +102,16 @@ export const RANKED_QUEUE_ID = {
 	SOLO_DUO: 420,
 	FLEX: 440,
 } as const
+
+export function resolveRankedPreferences(prefs: {
+	first: RankedPosition
+	second: RankedPosition
+}): { firstPreference: RankedPosition; secondPreference: RankedPosition } {
+	const first = prefs.first
+	// Fill ignores a secondary; a duplicate primary/secondary is rejected by the client
+	const second = first === "FILL" || prefs.second === first ? "UNSELECTED" : prefs.second
+	return { firstPreference: first, secondPreference: second }
+}
 
 interface RawChampionSelection {
 	championId?: number
