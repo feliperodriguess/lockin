@@ -145,6 +145,25 @@ export interface BuildRecommendation {
 	skillPriority: ("Q" | "W" | "E")[] // max-order priority, e.g. ["Q","E","W"]
 }
 
+export interface CounterEntry {
+	championId: number
+	/** 0..1 — ALWAYS the table-owner champion's win rate vs this champion.
+	 *  Derived from OP.GG's play/win counts; OP.GG's own win_rate field flips
+	 *  perspective between lists and is deliberately ignored. */
+	winRate: number
+	games: number
+}
+
+export interface CounterTable {
+	championKey: number
+	role: Role
+	patch: string
+	/** champions that beat this champion — worst matchup (lowest winRate) first */
+	weakAgainst: CounterEntry[]
+	/** champions this champion beats — best matchup (highest winRate) first */
+	strongAgainst: CounterEntry[]
+}
+
 export interface SummonerIdentity {
 	gameName: string
 	tagLine: string
