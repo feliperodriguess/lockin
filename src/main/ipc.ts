@@ -3,7 +3,7 @@ import { ipcMain } from "electron"
 import { IPC } from "@/shared/constants"
 import type { AppSettings, BanListEntry, MatchupNote, RunePageRec } from "@/shared/types"
 
-import { getBuild } from "./build-recommendations/opgg"
+import { getBuild, getCounters } from "./build-recommendations/opgg"
 import { getDDragonBundle } from "./ddragon"
 import {
 	acceptReadyCheck,
@@ -46,6 +46,10 @@ ipcMain.handle(IPC.RANK_GET_FOR_PUUIDS, (_event, puuids: string[]) => getRanksFo
 
 ipcMain.handle(IPC.BUILD_GET, (_event, championKey: number, position: string, tier?: string) =>
 	getBuild(championKey, position, tier),
+)
+
+ipcMain.handle(IPC.COUNTERS_GET, (_event, championKey: number, position: string, tier?: string) =>
+	getCounters(championKey, position, tier),
 )
 
 ipcMain.handle(IPC.LCU_SET_SPELLS, (_event, spell1Id: number, spell2Id: number) =>

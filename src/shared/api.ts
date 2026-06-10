@@ -3,6 +3,7 @@ import type {
 	BanListEntry,
 	BuildRecommendation,
 	ChampSelectSession,
+	CounterTable,
 	DDragonBundle,
 	GameflowPhase,
 	InGameState,
@@ -32,6 +33,7 @@ export interface Api {
 		position: string,
 		tier?: string,
 	): Promise<BuildRecommendation | null>
+	getCounters(championKey: number, position: string, tier?: string): Promise<CounterTable | null>
 	setSpells(spell1Id: number, spell2Id: number): Promise<void>
 	applyRunes(page: RunePageRec, championName?: string): Promise<{ ok: boolean; error?: string }>
 	startQueue(queueId: number): Promise<{ ok: boolean; error?: string }>

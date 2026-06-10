@@ -11,6 +11,7 @@ export const IPC = {
 	BANLIST_SET: "banlist:set",
 	RANK_GET_FOR_PUUIDS: "rank:getForPuuids",
 	BUILD_GET: "build:get",
+	COUNTERS_GET: "counters:get",
 	NAV_GO: "nav:go",
 	LCU_GET_SNAPSHOT: "lcu:getSnapshot",
 	LCU_STATUS: "lcu:status",

@@ -1,7 +1,8 @@
-import type { BuildRecommendation } from "@/shared/types"
+import type { BuildRecommendation, CounterTable } from "@/shared/types"
 
 import { getDDragonBundle } from "../ddragon"
-import { buildCacheKey, withCache } from "./cache"
+import { buildCacheKey, countersCacheKey, withCache } from "./cache"
+import { normalizeOpggCounters } from "./opgg-counters-normalize"
 import { normalizeOpgg } from "./opgg-normalize"
 import { parseOpggText } from "./opgg-parse"
 import { type OpggPosition, positionFromRole, roleFromPosition } from "./position"
@@ -10,6 +11,12 @@ import type { BuildRecommendationProvider } from "./types"
 const ENDPOINT = "https://mcp-api.op.gg/mcp"
 const FETCH_TIMEOUT_MS = 12_000
 const DEFAULT_TIER = "emerald_plus"
+
+/** Counters-only field selection — keeps the counter fetch payload tiny. */
+const COUNTER_FIELDS = [
+	"data.strong_counters[].{champion_id,champion_name,play,win,win_rate}",
+	"data.weak_counters[].{champion_id,champion_name,play,win,win_rate}",
+]
 
 /** Extract result.content[0].text from a plain-JSON or SSE-framed body. */
 function extractText(body: string): string | null {
@@ -38,6 +45,7 @@ async function fetchAnalysisText(
 	champion: string,
 	position: OpggPosition,
 	tier: string,
+	desiredOutputFields?: string[],
 ): Promise<string | null> {
 	const requestBody = {
 		jsonrpc: "2.0",
@@ -51,6 +59,7 @@ async function fetchAnalysisText(
 				position,
 				lang: "en_US",
 				tier,
+				...(desiredOutputFields ? { desired_output_fields: desiredOutputFields } : {}),
 			},
 		},
 	}
@@ -89,6 +98,28 @@ class OpggProvider implements BuildRecommendationProvider {
 			return normalizeOpgg(parseOpggText(text), { championKey, role, patch })
 		})
 	}
+
+	async getCounters(
+		championKey: number,
+		position: string,
+		opts?: { tier?: string },
+	): Promise<CounterTable | null> {
+		const role = roleFromPosition(position)
+		if (!role) return null
+		const tier = opts?.tier ?? DEFAULT_TIER
+
+		const bundle = await getDDragonBundle()
+		const champion = bundle.championsByKey[championKey]?.name
+		if (!champion) return null
+		const patch = bundle.version
+
+		const key = countersCacheKey(championKey, role, tier, patch)
+		return withCache<CounterTable>(key, async () => {
+			const text = await fetchAnalysisText(champion, positionFromRole(role), tier, COUNTER_FIELDS)
+			if (!text) return null
+			return normalizeOpggCounters(parseOpggText(text), { championKey, role, patch })
+		})
+	}
 }
 
 let provider: BuildRecommendationProvider | null = null
@@ -104,6 +135,18 @@ export async function getBuild(
 	tier?: string,
 ): Promise<BuildRecommendation | null> {
 	return getBuildRecommendationProvider().getBuild(
+		championKey,
+		position,
+		tier ? { tier } : undefined,
+	)
+}
+
+export async function getCounters(
+	championKey: number,
+	position: string,
+	tier?: string,
+): Promise<CounterTable | null> {
+	return getBuildRecommendationProvider().getCounters(
 		championKey,
 		position,
 		tier ? { tier } : undefined,

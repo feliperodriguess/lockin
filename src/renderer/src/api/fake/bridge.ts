@@ -4,6 +4,7 @@ import type {
 	BanListEntry,
 	BuildRecommendation,
 	ChampSelectSession,
+	CounterTable,
 	GameflowPhase,
 	InGameState,
 	MatchupNote,
@@ -213,6 +214,9 @@ export const fakeBridge: Api = {
 			out[p] = scenario.ranksAvailable || p === "p-me" ? (FIXTURE_RANKS[p] ?? null) : null
 		}
 		return out
+	},
+	async getCounters(): Promise<CounterTable | null> {
+		return null
 	},
 	async getBuild(championKey, position): Promise<BuildRecommendation | null> {
 		if (!scenario.buildAvailable) return null
