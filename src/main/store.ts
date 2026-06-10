@@ -11,6 +11,7 @@ type StoreSchema = {
 	settings: AppSettings
 	notes: MatchupNote[]
 	banlist: BanListEntry[]
+	lockinRunePageId: number | null
 }
 
 export const store = new Store<StoreSchema>({
@@ -18,6 +19,7 @@ export const store = new Store<StoreSchema>({
 		settings: DEFAULT_SETTINGS,
 		notes: [],
 		banlist: [],
+		lockinRunePageId: null,
 	},
 })
 
@@ -76,4 +78,12 @@ export function setBanList(entries: BanListEntry[]): BanListEntry[] {
 	const next = entries.map((e, i) => ({ ...e, priority: i + 1 }))
 	store.set("banlist", next)
 	return next
+}
+
+export function getLockinRunePageId(): number | null {
+	return store.get("lockinRunePageId")
+}
+
+export function setLockinRunePageId(id: number | null): void {
+	store.set("lockinRunePageId", id)
 }
