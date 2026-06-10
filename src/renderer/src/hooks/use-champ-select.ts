@@ -4,15 +4,21 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { suggestBans } from "@/shared/lib/bans"
 import { matchupNote } from "@/shared/lib/notes-match"
 import { flagMismatch } from "@/shared/lib/rank"
-import { recommendSpells } from "@/shared/lib/spells"
-import type { ChampionStatic, MatchupNote, RankInfo, SummonerSpellStatic } from "@/shared/types"
+import { resolveSpells } from "@/shared/lib/spell-precedence"
+import type {
+	BuildRecommendation,
+	ChampionStatic,
+	MatchupNote,
+	RankInfo,
+	SummonerSpellStatic,
+} from "@/shared/types"
 
-import { useBanList, useDDragon, useNotes, useSettings, useTeamRanks } from "./use-data"
+import { useBanList, useBuild, useDDragon, useNotes, useSettings, useTeamRanks } from "./use-data"
 import { useChampSelectSession } from "./use-lcu"
 
 export interface SpellRec {
 	pair: [SummonerSpellStatic, SummonerSpellStatic] | null
-	source: "pinned" | "heuristic"
+	source: "pinned" | "opgg" | "heuristic"
 	rolePending: boolean
 }
 export interface BanRowVM {
@@ -40,6 +46,7 @@ export interface ChampSelectVM {
 		champion: ChampionStatic | null
 		role: DisplayRole | null
 		rolePending: boolean
+		hovering: boolean // champion shown via pick intent, not yet locked
 		name: string
 	}
 	opponent: ChampionStatic | null // visible enemy in my lane (matchup target)
@@ -50,6 +57,10 @@ export interface ChampSelectVM {
 	team: TeamRowVM[]
 	ranksAvailable: boolean
 	mismatch: boolean
+	// Build / responsiveness (design §7.1)
+	championKey: number | null // effective champion (locked || hovered)
+	position: string | null // raw LCU assignedPosition ("top"…), null when pending
+	build: BuildRecommendation | null
 }
 
 export function useChampSelect(): ChampSelectVM | null {
@@ -83,6 +94,14 @@ export function useChampSelect(): ChampSelectVM | null {
 	}, [session])
 	const elapsedMs = Math.max(0, nowMs - receivedAt)
 
+	// Effective champion + position resolved OUTSIDE the memo so useBuild (a hook)
+	// runs unconditionally. Locked championId wins; otherwise fall back to the
+	// hovered championPickIntent so the screen reacts the instant you hover.
+	const meRaw = session?.myTeam.find((p) => p.cellId === session.localPlayerCellId) ?? null
+	const championKey = meRaw ? meRaw.championId || meRaw.championPickIntent || null : null
+	const position = meRaw?.assignedPosition ? meRaw.assignedPosition : null
+	const { data: build } = useBuild(championKey, position)
+
 	return useMemo(() => {
 		if (!session) return null
 		const champ = (id: number): ChampionStatic | null => bundle?.championsByKey[id] ?? null
@@ -93,6 +112,11 @@ export function useChampSelect(): ChampSelectVM | null {
 
 		const role = displayRole(me.assignedPosition)
 		const rolePending = !role
+
+		// effective champion: locked championId wins, else the hovered intent.
+		// hovering = we're showing the champ via intent only (not locked yet).
+		const effectiveChampId = me.championId || me.championPickIntent || 0
+		const hovering = me.championId === 0 && me.championPickIntent > 0
 
 		// sub-phase: FINALIZATION → pick; PLANNING → ban (bans come first);
 		// BAN_PICK → ban while any ban action is in progress (real sessions mix turns)
@@ -123,14 +147,18 @@ export function useChampSelect(): ChampSelectVM | null {
 			: null
 		const opponent = laneOpponent ? champ(laneOpponent.championId) : null
 
-		const note = matchupNote(notes ?? [], me.championId, laneOpponent?.championId ?? null)
+		const note = matchupNote(notes ?? [], effectiveChampId, laneOpponent?.championId ?? null)
 
-		// pinned pre-validated against DDragon (§6.1: unresolvable pin → heuristic)
+		// spell precedence: pinned-note > OP.GG build > deterministic heuristic.
+		// pinned pre-validated against DDragon (§6.1: unresolvable pin → drop it).
 		const pinned = note?.pinnedSpells
 		const pinnedValid = !!(pinned && spell(pinned[0]) && spell(pinned[1]))
-		const rec = recommendSpells({
+		const opggPair = build?.spells ?? null
+		const opggValid = !!(opggPair && spell(opggPair[0]) && spell(opggPair[1]))
+		const rec = resolveSpells({
 			assignedPosition: me.assignedPosition,
 			pinnedSpells: pinnedValid ? pinned : undefined,
+			opggSpells: opggValid ? opggPair : null,
 		})
 		const s0 = spell(rec.pair[0])
 		const s1 = spell(rec.pair[1])
@@ -175,7 +203,13 @@ export function useChampSelect(): ChampSelectVM | null {
 			phaseTotal: Math.max(1, Math.round(session.timer.totalTimeInPhase / 1000)),
 			timerVisible: !session.timer.isInfinite,
 			enemyHidden,
-			me: { champion: champ(me.championId), role, rolePending, name: me.gameName ?? "" },
+			me: {
+				champion: champ(effectiveChampId),
+				role,
+				rolePending,
+				hovering,
+				name: me.gameName ?? "",
+			},
 			opponent,
 			spells,
 			note,
@@ -184,6 +218,9 @@ export function useChampSelect(): ChampSelectVM | null {
 			team,
 			ranksAvailable,
 			mismatch,
+			championKey: effectiveChampId || null,
+			position: me.assignedPosition || null,
+			build: build ?? null,
 		}
-	}, [session, bundle, notes, banlist, settings, ranks, elapsedMs])
+	}, [session, bundle, notes, banlist, settings, ranks, elapsedMs, build])
 }
