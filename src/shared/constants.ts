@@ -15,4 +15,12 @@ export const IPC = {
 	LCU_PHASE: "lcu:phase",
 	LCU_READY_CHECK: "lcu:readyCheck",
 	LCU_CHAMP_SELECT: "lcu:champSelect",
+	LCU_SUMMONER: "lcu:summoner",
+	LCU_IN_GAME: "lcu:inGame",
+	NAV_GO: "nav:go",
+	BUILD_GET: "build:get",
+	LCU_SET_SPELLS: "lcu:setSpells",
+	LCU_APPLY_RUNES: "lcu:applyRunes",
+	LCU_START_QUEUE: "lcu:startQueue",
+	LCU_STOP_QUEUE: "lcu:stopQueue",
 } as const
