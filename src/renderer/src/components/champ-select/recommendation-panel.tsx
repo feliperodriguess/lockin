@@ -76,7 +76,8 @@ export function RecommendationPanel({
 			}
 			if (autoRunes && build.runes) {
 				try {
-					const res = await api.applyRunes(build.runes)
+					const championName = bundle?.championsByKey[championKey]?.name
+					const res = await api.applyRunes(build.runes, championName)
 					flash(res.ok ? "Runes applied" : (res.error ?? "Couldn't set runes"))
 				} catch {
 					flash("Couldn't set runes")
@@ -86,7 +87,7 @@ export function RecommendationPanel({
 		return () => {
 			if (debounce.current) clearTimeout(debounce.current)
 		}
-	}, [championKey, build, spellPair, autoRunes, autoSpells, flash])
+	}, [championKey, build, spellPair, autoRunes, autoSpells, bundle, flash])
 
 	useEffect(() => {
 		return () => {

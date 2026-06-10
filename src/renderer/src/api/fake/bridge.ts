@@ -238,7 +238,10 @@ export const fakeBridge: Api = {
 	async setSpells(_spell1Id: number, _spell2Id: number): Promise<void> {
 		// no-op in the fake bridge — the real LCU write lands in Phase 1B
 	},
-	async applyRunes(_page: RunePageRec): Promise<{ ok: boolean; error?: string }> {
+	async applyRunes(
+		_page: RunePageRec,
+		_championName?: string,
+	): Promise<{ ok: boolean; error?: string }> {
 		return { ok: true }
 	},
 	async startQueue(_queueId: number): Promise<{ ok: boolean; error?: string }> {

@@ -52,7 +52,7 @@ const api: Partial<Api> = {
 	getBuild: (championKey, position, tier) =>
 		ipcRenderer.invoke(IPC.BUILD_GET, championKey, position, tier),
 	setSpells: (spell1Id, spell2Id) => ipcRenderer.invoke(IPC.LCU_SET_SPELLS, spell1Id, spell2Id),
-	applyRunes: (page) => ipcRenderer.invoke(IPC.LCU_APPLY_RUNES, page),
+	applyRunes: (page, championName) => ipcRenderer.invoke(IPC.LCU_APPLY_RUNES, page, championName),
 	startQueue: (queueId) => ipcRenderer.invoke(IPC.LCU_START_QUEUE, queueId),
 	stopQueue: () => ipcRenderer.invoke(IPC.LCU_STOP_QUEUE),
 	onLcuStatus: (cb) =>

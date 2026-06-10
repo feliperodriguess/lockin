@@ -51,6 +51,8 @@ ipcMain.handle(IPC.BUILD_GET, (_event, championKey: number, position: string, ti
 ipcMain.handle(IPC.LCU_SET_SPELLS, (_event, spell1Id: number, spell2Id: number) =>
 	setSummonerSpells(spell1Id, spell2Id),
 )
-ipcMain.handle(IPC.LCU_APPLY_RUNES, (_event, page: RunePageRec) => applyRunePage(page))
+ipcMain.handle(IPC.LCU_APPLY_RUNES, (_event, page: RunePageRec, championName?: string) =>
+	applyRunePage(page, championName),
+)
 ipcMain.handle(IPC.LCU_START_QUEUE, (_event, queueId: number) => startQueue(queueId))
 ipcMain.handle(IPC.LCU_STOP_QUEUE, () => stopQueue())

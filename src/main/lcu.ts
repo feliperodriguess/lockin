@@ -253,7 +253,10 @@ class LcuService {
 		})
 	}
 
-	async applyRunePage(page: RunePageRec): Promise<{ ok: boolean; error?: string }> {
+	async applyRunePage(
+		page: RunePageRec,
+		championName?: string,
+	): Promise<{ ok: boolean; error?: string }> {
 		if (!this.credentials) return { ok: false, error: "League client not connected" }
 		try {
 			const inventory = (await this.request("GET", "/lol-perks/v1/inventory")) as {
@@ -273,7 +276,7 @@ class LcuService {
 						try {
 							await this.request("PUT", `/lol-perks/v1/pages/${existingId}`, {
 								id: existingId,
-								name: this.runePageName(page),
+								name: this.runePageName(page, championName),
 								primaryStyleId: page.primaryStyleId,
 								subStyleId: page.subStyleId,
 								selectedPerkIds: page.selectedPerkIds,
@@ -307,9 +310,12 @@ class LcuService {
 		}
 	}
 
-	private runePageName(page: RunePageRec): string {
-		// keep it short + lockin-namespaced so we only ever touch our own page
-		return `lockin: ${page.primaryName}`
+	private runePageName(page: RunePageRec, championName?: string): string {
+		// keep it short + lockin-namespaced so we only ever touch our own page;
+		// include the champion when known: "lockin: Ezreal (Precision)"
+		return championName
+			? `lockin: ${championName} (${page.primaryName})`
+			: `lockin: ${page.primaryName}`
 	}
 
 	async startQueue(queueId: number): Promise<{ ok: boolean; error?: string }> {
@@ -500,9 +506,12 @@ export async function setSummonerSpells(spell1Id: number, spell2Id: number): Pro
 	await service.setSummonerSpells(spell1Id, spell2Id)
 }
 
-export async function applyRunePage(page: RunePageRec): Promise<{ ok: boolean; error?: string }> {
+export async function applyRunePage(
+	page: RunePageRec,
+	championName?: string,
+): Promise<{ ok: boolean; error?: string }> {
 	if (!service) return { ok: false, error: "LCU service not started" }
-	return service.applyRunePage(page)
+	return service.applyRunePage(page, championName)
 }
 
 export async function startQueue(queueId: number): Promise<{ ok: boolean; error?: string }> {

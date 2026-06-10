@@ -33,7 +33,7 @@ export interface Api {
 		tier?: string,
 	): Promise<BuildRecommendation | null>
 	setSpells(spell1Id: number, spell2Id: number): Promise<void>
-	applyRunes(page: RunePageRec): Promise<{ ok: boolean; error?: string }>
+	applyRunes(page: RunePageRec, championName?: string): Promise<{ ok: boolean; error?: string }>
 	startQueue(queueId: number): Promise<{ ok: boolean; error?: string }>
 	stopQueue(): Promise<void>
 	onLcuStatus(cb: (s: { connected: boolean }) => void): Unsubscribe
