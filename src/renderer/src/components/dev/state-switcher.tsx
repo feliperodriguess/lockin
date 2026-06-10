@@ -296,7 +296,7 @@ export default function StateSwitcher(): React.JSX.Element {
 			{(snapshot.phase === "disconnected" || snapshot.phase === "idle") && (
 				<p className="m-0 max-w-[320px] text-right text-[11px] leading-[1.4] text-paper-400">
 					{snapshot.phase === "disconnected"
-						? "Client closed — calm waiting state. Notes & Settings stay usable."
+						? "Client closed. Calm waiting state. Notes and Settings stay usable."
 						: "Connected, between games. Sharpen notes or queue up."}
 				</p>
 			)}

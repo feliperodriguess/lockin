@@ -13,10 +13,10 @@ export function Disconnected(): React.JSX.Element {
 
 			<div className="flex flex-col gap-3 max-w-[340px]">
 				<p className="m-0 font-display text-[26px] font-normal leading-[1.3] text-paper-100">
-					Waiting for the League client…
+					Waiting for the League client
 				</p>
 				<p className="m-0 text-[13.5px] leading-[1.55] text-paper-300">
-					We'll wake up the moment it opens. Your notes and settings stay available in the meantime.
+					Lockin starts up as soon as it opens. Your notes and settings stay available until then.
 				</p>
 			</div>
 

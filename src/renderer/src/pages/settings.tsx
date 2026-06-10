@@ -30,7 +30,7 @@ export function SettingsPage(): React.JSX.Element | null {
 			<Group label="Match">
 				<Row
 					title="Auto-accept ready check"
-					desc="Automatically accept the queue pop. Off by default — you stay in control."
+					desc="Automatically accept the queue pop. Off by default, so nothing happens without you."
 					control={
 						<Switch
 							checked={settings.autoAccept}

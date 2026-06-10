@@ -37,7 +37,7 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 					</h1>
 					<p className="m-0 text-[13px] leading-[1.4] text-paper-300">
 						{settings?.autoAccept
-							? "Auto-accept handled it — sit tight for champ select."
+							? "Auto-accept handled it. Champ select is next."
 							: "Locked in. Loading champ select…"}
 					</p>
 				</div>
@@ -95,7 +95,7 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 			/>
 			<div className="flex flex-col items-center gap-[5px]">
 				<h1 className="m-0 text-[20px] font-semibold leading-[1.1] text-paper-100">
-					{autoAccept ? "Auto-accepting…" : "Match found — accept?"}
+					{autoAccept ? "Auto-accepting" : "Match found. Accept?"}
 				</h1>
 				<p className="m-0 font-mono text-[12.5px] leading-none text-paper-400">
 					{autoAccept ? `Firing in ${left}s · cancel to take over` : "Your move"}

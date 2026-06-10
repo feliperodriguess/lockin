@@ -92,7 +92,7 @@ export function NotesPage(): React.JSX.Element {
 						<EmptyState
 							icon={BookOpen}
 							title="No notes yet"
-							line="Jot what wins a matchup — trades, timings, what to respect. They'll surface the moment you lock in."
+							line="Jot down what wins a matchup: trades, timings, what to respect. They show up the moment you lock in."
 							action={
 								<Button onClick={openNew}>
 									<Plus size={14} />

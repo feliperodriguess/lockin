@@ -153,7 +153,7 @@ export function BanEditor(): React.JSX.Element {
 				{/* Empty state */}
 				{banlist.length === 0 && (
 					<p className="m-0 px-6 py-6 text-center text-[13px] leading-[1.5] text-paper-400">
-						Your ban list is empty. Add the champions you never want to face.
+						Your ban list is empty. Add the champions you'd rather not face.
 					</p>
 				)}
 

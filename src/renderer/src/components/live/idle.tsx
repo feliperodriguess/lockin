@@ -14,17 +14,17 @@ const STANDBY_COPY: Record<Standby, { eyebrow: string; title: string; sub: strin
 	idle: {
 		eyebrow: "Connected · standing by",
 		title: "Back at it. Queue up when you're ready.",
-		sub: "Lockin wakes up the moment champ select begins. Until then, sharpen your notes.",
+		sub: "Lockin jumps in when champ select starts. Until then, tidy up your notes.",
 	},
 	lobby: {
 		eyebrow: "In lobby",
 		title: "In the lobby. Lock in your queue.",
-		sub: "Line up your matchups while the squad gets ready.",
+		sub: "Line up your matchups while the team gets ready.",
 	},
 	queue: {
 		eyebrow: "In queue · searching",
-		title: "Searching for a match…",
-		sub: "Hang tight — champ select pops the moment a game is found.",
+		title: "Looking for a match",
+		sub: "Searching for a match. Champ select opens as soon as one's found.",
 	},
 }
 

@@ -42,7 +42,7 @@ export function NotesRegion({
 				</p>
 				<p className="m-0 max-w-[280px] text-[12.5px] leading-normal text-paper-400">
 					Your <b className="font-semibold text-paper-200">{me.champion?.name}</b> matchup notes
-					appear here the moment they lock in.
+					show up here once they lock in.
 				</p>
 			</div>
 		)
