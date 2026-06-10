@@ -4,13 +4,14 @@ import { ME_CELL_ID, MY_TEAM, THEIR_TEAM } from "./fixtures"
 
 /* The dev switcher's state — mirrors the prototype DemoBar (app.jsx:505-684). */
 export interface ScenarioState {
-	phase: "disconnected" | "idle" | "ready" | "select"
+	phase: "disconnected" | "idle" | "ready" | "select" | "game"
 	csSubPhase: "ban" | "pick" | null // null = auto-cycle ban→pick on timer expiry
 	enemyHidden: boolean | null // null = auto (hidden during ban)
 	ranksAvailable: boolean
 	hasNote: boolean
 	roleAssigned: boolean
 	autoAcceptFired: boolean
+	buildAvailable: boolean // dev toggle: OP.GG recommendation present vs unavailable
 }
 
 export const INITIAL_SCENARIO: ScenarioState = {
@@ -21,6 +22,7 @@ export const INITIAL_SCENARIO: ScenarioState = {
 	hasNote: true,
 	roleAssigned: true,
 	autoAcceptFired: false,
+	buildAvailable: true,
 }
 
 export const GAMEFLOW_BY_SCENARIO: Record<ScenarioState["phase"], GameflowPhase> = {
@@ -28,6 +30,7 @@ export const GAMEFLOW_BY_SCENARIO: Record<ScenarioState["phase"], GameflowPhase>
 	idle: "Lobby",
 	ready: "ReadyCheck",
 	select: "ChampSelect",
+	game: "InProgress",
 }
 
 /* prototype PHASE_LEN (champ-select.jsx:9), in ms */

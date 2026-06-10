@@ -1,10 +1,12 @@
 import type {
 	AppSettings,
 	BanListEntry,
+	BuildRecommendation,
 	ChampionStatic,
 	DDragonBundle,
 	MatchupNote,
 	RankInfo,
+	SummonerIdentity,
 	SummonerSpellStatic,
 } from "@/shared/types"
 import { DEFAULT_SETTINGS } from "@/shared/types"
@@ -154,10 +156,83 @@ const SPELLS: SummonerSpellStatic[] = [
 	{ id: "SummonerBarrier", key: 21, name: "Barrier", imageFull: "SummonerBarrier.png" },
 ]
 
+/* minimal rune catalog covering the runes referenced by FIXTURE_BUILD */
+const RUNES: DDragonBundle["runesById"][number][] = [
+	{
+		id: 8010,
+		key: "Conqueror",
+		name: "Conqueror",
+		icon: "perk-images/Styles/Precision/Conqueror/Conqueror.png",
+	},
+	{
+		id: 9111,
+		key: "Triumph",
+		name: "Triumph",
+		icon: "perk-images/Styles/Precision/Triumph.png",
+	},
+	{
+		id: 9104,
+		key: "LegendAlacrity",
+		name: "Legend: Alacrity",
+		icon: "perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png",
+	},
+	{
+		id: 8014,
+		key: "CoupDeGrace",
+		name: "Coup de Grace",
+		icon: "perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png",
+	},
+	{
+		id: 8473,
+		key: "BonePlating",
+		name: "Bone Plating",
+		icon: "perk-images/Styles/Resolve/BonePlating/BonePlating.png",
+	},
+	{
+		id: 8242,
+		key: "Unflinching",
+		name: "Unflinching",
+		icon: "perk-images/Styles/Resolve/Unflinching/Unflinching.png",
+	},
+	{
+		id: 5005,
+		key: "AttackSpeed",
+		name: "Attack Speed",
+		icon: "perk-images/StatMods/StatModsAttackSpeedIcon.png",
+	},
+	{
+		id: 5008,
+		key: "AdaptiveForce",
+		name: "Adaptive Force",
+		icon: "perk-images/StatMods/StatModsAdaptiveForceIcon.png",
+	},
+	{
+		id: 5011,
+		key: "Health",
+		name: "Health",
+		icon: "perk-images/StatMods/StatModsHealthScalingIcon.png",
+	},
+]
+
+/* minimal item catalog covering the items referenced by FIXTURE_BUILD */
+const ITEMS: DDragonBundle["itemsById"][number][] = [
+	{ id: 1054, name: "Doran's Shield", imageFull: "1054.png" },
+	{ id: 2003, name: "Health Potion", imageFull: "2003.png" },
+	{ id: 3047, name: "Plated Steelcaps", imageFull: "3047.png" },
+	{ id: 6630, name: "Goredrinker", imageFull: "6630.png" },
+	{ id: 3071, name: "Black Cleaver", imageFull: "3071.png" },
+	{ id: 6333, name: "Death's Dance", imageFull: "6333.png" },
+	{ id: 3053, name: "Sterak's Gage", imageFull: "3053.png" },
+	{ id: 3065, name: "Spirit Visage", imageFull: "3065.png" },
+	{ id: 3156, name: "Maw of Malmortius", imageFull: "3156.png" },
+]
+
 export const FIXTURE_BUNDLE: DDragonBundle = {
 	version: "14.10.1", // pinned mock version (data.js:6); real version resolved in Phase 4
 	championsByKey: Object.fromEntries(CHAMPIONS.map((c) => [c.key, c])),
 	spellsByKey: Object.fromEntries(SPELLS.map((s) => [s.key, s])),
+	runesById: Object.fromEntries(RUNES.map((r) => [r.id, r])),
+	itemsById: Object.fromEntries(ITEMS.map((i) => [i.id, i])),
 }
 
 /* champion key shorthands */
@@ -316,4 +391,58 @@ export const FIXTURE_RANKS: Record<string, RankInfo | null> = {
 	"p-foxfire": { tier: "GOLD", division: "II", lp: 67, queueType: "RANKED_SOLO_5x5" },
 	"p-zapzap": { tier: "DIAMOND", division: "IV", lp: 8, queueType: "RANKED_SOLO_5x5" },
 	"p-hook": { tier: "GOLD", division: "IV", lp: 23, queueType: "RANKED_SOLO_5x5" },
+}
+
+export const FIXTURE_SUMMONER: SummonerIdentity = {
+	gameName: "lategame andy",
+	tagLine: "EUW",
+	profileIconId: 4567,
+	summonerLevel: 312,
+	puuid: "p-me",
+}
+
+/* a complete Aatrox-top build the in-game + champ-select panels render against */
+export const FIXTURE_BUILD: BuildRecommendation = {
+	championKey: C.aatrox,
+	role: "top",
+	patch: "14.10",
+	winRate: 0.512,
+	sampleSize: 84213,
+	runes: {
+		primaryStyleId: 8000, // Precision
+		subStyleId: 8400, // Resolve
+		// [keystone, p1, p2, p3, s1, s2, shard1, shard2, shard3]
+		selectedPerkIds: [8010, 9111, 9104, 8014, 8473, 8242, 5005, 5008, 5011],
+		primaryName: "Precision",
+		secondaryName: "Resolve",
+	},
+	spells: [4, 12], // Flash, Teleport
+	items: {
+		starter: { ids: [1054, 2003], winRate: 0.515, pickRate: 0.62 },
+		boots: { ids: [3047], winRate: 0.518, pickRate: 0.71 },
+		core: { ids: [6630, 3071, 6333], winRate: 0.531, pickRate: 0.44 },
+		situational: { ids: [3053, 3065, 3156] },
+	},
+	// 18 entries: Q maxed first, then E, then W; R at 6/11/16
+	skillOrder: [
+		"Q",
+		"E",
+		"W",
+		"Q",
+		"Q",
+		"R",
+		"Q",
+		"E",
+		"Q",
+		"E",
+		"R",
+		"E",
+		"E",
+		"W",
+		"W",
+		"R",
+		"W",
+		"W",
+	],
+	skillPriority: ["Q", "E", "W"],
 }

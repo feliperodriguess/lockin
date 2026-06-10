@@ -2,20 +2,26 @@ import type { Api, Unsubscribe } from "@/shared/api"
 import type {
 	AppSettings,
 	BanListEntry,
+	BuildRecommendation,
 	ChampSelectSession,
 	GameflowPhase,
+	InGameState,
 	MatchupNote,
 	RankInfo,
 	ReadyCheck,
+	RunePageRec,
+	SummonerIdentity,
 } from "@/shared/types"
 
 import {
 	C,
 	FIXTURE_BANLIST,
+	FIXTURE_BUILD,
 	FIXTURE_BUNDLE,
 	FIXTURE_NOTES,
 	FIXTURE_RANKS,
 	FIXTURE_SETTINGS,
+	FIXTURE_SUMMONER,
 } from "./fixtures"
 import {
 	buildReadyCheck,
@@ -46,6 +52,13 @@ const statusCh = channel<{ connected: boolean }>()
 const phaseCh = channel<{ phase: GameflowPhase }>()
 const readyCh = channel<ReadyCheck | null>()
 const champCh = channel<ChampSelectSession | null>()
+const summonerCh = channel<SummonerIdentity | null>()
+const inGameCh = channel<InGameState | null>()
+
+/* the in-game champion mirrors my champ-select pick (Aatrox top, Flash/TP) */
+function buildInGame(): InGameState {
+	return { championId: C.aatrox, spell1Id: 4, spell2Id: 12, queueId: 420 }
+}
 
 /* ----------------------------------------------------------- mutable state */
 let scenario: ScenarioState = { ...INITIAL_SCENARIO }
@@ -71,6 +84,8 @@ function emitAll() {
 			: null,
 	)
 	champCh.emit(scenario.phase === "select" ? buildSession(scenario, subPhase, csMsLeft) : null)
+	summonerCh.emit(connected ? FIXTURE_SUMMONER : null)
+	inGameCh.emit(scenario.phase === "game" ? buildInGame() : null)
 }
 
 function effectiveReadyResponse(): ReadyCheck["playerResponse"] {
@@ -203,6 +218,24 @@ export const fakeBridge: Api = {
 		}
 		return out
 	},
+	async getBuild(championKey, position): Promise<BuildRecommendation | null> {
+		if (!scenario.buildAvailable) return null
+		return championKey === FIXTURE_BUILD.championKey && position === FIXTURE_BUILD.role
+			? { ...FIXTURE_BUILD }
+			: null
+	},
+	async setSpells(_spell1Id: number, _spell2Id: number): Promise<void> {
+		// no-op in the fake bridge — the real LCU write lands in Phase 1B
+	},
+	async applyRunes(_page: RunePageRec): Promise<{ ok: boolean; error?: string }> {
+		return { ok: true }
+	},
+	async startQueue(_queueId: number): Promise<{ ok: boolean; error?: string }> {
+		return { ok: true }
+	},
+	async stopQueue(): Promise<void> {
+		// no-op in the fake bridge
+	},
 	onLcuStatus: (cb) => {
 		const off = statusCh.on(cb)
 		cb({ connected: scenario.phase !== "disconnected" })
@@ -211,6 +244,11 @@ export const fakeBridge: Api = {
 	onGameflowPhase: (cb) => {
 		const off = phaseCh.on(cb)
 		cb({ phase: GAMEFLOW_BY_SCENARIO[scenario.phase] })
+		return off
+	},
+	onSummoner: (cb) => {
+		const off = summonerCh.on(cb)
+		cb(scenario.phase !== "disconnected" ? FIXTURE_SUMMONER : null)
 		return off
 	},
 	onReadyCheck: (cb) => {
@@ -226,6 +264,15 @@ export const fakeBridge: Api = {
 		const off = champCh.on(cb)
 		cb(scenario.phase === "select" ? buildSession(scenario, subPhase, csMsLeft) : null)
 		return off
+	},
+	onInGame: (cb) => {
+		const off = inGameCh.on(cb)
+		cb(scenario.phase === "game" ? buildInGame() : null)
+		return off
+	},
+	onNav: () => {
+		// tray-driven nav has no fake source — no-op subscription
+		return () => {}
 	},
 }
 
