@@ -1,6 +1,6 @@
 import type { BuildRecommendation, ItemGroup, Role, RunePageRec } from "@/shared/types"
 
-import type { OpggNode } from "./opgg-parse"
+import type { OpggNode, OpggValue } from "./opgg-parse"
 
 type Skill = "Q" | "W" | "E" | "R"
 type Lev = "Q" | "W" | "E"
@@ -45,7 +45,10 @@ function asNumberArray(v: unknown): number[] {
 function toItemGroup(node: OpggNode | null): ItemGroup {
 	if (!node) return { ids: [] }
 	const group: ItemGroup = { ids: asNumberArray(node.ids) }
-	if (typeof node.win === "number") group.winRate = node.win
+	// OP.GG item groups carry absolute play/win COUNTS (no win_rate field); the
+	// ItemGroup contract is a 0..1 rate, so derive it from the counts
+	const play = typeof node.play === "number" ? node.play : 0
+	if (typeof node.win === "number" && play > 0) group.winRate = node.win / play
 	if (typeof node.pick_rate === "number") group.pickRate = node.pick_rate
 	return group
 }
@@ -160,10 +163,10 @@ export function skillPriorityFrom(order: Skill[]): Lev[] {
 /* --------------------------------------------------------------- assemble */
 
 export function normalizeOpgg(
-	root: OpggNode | null,
+	root: OpggValue | null,
 	meta: { championKey: number; role: Role; patch: string },
 ): BuildRecommendation | null {
-	if (!root) return null
+	if (!isNode(root)) return null
 	const data = findData(root)
 	const summary = asNode(data.summary)
 	const stats = asNode(summary?.average_stats)

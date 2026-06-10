@@ -86,7 +86,7 @@ class OpggProvider implements BuildProvider {
 		return withCache(key, async () => {
 			const text = await fetchAnalysisText(champion, positionFromRole(role), tier)
 			if (!text) return null
-			return normalizeOpgg(parseOpggText(text) as never, { championKey, role, patch })
+			return normalizeOpgg(parseOpggText(text), { championKey, role, patch })
 		})
 	}
 }

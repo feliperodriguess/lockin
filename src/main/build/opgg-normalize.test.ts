@@ -45,12 +45,12 @@ function syntheticRoot(): OpggNode {
 			pick_rate: 0.5,
 		},
 		summoner_spells: { __class: "Spells", ids: [4, 12], win: 0.6, pick_rate: 0.9 },
-		starter_items: itemGroup([1054, 2003], 0.6, 0.7),
-		boots: itemGroup([3047], 0.62, 0.8),
-		core_items: itemGroup([6630, 3071, 6333], 0.63, 0.5),
-		fourth_items: itemGroup([3065, 3742], 0.6, 0.3),
-		fifth_items: itemGroup([3742, 3193], 0.59, 0.2), // 3742 duplicates fourth
-		sixth_items: itemGroup([3026], 0.58, 0.1),
+		starter_items: itemGroup([1054, 2003], 60, 0.7),
+		boots: itemGroup([3047], 62, 0.8),
+		core_items: itemGroup([6630, 3071, 6333], 63, 0.5),
+		fourth_items: itemGroup([3065, 3742], 60, 0.3),
+		fifth_items: itemGroup([3742, 3193], 59, 0.2), // 3742 duplicates fourth
+		sixth_items: itemGroup([3026], 58, 0.1),
 		skills: {
 			__class: "Skills",
 			order: [
@@ -138,6 +138,9 @@ describe("normalizeOpgg (synthetic)", () => {
 		expect(build?.items.boots.ids).toEqual([3047])
 		expect(build?.items.core.ids).toEqual([6630, 3071, 6333])
 		expect(build?.items.situational.ids).toEqual([3065, 3742, 3193, 3026]) // 3742 deduped
+		// winRate is derived from counts (win/play) into the 0..1 contract
+		expect(build?.items.starter.winRate).toBeCloseTo(0.6)
+		expect(build?.items.core.winRate).toBeCloseTo(0.63)
 	})
 
 	it("keeps skill order (18) and derives priority", () => {
