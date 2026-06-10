@@ -3,9 +3,10 @@ import { join } from "node:path"
 
 import { app } from "electron"
 
-import type { BuildRecommendation } from "@/shared/types"
-
-type CacheMap = Record<string, BuildRecommendation>
+/** Any JSON-serializable cached value (BuildRecommendation, CounterTable, …),
+ *  stamped with __cachedAt on disk. */
+type CacheEntry = { __cachedAt?: number }
+type CacheMap = Record<string, CacheEntry>
 
 const TTL_MS = 12 * 60 * 60 * 1000 // a patch is stable for days; refresh twice a day at most
 
@@ -26,6 +27,17 @@ export function buildCacheKey(
 	patch: string,
 ): string {
 	return `${championKey}:${position}:${tier}:${patch}`
+}
+
+/** Distinct namespace from buildCacheKey (which starts with the champion key);
+ *  still ends with the patch so patchOf()-based pruning applies. */
+export function countersCacheKey(
+	championKey: number,
+	position: string,
+	tier: string,
+	patch: string,
+): string {
+	return `counters:${championKey}:${position}:${tier}:${patch}`
 }
 
 function patchOf(key: string): string {
@@ -60,10 +72,9 @@ function persist(map: CacheMap): void {
 		.catch((error) => console.warn("[opgg] cache write failed:", error))
 }
 
-function isFresh(entry: BuildRecommendation | undefined): entry is BuildRecommendation {
+function isFresh(entry: CacheEntry | undefined): entry is CacheEntry {
 	if (!entry) return false
-	const at = (entry as BuildRecommendation & { __cachedAt?: number }).__cachedAt
-	return typeof at === "number" && Date.now() - at < TTL_MS
+	return typeof entry.__cachedAt === "number" && Date.now() - entry.__cachedAt < TTL_MS
 }
 
 /**
@@ -71,10 +82,10 @@ function isFresh(entry: BuildRecommendation | undefined): entry is BuildRecommen
  * served immediately while a single background refresh runs. A miss awaits the
  * fetch. `fetcher` failure → return whatever cache we have (even stale), else null.
  */
-export async function withCache(
+export async function withCache<T extends object>(
 	key: string,
-	fetcher: () => Promise<BuildRecommendation | null>,
-): Promise<BuildRecommendation | null> {
+	fetcher: () => Promise<T | null>,
+): Promise<T | null> {
 	const map = await load()
 
 	const patch = patchOf(key)
@@ -83,7 +94,7 @@ export async function withCache(
 		if (pruneStalePatches(map, patch)) persist(map)
 	}
 
-	const cached = map[key]
+	const cached = map[key] as (T & CacheEntry) | undefined
 
 	if (isFresh(cached)) return strip(cached)
 
@@ -117,12 +128,12 @@ export async function withCache(
 	}
 }
 
-function stamp(rec: BuildRecommendation): BuildRecommendation {
-	return { ...rec, __cachedAt: Date.now() } as BuildRecommendation
+function stamp<T extends object>(rec: T): T & CacheEntry {
+	return { ...rec, __cachedAt: Date.now() }
 }
 
-function strip(rec: BuildRecommendation): BuildRecommendation {
-	const { __cachedAt, ...rest } = rec as BuildRecommendation & { __cachedAt?: number }
+function strip<T extends object>(rec: T & CacheEntry): T {
+	const { __cachedAt, ...rest } = rec
 	void __cachedAt
-	return rest
+	return rest as T
 }
