@@ -28,11 +28,11 @@ The app is read-mostly: it reads state from the local League client and (optiona
 
 ### 2.2 Non-Goals (explicitly out of scope for v1)
 - **No** post-game analytics, match history, or stat tracking.
-- **No** starting-item recommendations and **no** crowd-sourced / "pro" data (u.gg / Blitz-style). Summoner-spell suggestions are *heuristic + user-defined* only. See §6.1.
+- ~~**No** starting-item recommendations and **no** crowd-sourced / "pro" data~~ **Now in scope (v1.1):** item builds, rune pages, skill order, and summoner-spell recommendations are sourced from **one external read source (OP.GG MCP)** behind a swappable `BuildProvider`, disk-cached per (champion, role, patch). DDragon remains the catalog. Still **no first-party backend** and no other crowd-sourced surfaces (no win-rate dashboards, no match history). User-defined matchup notes and the offline spell heuristic remain and take precedence over OP.GG where they apply. See §6.1.
 - **No** in-game overlay or interaction with the running game process / Live Client Data API. We touch the **client** (LCU) only — never the game. (See §14 Compliance.)
 - **No** Windows/Linux build.
 - **No** multi-account sync, cloud storage, or telemetry.
-- **No** auto-pick / auto-ban / auto-anything beyond accepting the ready check.
+- **No** auto-pick / auto-ban / auto-dodge. **Now in scope (v1.1), opt-in and off by default:** automatic application of recommended **rune pages** and **summoner spells** during champ select, and **user-clicked** queue start from the tray. The line we hold: no automation of gameplay *decisions* (pick/ban/dodge), and queue-start is **never** chained with auto-accept into a hands-off matchmaking loop. See §14.
 - **No** language/locale, always-on-top, or launch-on-login settings in v1.
 
 ---
