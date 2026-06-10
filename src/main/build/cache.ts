@@ -13,6 +13,7 @@ let memo: CacheMap | null = null
 let writeChain: Promise<void> = Promise.resolve()
 /** per-key guard so a background refresh fires at most once at a time */
 const refreshing = new Set<string>()
+let prunedPatch: string | null = null
 
 function cachePath(): string {
 	return join(app.getPath("userData"), "opgg-cache.json")
@@ -25,6 +26,21 @@ export function buildCacheKey(
 	patch: string,
 ): string {
 	return `${championKey}:${position}:${tier}:${patch}`
+}
+
+function patchOf(key: string): string {
+	return key.slice(key.lastIndexOf(":") + 1)
+}
+
+function pruneStalePatches(map: CacheMap, patch: string): boolean {
+	let changed = false
+	for (const k of Object.keys(map)) {
+		if (patchOf(k) !== patch) {
+			delete map[k]
+			changed = true
+		}
+	}
+	return changed
 }
 
 async function load(): Promise<CacheMap> {
@@ -60,6 +76,13 @@ export async function withCache(
 	fetcher: () => Promise<BuildRecommendation | null>,
 ): Promise<BuildRecommendation | null> {
 	const map = await load()
+
+	const patch = patchOf(key)
+	if (prunedPatch !== patch) {
+		prunedPatch = patch
+		if (pruneStalePatches(map, patch)) persist(map)
+	}
+
 	const cached = map[key]
 
 	if (isFresh(cached)) return strip(cached)
