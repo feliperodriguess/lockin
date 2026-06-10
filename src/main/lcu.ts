@@ -201,6 +201,10 @@ class LcuService {
 			"/lol-gameflow/v1/session",
 			credentials,
 		)
+		// the phase may have moved on (or the session ended) during the await — don't
+		// re-populate stale in-game state after we've left the in-game range
+		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
+		if (this.credentials !== credentials) return
 		this.setInGame(toInGameState(session, this.localPuuid))
 	}
 
@@ -277,7 +281,10 @@ class LcuService {
 							})
 							return { ok: true }
 						} catch (putError) {
-							console.warn("[lcu] rune PUT fallback failed:", putError)
+							// can't delete (403) and can't overwrite — stop tracking the orphaned
+							// page so the leak doesn't compound across future applies
+							console.warn("[lcu] rune PUT fallback failed; abandoning orphaned page:", putError)
+							setLockinRunePageId(null)
 							// fall through to creating a fresh page
 						}
 					}
@@ -332,7 +339,12 @@ class LcuService {
 	}
 
 	async stopQueue(): Promise<void> {
-		await this.request("DELETE", "/lol-matchmaking/v1/search")
+		try {
+			await this.request("DELETE", "/lol-matchmaking/v1/search")
+		} catch (error) {
+			// already stopped / not in queue → not an error worth surfacing
+			console.warn("[lcu] stopQueue failed (already stopped?):", error)
+		}
 	}
 
 	private handleReadyCheck(readyCheck: ReadyCheck | null): void {
