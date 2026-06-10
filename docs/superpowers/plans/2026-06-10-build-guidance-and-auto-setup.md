@@ -2059,16 +2059,16 @@ class Scanner {
 	) {}
 
 	parseRoot(): OpggValue {
-		this.skipWs()
+		this.skipWhitespace()
 		const value = this.parseValue()
-		this.skipWs()
+		this.skipWhitespace()
 		if (this.pos !== this.src.length) {
 			throw new Error(`trailing input at ${this.pos}`)
 		}
 		return value
 	}
 
-	private skipWs(): void {
+	private skipWhitespace(): void {
 		while (this.pos < this.src.length && /\s/.test(this.src[this.pos] as string)) this.pos++
 	}
 
@@ -2077,7 +2077,7 @@ class Scanner {
 	}
 
 	private parseValue(): OpggValue {
-		this.skipWs()
+		this.skipWhitespace()
 		const ch = this.peek()
 		if (ch === '"') return this.parseString()
 		if (ch === "[") return this.parseArray()
@@ -2115,14 +2115,14 @@ class Scanner {
 	private parseArray(): OpggValue[] {
 		this.pos++ // [
 		const out: OpggValue[] = []
-		this.skipWs()
+		this.skipWhitespace()
 		if (this.peek() === "]") {
 			this.pos++
 			return out
 		}
 		for (;;) {
 			out.push(this.parseValue())
-			this.skipWs()
+			this.skipWhitespace()
 			const ch = this.peek()
 			if (ch === ",") {
 				this.pos++
@@ -2145,7 +2145,7 @@ class Scanner {
 		if (ident === "true") return true
 		if (ident === "false") return false
 		if (ident === "null") return null
-		this.skipWs()
+		this.skipWhitespace()
 		if (this.peek() !== "(") throw new Error(`expected '(' after class '${ident}'`)
 		return this.parseConstructor(ident)
 	}
@@ -2153,13 +2153,13 @@ class Scanner {
 	private parseConstructor(name: string): OpggNode {
 		this.pos++ // (
 		const args: OpggValue[] = []
-		this.skipWs()
+		this.skipWhitespace()
 		if (this.peek() === ")") {
 			this.pos++
 		} else {
 			for (;;) {
 				args.push(this.parseValue())
-				this.skipWs()
+				this.skipWhitespace()
 				const ch = this.peek()
 				if (ch === ",") {
 					this.pos++

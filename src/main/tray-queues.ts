@@ -1,7 +1,9 @@
+import { RANKED_QUEUE_ID } from "./lcu-mappers"
+
 /** The two ranked queue actions surfaced in the tray, in menu order. */
 export const QUEUE_ACTIONS: { label: string; queueId: number }[] = [
-	{ label: "Start ranked queue", queueId: 420 },
-	{ label: "Start flex queue", queueId: 440 },
+	{ label: "Start ranked queue", queueId: RANKED_QUEUE_ID.SOLO_DUO },
+	{ label: "Start flex queue", queueId: RANKED_QUEUE_ID.FLEX },
 ]
 
 /** Human-readable notification body when a tray queue-start fails. */

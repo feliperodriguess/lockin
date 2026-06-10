@@ -21,6 +21,7 @@ import {
 } from "@/shared/types"
 
 import {
+	RANKED_QUEUE_ID,
 	type RawChampSelectSession,
 	type RawCurrentSummoner,
 	type RawGameflowSession,
@@ -322,7 +323,7 @@ class LcuService {
 		if (!this.credentials) return { ok: false, error: "League client not connected" }
 		try {
 			await this.request("POST", "/lol-lobby/v2/lobby", { queueId })
-			if (queueId === 420 || queueId === 440) {
+			if (queueId === RANKED_QUEUE_ID.SOLO_DUO || queueId === RANKED_QUEUE_ID.FLEX) {
 				try {
 					await this.request(
 						"PUT",
