@@ -50,13 +50,14 @@ export interface CounterTable {
 }
 ```
 
-### Win-rate perspective (landmine)
+### Win-rate perspective (resolved 2026-06-10)
 
-OP.GG's `win_rate` inside `weak_counters`/`strong_counters` has an ambiguous perspective.
-During implementation, verify against the OP.GG website for a known lopsided matchup
-(e.g. Malphite vs Yasuo top). The normalizer converts at ingestion so `CounterEntry.winRate`
-is **always from the table-owner's perspective**; a fixture test pins the direction so it
-cannot silently regress.
+Verified against live MCP responses (Teemo top, Aatrox top): in both lists, `play` is the
+matchup's game count and `win` is the **table-owner's** wins, while OP.GG's `win_rate`
+field is always the *advantaged* side's rate (its perspective flips between the lists).
+The normalizer therefore derives `CounterEntry.winRate = win / play` — **always the
+table-owner's perspective** — and ignores OP.GG's `win_rate` entirely. A fixture test
+pins this so it cannot silently regress.
 
 ### Main process (`src/main/build-recommendations/`)
 
@@ -104,7 +105,8 @@ owner's (the enemy's) perspective, the displayed value is `1 − entry.winRate`:
 
 - **Your picks** — your mains for the role that appear in the enemy's `weakAgainst`,
   sorted by displayed winrate desc. Row hidden if none qualify.
-- **Best overall** — top 5 (constant) of the enemy's `weakAgainst` by displayed winrate.
+- **Best overall** — top 5 (constant) of the enemy's `weakAgainst` by displayed winrate,
+  with champions already shown in "Your picks" deduped out.
 
 Enemy hidden, fetch failed, or no data → region absent.
 
@@ -114,7 +116,9 @@ Compact pill in the `NotesRegion` header next to the opponent name:
 `Hard · 46.8% WR · 12.4k games`.
 
 - **Classification (your perspective):** ≥ 52% Easy · 48–52% Even · < 48% Hard.
-- **Low data:** under 200 games (constant) → "Low data", neutral styling.
+- **Low data:** under 50 games (constant) → "Low data", neutral styling. (Originally
+  200; real per-matchup samples at one tier+patch run ~100–150 games, so 200 would have
+  flagged nearly everything.)
 - **Lookup order:** your champ in the enemy's table (your WR = `1 − entry.winRate`) →
   enemy in your champ's table (your WR = `entry.winRate` directly) → found in neither →
   `Even · no counter data` (no invented numbers).
@@ -127,7 +131,8 @@ Compact pill in the `NotesRegion` header next to the opponent name:
   existing "threat" badge) and lift toward the top, alongside existing threat behavior.
 - Below the personal list, a visually separated **statistical group**: top 3 champs
   (constant) from your `weakAgainst` not already on your list. Deduped against the
-  personal list.
+  personal list; champions already banned or picked this session are excluded
+  (suggesting an impossible ban is noise).
 - Suggestions only. **No auto-ban, ever** (PRD §14).
 
 ## In-game
@@ -137,7 +142,9 @@ Compact pill in the `NotesRegion` header next to the opponent name:
 - On gameflow transition ChampSelect → InProgress, snapshot
   `{ opponentChampionId, assignedPosition }` from the just-watched session.
 - Extend `InGameState` with `opponentChampionId: number | null` and
-  `assignedPosition: Role | null`; include in the `lcu:inGame` push payload.
+  `assignedPosition: string` (`""` = unknown, matching the existing
+  `ChampSelectPlayer.assignedPosition` convention); include in the `lcu:inGame`
+  push payload.
 - Clear the snapshot when the phase resets (None/Lobby).
 - App restarted mid-game → no snapshot → In-Game screen renders exactly as today.
 
