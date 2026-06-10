@@ -6,6 +6,7 @@ import { Activity, BookOpen, Settings } from "lucide-react"
 import type { GameflowPhase } from "@/shared/types"
 
 import { ConnectionIndicator } from "./connection-indicator"
+import { SidebarIdentity } from "./sidebar-identity"
 import { Wordmark } from "./wordmark"
 
 interface SidebarProps {
@@ -72,6 +73,7 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 			<div className="flex-1" />
 
 			<footer className="border-t border-(--stroke-default) pt-3 flex flex-col gap-[6px]">
+				<SidebarIdentity />
 				<ConnectionIndicator connected={connected} />
 				{connected && (
 					<span className="font-mono text-[10px] font-normal leading-none text-paper-400 pl-4 whitespace-nowrap">

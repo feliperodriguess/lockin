@@ -1,6 +1,6 @@
 {
 	"files": {
-		"includes": ["**", "!**/out", "!**/.playwright-mcp"]
+		"includes": ["**", "!**/out", "!**/.playwright-mcp", "!**/.claude"]
 	},
 	"css": {
 		"parser": {
