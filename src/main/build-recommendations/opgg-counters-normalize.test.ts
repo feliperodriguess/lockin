@@ -36,11 +36,15 @@ describe("normalizeOpggCounters", () => {
 	})
 
 	it("sorts weakAgainst ascending (worst first) and strongAgainst descending (best first)", () => {
-		const table = normalizeOpggCounters(parseOpggText(fixture("teemo-top-counters.txt")), META)
-		const weak = table?.weakAgainst.map((e) => e.winRate) ?? []
-		const strong = table?.strongAgainst.map((e) => e.winRate) ?? []
-		expect(weak).toEqual([...weak].sort((a, b) => a - b))
-		expect(strong).toEqual([...strong].sort((a, b) => b - a))
+		// entries deliberately out of order: weak owner-rates 0.50, 0.30, 0.40 / strong 0.55, 0.65
+		const table = normalizeOpggCounters(
+			parseOpggText(
+				'class Root: data\nclass Data: strong_counters,weak_counters\nclass StrongCounter: champion_id,champion_name,play,win,win_rate\nRoot(Data([StrongCounter(1,"a",100,55,0.55),StrongCounter(2,"b",100,65,0.65)],[StrongCounter(3,"c",100,50,0.5),StrongCounter(4,"d",100,30,0.7),StrongCounter(5,"e",100,40,0.6)]))',
+			),
+			META,
+		)
+		expect(table?.weakAgainst.map((e) => e.championId)).toEqual([4, 5, 3])
+		expect(table?.strongAgainst.map((e) => e.championId)).toEqual([2, 1])
 	})
 
 	it("also extracts counters from a FULL analysis response (build payload)", () => {
