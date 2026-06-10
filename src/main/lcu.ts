@@ -12,20 +12,25 @@ import {
 	type ChampSelectSession,
 	DISCONNECTED_SNAPSHOT,
 	type GameflowPhase,
+	type InGameState,
 	type LcuSnapshot,
 	type RankInfo,
 	type ReadyCheck,
+	type SummonerIdentity,
 } from "@/shared/types"
 
 import {
 	type RawChampSelectSession,
+	type RawCurrentSummoner,
 	type RawGameflowSession,
 	type RawRankedStats,
 	type RawReadyCheck,
 	rankedQueueOf,
 	toChampSelectSession,
+	toInGameState,
 	toRankInfo,
 	toReadyCheck,
+	toSummonerIdentity,
 } from "./lcu-mappers"
 import { getSettings } from "./store"
 
@@ -41,6 +46,7 @@ class LcuService {
 	private snapshot: LcuSnapshot = { ...DISCONNECTED_SNAPSHOT }
 	private endSession: (() => void) | null = null
 	private credentials: Credentials | null = null
+	private localPuuid = ""
 	private aaDeclined = false
 	private aaFired = false
 	private aaTimer: NodeJS.Timeout | null = null
@@ -133,14 +139,16 @@ class LcuService {
 					// initial state after subscribing; a later push reconciles any
 					// in-between transition (last-writer race, self-heals within ~1 WS tick).
 					// ready-check + session 404 while idle (verified live) → null.
-					const [phase, readyCheck, champSelect] = await Promise.all([
+					const [phase, readyCheck, champSelect, summoner] = await Promise.all([
 						this.fetchJson<GameflowPhase>("/lol-gameflow/v1/gameflow-phase", credentials),
 						this.fetchJson<RawReadyCheck>("/lol-matchmaking/v1/ready-check", credentials),
 						this.fetchJson<RawChampSelectSession>("/lol-champ-select/v1/session", credentials),
+						this.fetchJson<RawCurrentSummoner>("/lol-summoner/v1/current-summoner", credentials),
 					])
 					if (settled) return // client died during the GETs — emit nothing on a dead session
 
 					this.setConnected(true)
+					this.setSummoner(summoner ? toSummonerIdentity(summoner) : null)
 					this.setPhase(phase ?? "None")
 					this.handleReadyCheck(readyCheck ? toReadyCheck(readyCheck) : null)
 					this.setChampSelect(champSelect ? toChampSelectSession(champSelect) : null)
@@ -164,9 +172,12 @@ class LcuService {
 		if (!connected) {
 			// disconnect resets phase + live state in the renderer too
 			this.resetAutoAccept()
+			this.localPuuid = ""
 			if (prev.phase !== "None") this.emit(IPC.LCU_PHASE, { phase: this.snapshot.phase })
 			if (prev.readyCheck !== null) this.emit(IPC.LCU_READY_CHECK, null)
 			if (prev.champSelect !== null) this.emit(IPC.LCU_CHAMP_SELECT, null)
+			if (prev.summoner !== null) this.emit(IPC.LCU_SUMMONER, null)
+			if (prev.inGame !== null) this.emit(IPC.LCU_IN_GAME, null)
 		}
 	}
 
@@ -175,6 +186,21 @@ class LcuService {
 		this.snapshot = { ...this.snapshot, phase }
 		console.log(`[lcu] phase: ${phase}`)
 		this.emit(IPC.LCU_PHASE, { phase })
+		if (phase === "InProgress" || phase === "GameStart") {
+			void this.refreshInGame()
+		} else if (this.snapshot.inGame !== null) {
+			this.setInGame(null)
+		}
+	}
+
+	private async refreshInGame(): Promise<void> {
+		const credentials = this.credentials
+		if (!credentials) return
+		const session = await this.fetchJson<RawGameflowSession>(
+			"/lol-gameflow/v1/session",
+			credentials,
+		)
+		this.setInGame(toInGameState(session, this.localPuuid))
 	}
 
 	/** GET that treats non-ok (404 while idle) and transport hiccups as null. */
@@ -188,10 +214,20 @@ class LcuService {
 		}
 	}
 
-	private async request(method: "POST", url: string): Promise<void> {
+	private async request(
+		method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+		url: string,
+		body?: unknown,
+	): Promise<unknown> {
 		if (!this.credentials) throw new Error("LCU not connected")
-		const response = await createHttp1Request({ method, url }, this.credentials)
+		const response = await createHttp1Request({ method, url, body }, this.credentials)
 		if (!response.ok) throw new Error(`LCU ${method} ${url} → ${response.status}`)
+		// many LCU writes return 204/empty; json() throws on empty body, so guard it
+		try {
+			return response.json()
+		} catch {
+			return null
+		}
 	}
 
 	async acceptReadyCheck(): Promise<void> {
@@ -271,6 +307,19 @@ class LcuService {
 		if (champSelect === null && this.snapshot.champSelect === null) return
 		this.snapshot = { ...this.snapshot, champSelect }
 		this.emit(IPC.LCU_CHAMP_SELECT, champSelect)
+	}
+
+	private setSummoner(summoner: SummonerIdentity | null): void {
+		this.localPuuid = summoner?.puuid ?? ""
+		if (summoner === null && this.snapshot.summoner === null) return
+		this.snapshot = { ...this.snapshot, summoner }
+		this.emit(IPC.LCU_SUMMONER, summoner)
+	}
+
+	private setInGame(inGame: InGameState | null): void {
+		if (inGame === null && this.snapshot.inGame === null) return
+		this.snapshot = { ...this.snapshot, inGame }
+		this.emit(IPC.LCU_IN_GAME, inGame)
 	}
 
 	async getRanksForPuuids(puuids: string[]): Promise<Record<string, RankInfo | null>> {
