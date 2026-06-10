@@ -100,7 +100,7 @@ export function useChampSelect(): ChampSelectVM | null {
 	const meRaw = session?.myTeam.find((p) => p.cellId === session.localPlayerCellId) ?? null
 	const championKey = meRaw ? meRaw.championId || meRaw.championPickIntent || null : null
 	const position = meRaw?.assignedPosition ? meRaw.assignedPosition : null
-	const { data: build } = useBuild(championKey, position)
+	const { data: build } = useBuild(championKey, position, settings?.buildTier)
 
 	return useMemo(() => {
 		if (!session) return null

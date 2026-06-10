@@ -42,7 +42,7 @@ export function InGameScreen(): React.JSX.Element | null {
 	const displayRole = champion ? championLane(champion.id) : null
 	const role: Role | null = displayRole ? displayToRole(displayRole) : null
 
-	const { data: build } = useBuild(inGame?.championId ?? null, role)
+	const { data: build } = useBuild(inGame?.championId ?? null, role, settings?.buildTier)
 
 	if (!inGame || !bundle) return null
 
