@@ -19,6 +19,8 @@ export interface DDragonBundle {
 	version: string
 	championsByKey: Record<number, ChampionStatic>
 	spellsByKey: Record<number, SummonerSpellStatic>
+	runesById: Record<number, { id: number; key: string; name: string; icon: string }>
+	itemsById: Record<number, { id: number; name: string; imageFull: string }>
 }
 
 // ---------- LCU session (subset we consume) ----------
@@ -106,11 +108,67 @@ export interface BanListEntry {
 	reason?: string
 }
 
+// ---------- Roles & build recommendation (OP.GG) ----------
+export type Role = "top" | "jungle" | "middle" | "bottom" | "utility"
+
+export interface RunePageRec {
+	primaryStyleId: number
+	subStyleId: number
+	// exactly 9 in LCU order:
+	// [keystone, p1, p2, p3, s1, s2, shard1, shard2, shard3]
+	selectedPerkIds: number[]
+	primaryName: string
+	secondaryName: string
+}
+
+export interface ItemGroup {
+	ids: number[]
+	winRate?: number
+	pickRate?: number
+}
+
+export interface BuildRecommendation {
+	championKey: number
+	role: Role
+	patch: string
+	winRate: number // 0..1
+	sampleSize: number // total games
+	runes: RunePageRec | null
+	spells: [number, number] | null
+	items: {
+		starter: ItemGroup
+		boots: ItemGroup
+		core: ItemGroup // build-order sequence
+		situational: ItemGroup // 4th/5th/6th merged + deduped
+	}
+	skillOrder: ("Q" | "W" | "E" | "R")[] // length 18; ability leveled at each level 1..18
+	skillPriority: ("Q" | "W" | "E")[] // max-order priority, e.g. ["Q","E","W"]
+}
+
+export interface SummonerIdentity {
+	gameName: string
+	tagLine: string
+	profileIconId: number
+	summonerLevel: number
+	puuid: string
+}
+
+export interface InGameState {
+	championId: number
+	spell1Id: number
+	spell2Id: number
+	queueId: number
+}
+
 export interface AppSettings {
 	autoAccept: boolean // default false
 	autoAcceptDelayMs: number // default 0
 	spellSlotLayout: "DF" | "FD" // default "DF"
 	rankDiffThreshold: number // division-steps delta to flag; default 8 (= 2 tiers)
+	autoRunes: boolean // default false — opt-in rune apply during champ select
+	autoSpells: boolean // default false — opt-in spell apply during champ select
+	buildTier: string // default "emerald_plus" — OP.GG tier bucket
+	mains: { championId: number; role: Role }[] // default [] — configured main champions
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -118,6 +176,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
 	autoAcceptDelayMs: 0,
 	spellSlotLayout: "DF",
 	rankDiffThreshold: 8,
+	autoRunes: false,
+	autoSpells: false,
+	buildTier: "emerald_plus",
+	mains: [],
 }
 
 // ---------- LCU snapshot (preload-internal; current push-state on subscribe) ----------
@@ -126,6 +188,8 @@ export interface LcuSnapshot {
 	phase: GameflowPhase
 	readyCheck: ReadyCheck | null // stays null until Phase 3
 	champSelect: ChampSelectSession | null // stays null until Phase 3 (timer) / 4 (full)
+	summoner: SummonerIdentity | null // current-summoner identity when connected
+	inGame: InGameState | null // populated only during InProgress
 }
 
 export const DISCONNECTED_SNAPSHOT: LcuSnapshot = {
@@ -133,4 +197,6 @@ export const DISCONNECTED_SNAPSHOT: LcuSnapshot = {
 	phase: "None",
 	readyCheck: null,
 	champSelect: null,
+	summoner: null,
+	inGame: null,
 }
