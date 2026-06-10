@@ -249,6 +249,40 @@ Each feature lists: behavior, trigger, data source, edge cases, and acceptance c
 
 ---
 
+### 6.6 In-Game Screen & Champ-Select "Mains"
+
+**In-Game screen.** The `/live` route renders a dedicated **In-Game** view on the `InProgress` (and `GameStart`) phase instead of falling through to Idle. It reuses the champ-select shell. The local champion + spells come from the `lcu:inGame` push (`InGameState`, read from `GET /lol-gameflow/v1/session` → `gameData.playerChampionSelections[]` matched by the local puuid, plus `gameData.queue.id`).
+
+Layout: a **main column** (header strip → matchup **Note** → **item Build** as horizontal Starting → Boots → Core → Situational strips → **Skill order**, a color-coded grid with the Q › E › W priority and win% · games label) and a **right rail** (team list + a compact, read-only runes reference, since runes are locked in-game). Build data is `build:get(championKey, role)`; role comes from the gameflow selection or the last champ-select role, falling back to the champion's default lane.
+
+**Champ-select "Your mains."** A new section in the champ-select notes column lists the user's configured **main champions**, grouped by role (portraits). Mains are edited in a new **Settings → "Your mains"** group (champion picker + role tag) and persist in settings (`AppSettings.mains`).
+
+**Edge cases.** No mains configured → subtle empty prompt linking to settings. In-game champion unresolved → show note + team only. Build unavailable (OP.GG null/offline) → show note + team, hide the build/skill sections.
+
+**Acceptance criteria.**
+- [ ] `InProgress` renders the In-Game screen (not Idle).
+- [ ] Item build and skill order render from OP.GG for the in-game champion; the skill grid is correct (R at 6/11/16) and color-coded.
+- [ ] Champ select shows a "Your mains" section populated from settings, with an empty state when none.
+- [ ] Mains are editable in Settings and persist across restarts.
+
+---
+
+### 6.7 Native Tray Menu & User-Clicked Queue Start
+
+**Behavior.** A rich macOS tray menu (`src/main/tray.ts`), rebuilt whenever status / summoner / settings change. Items: a disabled status header (`● Connected · gameName#tagLine` or `○ Client not detected`); an **Auto-accept** checkbox bound to `settings.autoAccept` plus a global accelerator (default `Control+Alt+A`) that toggles it; **Start ranked queue** / **Start flex queue**; **New note…** (focuses the window and emits `nav:go` to `/notes?new`); **Open lockin**; **Quit**.
+
+**Queue start (the guardrail).** Start-ranked/flex creates a lobby (`POST /lol-lobby/v2/lobby`), sets ranked position preferences best-effort, then starts matchmaking (`POST /lol-matchmaking/v1/search`) via `lcu:startQueue(queueId)`. It is invoked **only by an explicit user click** — never on a timer, never in a loop, and **never auto-chained with auto-accept** into hands-off matchmaking. Failures surface via a native `Notification`. `lcu:stopQueue` cancels the search.
+
+**queueIds:** 400 Draft · 420 Ranked Solo/Duo · 430 Blind · 440 Ranked Flex · 450 ARAM.
+
+**Acceptance criteria.**
+- [ ] Tray shows nickname/status when connected and clears on disconnect.
+- [ ] Auto-accept checkbox reflects and toggles the setting; the global shortcut toggles it too.
+- [ ] Start ranked/flex creates a lobby and begins matchmaking; failures show a notification.
+- [ ] Queue start fires only on explicit click and is never chained with auto-accept; New note opens the note-creation screen; Quit quits.
+
+---
+
 ## 7. Data Models (TypeScript)
 
 ```ts
@@ -354,7 +388,52 @@ interface AppSettings {
   autoAcceptDelayMs: number;           // default 0
   spellSlotLayout: "DF" | "FD";        // default "DF"
   rankDiffThreshold: number;           // tiers/divisions delta to flag
+  autoRunes: boolean;                  // v1.1 — default false (opt-in)
+  autoSpells: boolean;                 // v1.1 — default false (opt-in)
+  buildTier: string;                   // v1.1 — default "emerald_plus"
+  mains: { championId: number; role: Role }[]; // v1.1 — default []
 }
+
+// ---------- Recommendations (normalized from BuildProvider) — v1.1 ----------
+type Role = "top" | "jungle" | "middle" | "bottom" | "utility";
+
+interface RunePageRec {
+  primaryStyleId: number;
+  subStyleId: number;
+  selectedPerkIds: number[];           // exactly 9, LCU order: [keystone, p1,p2,p3, s1,s2, shard1,shard2,shard3]
+  primaryName: string;
+  secondaryName: string;
+}
+interface ItemGroup { ids: number[]; winRate?: number; pickRate?: number }
+interface BuildRecommendation {
+  championKey: number;
+  role: Role;
+  patch: string;
+  winRate: number;                     // 0..1
+  sampleSize: number;                  // total games
+  runes: RunePageRec | null;
+  spells: [number, number] | null;
+  items: { starter: ItemGroup; boots: ItemGroup; core: ItemGroup; situational: ItemGroup };
+  skillOrder: ("Q"|"W"|"E"|"R")[];     // length 18, ability leveled at each level 1..18
+  skillPriority: ("Q"|"W"|"E")[];      // max-order priority, e.g. ["Q","E","W"]
+}
+
+// ---------- Live LCU additions — v1.1 ----------
+interface SummonerIdentity {
+  gameName: string;
+  tagLine: string;
+  profileIconId: number;
+  summonerLevel: number;
+  puuid: string;
+}
+interface InGameState {
+  championId: number;
+  spell1Id: number;
+  spell2Id: number;
+  queueId: number;
+}
+// LcuSnapshot gains: summoner: SummonerIdentity | null; inGame: InGameState | null
+// DDragonBundle gains: runesById, itemsById (catalog for the recommendation panels)
 ```
 
 > Note: Data Dragon locale is a fixed internal constant (`en_US`) — it is **not** a user setting in v1.
