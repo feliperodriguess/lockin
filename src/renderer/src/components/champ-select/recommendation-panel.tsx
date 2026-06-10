@@ -38,6 +38,7 @@ export function RecommendationPanel({
 	const [status, setStatus] = useState<string | null>(null)
 	const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const lastApplied = useRef<number | null>(null)
 
 	const autoRunes = settings?.autoRunes ?? false
 	const autoSpells = settings?.autoSpells ?? false
@@ -56,27 +57,36 @@ export function RecommendationPanel({
 	// invoke handlers (api.setSpells / api.applyRunes); no main-process code here.
 	useEffect(() => {
 		if (!championKey || !build) return
+		// only act when the EFFECTIVE CHAMPION actually changes — never on a mere
+		// settings-toggle flip or a build refetch (both keep championKey the same)
+		if (championKey === lastApplied.current) return
+		lastApplied.current = championKey
 		if (!autoRunes && !autoSpells) return
 		if (debounce.current) clearTimeout(debounce.current)
 		debounce.current = setTimeout(async () => {
-			if (autoSpells && build.spells) {
+			// spells: write the precedence-RESOLVED pair shown in the panel
+			// (pinned > OP.GG > heuristic) — never the raw OP.GG pair
+			if (autoSpells && spellPair) {
 				try {
-					await api.setSpells(build.spells[0], build.spells[1])
+					await api.setSpells(spellPair[0].key, spellPair[1].key)
 					flash("Spells applied")
 				} catch {
 					flash("Couldn't set spells")
 				}
 			}
 			if (autoRunes && build.runes) {
-				const res = await api.applyRunes(build.runes)
-				flash(res.ok ? "Runes applied" : (res.error ?? "Couldn't set runes"))
+				try {
+					const res = await api.applyRunes(build.runes)
+					flash(res.ok ? "Runes applied" : (res.error ?? "Couldn't set runes"))
+				} catch {
+					flash("Couldn't set runes")
+				}
 			}
 		}, 400)
 		return () => {
 			if (debounce.current) clearTimeout(debounce.current)
 		}
-		// championKey is the trigger; build/auto flags read latest values
-	}, [championKey, build, autoRunes, autoSpells, flash])
+	}, [championKey, build, spellPair, autoRunes, autoSpells, flash])
 
 	useEffect(() => {
 		return () => {
