@@ -1,6 +1,6 @@
 import type { BuildRecommendation } from "@/shared/types"
 
-export interface BuildProvider {
+export interface BuildRecommendationProvider {
 	getBuild(
 		championKey: number,
 		position: string,

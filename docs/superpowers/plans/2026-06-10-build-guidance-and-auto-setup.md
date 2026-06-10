@@ -4,7 +4,7 @@
 
 **Goal:** Add Blitz-style build guidance to lockin — responsive champ-select that reflects hovered champions, opt-in auto-apply of recommended runes/spells, an In-Game build + skill-order screen, a "your mains" section, a sidebar identity, and a rich tray — sourced from the OP.GG feed via the LCU client API only.
 
-**Architecture:** Recommendation data comes from OP.GG's keyless MCP feed behind a swappable `BuildProvider` (main process, disk-cached per patch); all client reads/writes go through the existing `league-connect` LCU service (spells via PATCH my-selection, runes via the perks page API, identity via current-summoner, in-game champion via gameflow session, queue start via lobby+matchmaking). The renderer stays pure UI: TanStack Query for request/response IPC, `LcuProvider` contexts for pushed live state, mock-first hooks so every screen is previewable in force-fake mode.
+**Architecture:** Recommendation data comes from OP.GG's keyless MCP feed behind a swappable `BuildRecommendationProvider` (main process, disk-cached per patch); all client reads/writes go through the existing `league-connect` LCU service (spells via PATCH my-selection, runes via the perks page API, identity via current-summoner, in-game champion via gameflow session, queue start via lobby+matchmaking). The renderer stays pure UI: TanStack Query for request/response IPC, `LcuProvider` contexts for pushed live state, mock-first hooks so every screen is previewable in force-fake mode.
 
 **Tech Stack:** Electron + electron-vite, React 19 + TypeScript (strict), Tailwind v4 + shadcn/ui, TanStack Query + Router, `league-connect@6.0.0-rc13`, `electron-store`, vitest, Biome.
 
@@ -980,12 +980,12 @@ git commit -m "feat(lcu-provider): track summoner and in-game state in live cont
 
 ---
 
-### Task 1A.10 — Add `useBuild` query hook
+### Task 1A.10 — Add `useBuildRecommendation` query hook
 
 **Files:**
 - Modify: `src/renderer/src/hooks/use-data.ts`
 
-`useBuild` is enabled only when both `championKey` and `position` are set, keyed `["build", championKey, position]`, with `staleTime: Infinity` (patch-stable data). The `enabled` guard narrows the nullable args before calling `api.getBuild`.
+`useBuildRecommendation` is enabled only when both `championKey` and `position` are set, keyed `["build", championKey, position]`, with `staleTime: Infinity` (patch-stable data). The `enabled` guard narrows the nullable args before calling `api.getBuild`.
 
 - [ ] **Step 1: Add the `BuildRecommendation` import.** In `src/renderer/src/hooks/use-data.ts`, replace the type import (line 4):
 
@@ -999,10 +999,10 @@ with:
 import type { AppSettings, BanListEntry, BuildRecommendation, MatchupNote } from "@/shared/types"
 ```
 
-- [ ] **Step 2: Add the `useBuild` hook.** Append to the end of `src/renderer/src/hooks/use-data.ts`:
+- [ ] **Step 2: Add the `useBuildRecommendation` hook.** Append to the end of `src/renderer/src/hooks/use-data.ts`:
 
 ```ts
-export function useBuild(championKey: number | null, position: string | null) {
+export function useBuildRecommendation(championKey: number | null, position: string | null) {
 	return useQuery<BuildRecommendation | null>({
 		queryKey: ["build", championKey, position],
 		queryFn: () => api.getBuild(championKey as number, position as string),
@@ -1018,7 +1018,7 @@ export function useBuild(championKey: number | null, position: string | null) {
 
 ```sh
 git add src/renderer/src/hooks/use-data.ts
-git commit -m "feat(hooks): add useBuild query for OP.GG recommendations"
+git commit -m "feat(hooks): add useBuildRecommendation query for OP.GG recommendations"
 ```
 
 ---
@@ -1735,9 +1735,9 @@ Relevant absolute file paths produced/modified by this phase:
 
 ---
 
-## Phase 1B — Main-process LCU writes + OP.GG BuildProvider (fetch/parse/normalize/cache) + ipc handlers
+## Phase 1B — Main-process LCU writes + OP.GG BuildRecommendationProvider (fetch/parse/normalize/cache) + ipc handlers
 
-This phase adds the main-process write/read capabilities to `LcuService`, builds the OP.GG `BuildProvider` (tokenizer, schema-aware parser, fetch+normalize, disk cache), and wires all five new IPC handlers (`BUILD_GET`, `LCU_SET_SPELLS`, `LCU_APPLY_RUNES`, `LCU_START_QUEUE`, `LCU_STOP_QUEUE`).
+This phase adds the main-process write/read capabilities to `LcuService`, builds the OP.GG `BuildRecommendationProvider` (tokenizer, schema-aware parser, fetch+normalize, disk cache), and wires all five new IPC handlers (`BUILD_GET`, `LCU_SET_SPELLS`, `LCU_APPLY_RUNES`, `LCU_START_QUEUE`, `LCU_STOP_QUEUE`).
 
 This phase assumes Phase 1A already landed the shared additions (`src/shared/types.ts` new interfaces/settings/snapshot fields, `src/shared/constants.ts` IPC channels, `src/shared/api.ts`, `src/preload/index.ts`). If any of those are missing when you reach a step that uses them, add the exact name/signature from the SHARED CONTRACT before continuing — but do **not** build the renderer, preload, or fake-layer features here.
 
@@ -1769,7 +1769,7 @@ export default defineConfig({
 
 ---
 
-### Task 1B.2 — BuildProvider interface + role/position mapping
+### Task 1B.2 — BuildRecommendationProvider interface + role/position mapping
 
 **Files:**
 - Create: `/Users/felipe/lockin/src/main/build/types.ts`
@@ -1877,7 +1877,7 @@ export function roleFromPosition(position: string): Role | null {
 ```ts
 import type { BuildRecommendation } from "@/shared/types"
 
-export interface BuildProvider {
+export interface BuildRecommendationProvider {
 	getBuild(
 		championKey: number,
 		position: string,
@@ -1887,7 +1887,7 @@ export interface BuildProvider {
 ```
 
 - [ ] **Step 6: typecheck + format.** `pnpm typecheck && pnpm format`.
-- [ ] **Step 7: Commit.** `git add src/main/build/types.ts src/main/build/position.ts src/main/build/position.test.ts && git commit -m "feat: add BuildProvider interface and OP.GG position mapping"`
+- [ ] **Step 7: Commit.** `git add src/main/build/types.ts src/main/build/position.ts src/main/build/position.test.ts && git commit -m "feat: add BuildRecommendationProvider interface and OP.GG position mapping"`
 
 ---
 
@@ -2716,7 +2716,7 @@ function strip(rec: BuildRecommendation): BuildRecommendation {
 **Files:**
 - Create: `/Users/felipe/lockin/src/main/build/opgg.ts`
 
-The public `BuildProvider`. It needs the current patch for the cache key — read it from the DDragon bundle (`getDDragonBundle().version`) and the champion's DDragon name (for the OP.GG `champion` arg) from `championsByKey[championKey].name`. Network fetch uses global `fetch` POST with the JSON-RPC body; the response may be plain JSON or SSE-framed (`data:` lines), so it parses both — exactly mirroring the fixture-capture logic. Failure anywhere returns null gracefully.
+The public `BuildRecommendationProvider`. It needs the current patch for the cache key — read it from the DDragon bundle (`getDDragonBundle().version`) and the champion's DDragon name (for the OP.GG `champion` arg) from `championsByKey[championKey].name`. Network fetch uses global `fetch` POST with the JSON-RPC body; the response may be plain JSON or SSE-framed (`data:` lines), so it parses both — exactly mirroring the fixture-capture logic. Failure anywhere returns null gracefully.
 
 - [ ] **Step 1: Implement `opgg.ts` (full code).** Create `src/main/build/opgg.ts`:
 
@@ -2728,7 +2728,7 @@ import { buildCacheKey, withCache } from "./cache"
 import { normalizeOpgg } from "./opgg-normalize"
 import { parseOpggText } from "./opgg-parse"
 import { type OpggPosition, positionFromRole, roleFromPosition } from "./position"
-import type { BuildProvider } from "./types"
+import type { BuildRecommendationProvider } from "./types"
 
 const ENDPOINT = "https://mcp-api.op.gg/mcp"
 const FETCH_TIMEOUT_MS = 12_000
@@ -2790,7 +2790,7 @@ async function fetchAnalysisText(
 	return extractText(await response.text())
 }
 
-class OpggProvider implements BuildProvider {
+class OpggProvider implements BuildRecommendationProvider {
 	async getBuild(
 		championKey: number,
 		position: string,
@@ -2814,9 +2814,9 @@ class OpggProvider implements BuildProvider {
 	}
 }
 
-let provider: BuildProvider | null = null
+let provider: BuildRecommendationProvider | null = null
 
-export function getBuildProvider(): BuildProvider {
+export function getBuildRecommendationProvider(): BuildRecommendationProvider {
 	if (!provider) provider = new OpggProvider()
 	return provider
 }
@@ -2826,7 +2826,7 @@ export async function getBuild(
 	position: string,
 	tier?: string,
 ): Promise<BuildRecommendation | null> {
-	return getBuildProvider().getBuild(championKey, position, tier ? { tier } : undefined)
+	return getBuildRecommendationProvider().getBuild(championKey, position, tier ? { tier } : undefined)
 }
 ```
 
@@ -3300,7 +3300,7 @@ import { ipcMain } from "electron"
 import { IPC } from "@/shared/constants"
 import type { AppSettings, BanListEntry, MatchupNote, RunePageRec } from "@/shared/types"
 
-import { getBuild } from "./build/opgg"
+import { getBuild } from "./build-recommendations/opgg"
 import { getDDragonBundle } from "./ddragon"
 import {
 	acceptReadyCheck,
@@ -4212,7 +4212,7 @@ Verification files for the engineer: tray UI lives at `/Users/felipe/lockin/src/
 
 ## Phase 4 — Responsive champ select + auto rune/spell (feature 1)
 
-> **Depends on prior phases (per shared contract):** shared types (`Role`, `RunePageRec`, `ItemGroup`, `BuildRecommendation`), `AppSettings` gaining `autoRunes`/`autoSpells`/`buildTier`/`mains`, IPC channels (`BUILD_GET`, `LCU_SET_SPELLS`, `LCU_APPLY_RUNES`), `api.getBuild`/`setSpells`/`applyRunes`, `useBuild()` in `use-data.ts`, `FIXTURE_BUILD` + extended `FIXTURE_BUNDLE.runesById` in the fake layer, and `runeIconUrl` in `ddragon-urls.ts`. This phase wires the champ-select read-responsiveness, the recommendation panel, the auto-apply effect, and the related settings rows. It touches **no main-process code** (all writes go through the already-wired `api.*` invoke handlers).
+> **Depends on prior phases (per shared contract):** shared types (`Role`, `RunePageRec`, `ItemGroup`, `BuildRecommendation`), `AppSettings` gaining `autoRunes`/`autoSpells`/`buildTier`/`mains`, IPC channels (`BUILD_GET`, `LCU_SET_SPELLS`, `LCU_APPLY_RUNES`), `api.getBuild`/`setSpells`/`applyRunes`, `useBuildRecommendation()` in `use-data.ts`, `FIXTURE_BUILD` + extended `FIXTURE_BUNDLE.runesById` in the fake layer, and `runeIconUrl` in `ddragon-urls.ts`. This phase wires the champ-select read-responsiveness, the recommendation panel, the auto-apply effect, and the related settings rows. It touches **no main-process code** (all writes go through the already-wired `api.*` invoke handlers).
 
 This phase is split into four tasks:
 - **Task 4.1** — Pure spell-precedence helper (`pinned > OPGG > heuristic`) with strict TDD.
@@ -4359,9 +4359,9 @@ git commit -m "feat: add spell-precedence helper (pinned > opgg > heuristic)"
 **Files:**
 - Modify: `src/renderer/src/hooks/use-champ-select.ts`
 
-> Goals: (1) resolve `me.champion` from `championId || championPickIntent` so the screen reacts the instant you **hover** (no lock-in needed); (2) add a `hovering` flag (true when only intent is set); (3) expose the **effective** `championKey` (number | null) and `position` (raw lowercase `assignedPosition` string | null) so the panel and auto-apply effect can call `useBuild`; (4) pull the build via `useBuild`; (5) replace the inline `recommendSpells` call with `resolveSpells` so the merged precedence (`pinned > OPGG > heuristic`) drives the displayed spells. The `SpellRec.source` union widens to include `"opgg"`.
+> Goals: (1) resolve `me.champion` from `championId || championPickIntent` so the screen reacts the instant you **hover** (no lock-in needed); (2) add a `hovering` flag (true when only intent is set); (3) expose the **effective** `championKey` (number | null) and `position` (raw lowercase `assignedPosition` string | null) so the panel and auto-apply effect can call `useBuildRecommendation`; (4) pull the build via `useBuildRecommendation`; (5) replace the inline `recommendSpells` call with `resolveSpells` so the merged precedence (`pinned > OPGG > heuristic`) drives the displayed spells. The `SpellRec.source` union widens to include `"opgg"`.
 
-The contract's `BuildRecommendation.spells` is `[number, number] | null`; `useBuild(championKey, position)` takes the numeric champion key and the lowercase position string (which equals the `Role` enum: `top|jungle|middle|bottom|utility`). `useChampSelect` already computes `me.assignedPosition` (raw) and `role` (`DisplayRole`).
+The contract's `BuildRecommendation.spells` is `[number, number] | null`; `useBuildRecommendation(championKey, position)` takes the numeric champion key and the lowercase position string (which equals the `Role` enum: `top|jungle|middle|bottom|utility`). `useChampSelect` already computes `me.assignedPosition` (raw) and `role` (`DisplayRole`).
 
 - [ ] **Step 1: Widen `SpellRec.source` and the VM type.** In `src/renderer/src/hooks/use-champ-select.ts`, replace the `SpellRec` interface and add the new fields to `ChampSelectVM`. Replace lines 13–17 (the `SpellRec` interface):
 
@@ -4398,7 +4398,7 @@ Then extend `ChampSelectVM` — change the `me` block and add the build/effectiv
 }
 ```
 
-- [ ] **Step 2: Update imports.** At the top of the file, add `resolveSpells` and `useBuild`, plus the `BuildRecommendation` type. Replace the import of `recommendSpells` (line 7) and add `BuildRecommendation` to the shared-types import (line 8). The new import block (lines 1–11) becomes:
+- [ ] **Step 2: Update imports.** At the top of the file, add `resolveSpells` and `useBuildRecommendation`, plus the `BuildRecommendation` type. Replace the import of `recommendSpells` (line 7) and add `BuildRecommendation` to the shared-types import (line 8). The new import block (lines 1–11) becomes:
 
 ```ts
 import { championLane, type DisplayRole, displayRole } from "@renderer/lib/roles"
@@ -4416,20 +4416,20 @@ import type {
 	SummonerSpellStatic,
 } from "@/shared/types"
 
-import { useBanList, useBuild, useDDragon, useNotes, useSettings, useTeamRanks } from "./use-data"
+import { useBanList, useBuildRecommendation, useDDragon, useNotes, useSettings, useTeamRanks } from "./use-data"
 import { useChampSelectSession } from "./use-lcu"
 ```
 
-- [ ] **Step 3: Compute the effective champion + position before the `useMemo`, and call `useBuild`.** Hooks must run unconditionally, so derive the effective champion key and position from `session` (not from inside the memo) and pass them to `useBuild`. Insert this block immediately **after** the `const elapsedMs = ...` line (currently line 84) and **before** `return useMemo(() => {`:
+- [ ] **Step 3: Compute the effective champion + position before the `useMemo`, and call `useBuildRecommendation`.** Hooks must run unconditionally, so derive the effective champion key and position from `session` (not from inside the memo) and pass them to `useBuildRecommendation`. Insert this block immediately **after** the `const elapsedMs = ...` line (currently line 84) and **before** `return useMemo(() => {`:
 
 ```ts
-	// Effective champion + position resolved OUTSIDE the memo so useBuild (a hook)
+	// Effective champion + position resolved OUTSIDE the memo so useBuildRecommendation (a hook)
 	// runs unconditionally. Locked championId wins; otherwise fall back to the
 	// hovered championPickIntent so the screen reacts the instant you hover.
 	const meRaw = session?.myTeam.find((p) => p.cellId === session.localPlayerCellId) ?? null
 	const championKey = meRaw ? meRaw.championId || meRaw.championPickIntent || null : null
 	const position = meRaw && meRaw.assignedPosition ? meRaw.assignedPosition : null
-	const { data: build } = useBuild(championKey, position)
+	const { data: build } = useBuildRecommendation(championKey, position)
 ```
 
 - [ ] **Step 4: Rewrite the body of the memo to use the effective champion, the `hovering` flag, the build, and `resolveSpells`.** Replace the entire `return useMemo(() => { ... }, [...])` block (currently lines 86–188) with the version below. Changes from the original: `me.championId` → effective `championKey` for the portrait; `hovering` derived; spells resolved via `resolveSpells` with the build's spell pair as the OPGG layer; new `championKey`/`position`/`build` exposed; deps array gains `build`.
@@ -4558,7 +4558,7 @@ import { useChampSelectSession } from "./use-lcu"
 	}, [session, bundle, notes, banlist, settings, ranks, elapsedMs, build])
 ```
 
-- [ ] **Step 5: Typecheck + format.** `pnpm typecheck` then `pnpm format`. The `championKey`/`position` consts feed `useBuild`; the test in Task 4.1 still passes (`pnpm test`). Fix any type errors (e.g. `HeaderStrip` consumes `vm.me` — adding `hovering` is additive and won't break it).
+- [ ] **Step 5: Typecheck + format.** `pnpm typecheck` then `pnpm format`. The `championKey`/`position` consts feed `useBuildRecommendation`; the test in Task 4.1 still passes (`pnpm test`). Fix any type errors (e.g. `HeaderStrip` consumes `vm.me` — adding `hovering` is additive and won't break it).
 
 - [ ] **Step 6: Commit.**
 ```sh
@@ -4936,11 +4936,11 @@ git commit -m "feat: add auto rune/spell + build-tier settings and dev-bar build
 
 ## Phase 5 — In-game screen + champ-select mains (feature 2)
 
-This phase builds the **In-Game screen** (rendered for `InProgress`/`GameStart`) and the **champ-select "mains"** feature. It depends on the shared plumbing from earlier phases: the `Role` / `BuildRecommendation` / `InGameState` / `SummonerIdentity` types in `src/shared/types.ts`; the `runesById` / `itemsById` additions to `DDragonBundle`; the `itemIconUrl` / `runeIconUrl` helpers in `ddragon-urls.ts`; the `useBuild` / `useInGame` / `useSummoner` hooks; the `mains` field on `AppSettings`; and the fake `FIXTURE_BUILD` / `"game"` scenario. Where this phase needs a small role-conversion helper or a widened test glob, it adds them defensively (idempotent) so the phase stands alone.
+This phase builds the **In-Game screen** (rendered for `InProgress`/`GameStart`) and the **champ-select "mains"** feature. It depends on the shared plumbing from earlier phases: the `Role` / `BuildRecommendation` / `InGameState` / `SummonerIdentity` types in `src/shared/types.ts`; the `runesById` / `itemsById` additions to `DDragonBundle`; the `itemIconUrl` / `runeIconUrl` helpers in `ddragon-urls.ts`; the `useBuildRecommendation` / `useInGame` / `useSummoner` hooks; the `mains` field on `AppSettings`; and the fake `FIXTURE_BUILD` / `"game"` scenario. Where this phase needs a small role-conversion helper or a widened test glob, it adds them defensively (idempotent) so the phase stands alone.
 
 Pure logic is built test-first; UI is built implement → `pnpm typecheck` → `pnpm format` → Playwright-verify in force-fake mode.
 
-> **Role-type note for the implementer:** the renderer's existing `roles.ts` uses `DisplayRole` (`"Top" | "Jungle" | "Mid" | "Bot" | "Support"`). The shared contract uses lowercase `Role` (`"top" | "jungle" | "middle" | "bottom" | "utility"`) for `BuildRecommendation.role` and `AppSettings.mains[].role`. Task 5.1 adds the conversion helpers so the two coexist cleanly. `useBuild(championKey, position)` takes the **OP.GG position string** (`TOP | JUNGLE | MID | ADC | SUPPORT`), produced by `roleToPosition`.
+> **Role-type note for the implementer:** the renderer's existing `roles.ts` uses `DisplayRole` (`"Top" | "Jungle" | "Mid" | "Bot" | "Support"`). The shared contract uses lowercase `Role` (`"top" | "jungle" | "middle" | "bottom" | "utility"`) for `BuildRecommendation.role` and `AppSettings.mains[].role`. Task 5.1 adds the conversion helpers so the two coexist cleanly. `useBuildRecommendation(championKey, position)` takes the **OP.GG position string** (`TOP | JUNGLE | MID | ADC | SUPPORT`), produced by `roleToPosition`.
 
 ---
 
@@ -5785,13 +5785,13 @@ The color-coded 4×18 grid (consuming `formatSkillOrder`), with a `Q › E › W
 
 ### Task 5.7 — `InGameScreen` + wire into `home.tsx` (UI)
 
-The new screen: a header strip (champ from `useInGame` + spells), a matchup note, the build strip, and the skill grid in the left column; the team list + compact runes reference in the right rail. Role resolves from `CHAMPION_LANE` (via the in-game champion) as the in-game fallback. Build data from `useBuild(inGame.championId, roleToPosition(role))`.
+The new screen: a header strip (champ from `useInGame` + spells), a matchup note, the build strip, and the skill grid in the left column; the team list + compact runes reference in the right rail. Role resolves from `CHAMPION_LANE` (via the in-game champion) as the in-game fallback. Build data from `useBuildRecommendation(inGame.championId, roleToPosition(role))`.
 
 **Files:**
 - Create: `src/renderer/src/components/game/in-game-screen.tsx`
 - Modify: `src/renderer/src/pages/home.tsx`
 
-- [ ] **Step 1: Implement `InGameScreen`.** Create `src/renderer/src/components/game/in-game-screen.tsx`. It composes the existing `Section`, `Card`, `ChampionPortrait`, `SpellPair`, `RoleTag`, plus the new `ItemStrip`, `SkillOrderGrid`, `RunesReference`. Role comes from `championLane(champion.id)` → `displayToRole`; build from `useBuild`. The team list reuses the champ-select `TeamRegion` pattern by reading the live champ-select session if still present, else shows just the player. Since in-game team data isn't part of `InGameState`, the right rail shows the player card + runes reference (keeping the "team + compact runes" shape the spec calls for, degrading gracefully when no team is available).
+- [ ] **Step 1: Implement `InGameScreen`.** Create `src/renderer/src/components/game/in-game-screen.tsx`. It composes the existing `Section`, `Card`, `ChampionPortrait`, `SpellPair`, `RoleTag`, plus the new `ItemStrip`, `SkillOrderGrid`, `RunesReference`. Role comes from `championLane(champion.id)` → `displayToRole`; build from `useBuildRecommendation`. The team list reuses the champ-select `TeamRegion` pattern by reading the live champ-select session if still present, else shows just the player. Since in-game team data isn't part of `InGameState`, the right rail shows the player card + runes reference (keeping the "team + compact runes" shape the spec calls for, degrading gracefully when no team is available).
 
   ```tsx
   import { Card } from "@renderer/components/app/card"
@@ -5805,7 +5805,7 @@ The new screen: a header strip (champ from `useInGame` + spells), a matchup note
   import { SpellPair } from "@renderer/components/game/spell-pair"
   import { NoteCard } from "@renderer/components/notes/note-card"
   import { Button } from "@renderer/components/ui/button"
-  import { useBuild, useDDragon, useSettings, useUpsertNote } from "@renderer/hooks/use-data"
+  import { useBuildRecommendation, useDDragon, useSettings, useUpsertNote } from "@renderer/hooks/use-data"
   import { useInGame } from "@renderer/hooks/use-lcu"
   import { useNotes } from "@renderer/hooks/use-data"
   import { championLane, displayToRole, roleToPosition, roleToDisplay } from "@renderer/lib/roles"
@@ -5833,7 +5833,7 @@ The new screen: a header strip (champ from `useInGame` + spells), a matchup note
   	const displayRole = champion ? championLane(champion.id) : null
   	const role: Role | null = displayRole ? displayToRole(displayRole) : null
 
-  	const { data: build } = useBuild(
+  	const { data: build } = useBuildRecommendation(
   		inGame?.championId ?? null,
   		role ? roleToPosition(role) : null,
   	)
@@ -6642,7 +6642,7 @@ Throughout, follow the project's house style: em dashes in PRD/CLAUDE prose are 
   with:
   ```md
   - **No** post-game analytics, match history, or stat tracking.
-  - ~~**No** starting-item recommendations and **no** crowd-sourced / "pro" data~~ **Now in scope (v1.1):** item builds, rune pages, skill order, and summoner-spell recommendations are sourced from **one external read source (OP.GG MCP)** behind a swappable `BuildProvider`, disk-cached per (champion, role, patch). DDragon remains the catalog. Still **no first-party backend** and no other crowd-sourced surfaces (no win-rate dashboards, no match history). User-defined matchup notes and the offline spell heuristic remain and take precedence over OP.GG where they apply. See §6.1.
+  - ~~**No** starting-item recommendations and **no** crowd-sourced / "pro" data~~ **Now in scope (v1.1):** item builds, rune pages, skill order, and summoner-spell recommendations are sourced from **one external read source (OP.GG MCP)** behind a swappable `BuildRecommendationProvider`, disk-cached per (champion, role, patch). DDragon remains the catalog. Still **no first-party backend** and no other crowd-sourced surfaces (no win-rate dashboards, no match history). User-defined matchup notes and the offline spell heuristic remain and take precedence over OP.GG where they apply. See §6.1.
   ```
 
 - [ ] **Step 3: Reverse the "no auto-anything" non-goal.** Replace:
@@ -6687,7 +6687,7 @@ Throughout, follow the project's house style: em dashes in PRD/CLAUDE prose are 
   ```
   with:
   ```md
-  > **Scope note (v1.1):** Data Dragon is the **catalog** (what each rune/spell/item/ability *is*); it never says what's *good* for champion X in role Y. Per-champ/per-role recommendations come from **OP.GG MCP** (`mcp-api.op.gg/mcp`, keyless JSON-RPC, tool `lol_get_champion_analysis`), normalized into a `BuildRecommendation` and disk-cached per (championKey, role, patch). It is accessed only in the **main process** behind a swappable `BuildProvider` interface (`src/main/build/`), so the source can be replaced later; network or parse failure degrades to **null** (the UI hides the build, never crashes). The renderer reads recommendations via the `build:get` IPC query (TanStack Query, long `staleTime`). The deterministic **heuristic engine** below stays as the **offline fallback** for spells.
+  > **Scope note (v1.1):** Data Dragon is the **catalog** (what each rune/spell/item/ability *is*); it never says what's *good* for champion X in role Y. Per-champ/per-role recommendations come from **OP.GG MCP** (`mcp-api.op.gg/mcp`, keyless JSON-RPC, tool `lol_get_champion_analysis`), normalized into a `BuildRecommendation` and disk-cached per (championKey, role, patch). It is accessed only in the **main process** behind a swappable `BuildRecommendationProvider` interface (`src/main/build/`), so the source can be replaced later; network or parse failure degrades to **null** (the UI hides the build, never crashes). The renderer reads recommendations via the `build:get` IPC query (TanStack Query, long `staleTime`). The deterministic **heuristic engine** below stays as the **offline fallback** for spells.
   ```
 
 - [ ] **Step 4: Update the spell precedence + auto-apply paragraph.** Immediately after the heuristic engine list (after the line beginning `**User override.** Pinned spells…`), the precedence is: pinned-note spells > OP.GG recommendation > heuristic. Replace:
@@ -6808,7 +6808,7 @@ Throughout, follow the project's house style: em dashes in PRD/CLAUDE prose are 
     mains: { championId: number; role: Role }[]; // v1.1 — default []
   }
 
-  // ---------- Recommendations (normalized from BuildProvider) — v1.1 ----------
+  // ---------- Recommendations (normalized from BuildRecommendationProvider) — v1.1 ----------
   type Role = "top" | "jungle" | "middle" | "bottom" | "utility";
 
   interface RunePageRec {
@@ -6951,7 +6951,7 @@ Throughout, follow the project's house style: em dashes in PRD/CLAUDE prose are 
   ```
   with:
   ```md
-  - **External data source (v1.1).** Recommendations come from **OP.GG MCP** (one keyless external read, main process only) behind a swappable `BuildProvider`. There is still **no first-party backend, login, or telemetry**. DDragon remains the icon/catalog source. OP.GG availability/format is a third-party dependency risk, mitigated by the swappable interface + disk cache; on failure the build silently degrades to none.
+  - **External data source (v1.1).** Recommendations come from **OP.GG MCP** (one keyless external read, main process only) behind a swappable `BuildRecommendationProvider`. There is still **no first-party backend, login, or telemetry**. DDragon remains the icon/catalog source. OP.GG availability/format is a third-party dependency risk, mitigated by the swappable interface + disk cache; on failure the build silently degrades to none.
   - **Branding.** Ship as unofficial; no Riot trademarks in the app identity (see §11).
   ```
 
@@ -6986,7 +6986,7 @@ Throughout, follow the project's house style: em dashes in PRD/CLAUDE prose are 
   with:
   ```md
   - **`LcuProvider`** (plain React context, `src/renderer/src/providers/lcu-provider.tsx`) holds the live LCU push state (`lcu:status`, `lcu:phase`, `lcu:readyCheck`, `lcu:champSelect`, plus v1.1 `lcu:summoner` and `lcu:inGame`) — it subscribes once and exposes two churn-split contexts (summoner in the status-ish context, `inGame` in the live context); never poll for these, and don't add Zustand unless re-render pressure demands it.
-  - **OP.GG recommendations** are a TanStack Query (`build:get` → `useBuild(championKey, position)`, `staleTime: Infinity`), fetched and disk-cached only in the **main process** (`src/main/build/`) behind a swappable `BuildProvider`; the renderer never talks to OP.GG directly. Failure returns `null` and the UI hides the build — never crashes.
+  - **OP.GG recommendations** are a TanStack Query (`build:get` → `useBuildRecommendation(championKey, position)`, `staleTime: Infinity`), fetched and disk-cached only in the **main process** (`src/main/build/`) behind a swappable `BuildRecommendationProvider`; the renderer never talks to OP.GG directly. Failure returns `null` and the UI hides the build — never crashes.
   ```
 
 - [ ] **Step 3: Rewrite the Compliance constraints block** to reflect the expanded, opt-in writes. Replace the whole block (lines 62–66):
@@ -7003,7 +7003,7 @@ Throughout, follow the project's house style: em dashes in PRD/CLAUDE prose are 
 
   - Touch the **LCU (client) API only** — never the game process or game memory.
   - **Automated writes are limited and opt-in.** Accept ready check (off by default); apply rune pages + summoner spells during champ select (`autoRunes`/`autoSpells`, both off by default); create lobby + start matchmaking from the tray (explicit click only). **No auto-pick / auto-ban / auto-dodge, ever.** Rune apply only ever touches a **lockin-owned** page — never the user's pages. Queue-start is **never** looped or chained with auto-accept.
-  - **Recommendations come from OP.GG MCP** — one keyless external read, main process only, behind a swappable `BuildProvider`, disk-cached. Still no first-party backend, login, or telemetry. DDragon stays the icon/catalog source.
+  - **Recommendations come from OP.GG MCP** — one keyless external read, main process only, behind a swappable `BuildRecommendationProvider`, disk-cached. Still no first-party backend, login, or telemetry. DDragon stays the icon/catalog source.
   - Ship as unofficial: no Riot logos, wordmarks, or "League of Legends" in the app identity.
   ```
 

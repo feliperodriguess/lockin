@@ -5,7 +5,7 @@ import { buildCacheKey, withCache } from "./cache"
 import { normalizeOpgg } from "./opgg-normalize"
 import { parseOpggText } from "./opgg-parse"
 import { type OpggPosition, positionFromRole, roleFromPosition } from "./position"
-import type { BuildProvider } from "./types"
+import type { BuildRecommendationProvider } from "./types"
 
 const ENDPOINT = "https://mcp-api.op.gg/mcp"
 const FETCH_TIMEOUT_MS = 12_000
@@ -67,7 +67,7 @@ async function fetchAnalysisText(
 	return extractText(await response.text())
 }
 
-class OpggProvider implements BuildProvider {
+class OpggProvider implements BuildRecommendationProvider {
 	async getBuild(
 		championKey: number,
 		position: string,
@@ -91,9 +91,9 @@ class OpggProvider implements BuildProvider {
 	}
 }
 
-let provider: BuildProvider | null = null
+let provider: BuildRecommendationProvider | null = null
 
-export function getBuildProvider(): BuildProvider {
+export function getBuildRecommendationProvider(): BuildRecommendationProvider {
 	if (!provider) provider = new OpggProvider()
 	return provider
 }
@@ -103,5 +103,9 @@ export async function getBuild(
 	position: string,
 	tier?: string,
 ): Promise<BuildRecommendation | null> {
-	return getBuildProvider().getBuild(championKey, position, tier ? { tier } : undefined)
+	return getBuildRecommendationProvider().getBuild(
+		championKey,
+		position,
+		tier ? { tier } : undefined,
+	)
 }

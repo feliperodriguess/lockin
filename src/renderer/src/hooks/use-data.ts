@@ -72,7 +72,11 @@ export function useDeclineReadyCheck() {
 	return useMutation({ mutationFn: () => api.declineReadyCheck() })
 }
 
-export function useBuild(championKey: number | null, position: string | null, tier?: string) {
+export function useBuildRecommendation(
+	championKey: number | null,
+	position: string | null,
+	tier?: string,
+) {
 	return useQuery<BuildRecommendation | null>({
 		queryKey: ["build", championKey, position, tier ?? null],
 		queryFn: () => api.getBuild(championKey as number, position as string, tier),

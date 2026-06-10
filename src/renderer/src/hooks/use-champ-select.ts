@@ -13,7 +13,14 @@ import type {
 	SummonerSpellStatic,
 } from "@/shared/types"
 
-import { useBanList, useBuild, useDDragon, useNotes, useSettings, useTeamRanks } from "./use-data"
+import {
+	useBanList,
+	useBuildRecommendation,
+	useDDragon,
+	useNotes,
+	useSettings,
+	useTeamRanks,
+} from "./use-data"
 import { useChampSelectSession } from "./use-lcu"
 
 export interface SpellRec {
@@ -93,13 +100,13 @@ export function useChampSelect(): ChampSelectVM | null {
 	}, [session])
 	const elapsedMs = Math.max(0, nowMs - receivedAt)
 
-	// Effective champion + position resolved OUTSIDE the memo so useBuild (a hook)
+	// Effective champion + position resolved OUTSIDE the memo so useBuildRecommendation (a hook)
 	// runs unconditionally. Locked championId wins; otherwise fall back to the
 	// hovered championPickIntent so the screen reacts the instant you hover.
 	const meRaw = session?.myTeam.find((p) => p.cellId === session.localPlayerCellId) ?? null
 	const championKey = meRaw ? meRaw.championId || meRaw.championPickIntent || null : null
 	const position = meRaw?.assignedPosition ? meRaw.assignedPosition : null
-	const { data: build } = useBuild(championKey, position, settings?.buildTier)
+	const { data: build } = useBuildRecommendation(championKey, position, settings?.buildTier)
 
 	return useMemo(() => {
 		if (!session) return null

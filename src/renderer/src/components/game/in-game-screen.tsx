@@ -10,7 +10,7 @@ import { SpellPair } from "@renderer/components/game/spell-pair"
 import { NoteCard } from "@renderer/components/notes/note-card"
 import { Button } from "@renderer/components/ui/button"
 import {
-	useBuild,
+	useBuildRecommendation,
 	useDDragon,
 	useNotes,
 	useSettings,
@@ -40,7 +40,11 @@ export function InGameScreen(): React.JSX.Element | null {
 	const displayRole = champion ? championLane(champion.id) : null
 	const role: Role | null = displayRole ? displayToRole(displayRole) : null
 
-	const { data: build } = useBuild(inGame?.championId ?? null, role, settings?.buildTier)
+	const { data: build } = useBuildRecommendation(
+		inGame?.championId ?? null,
+		role,
+		settings?.buildTier,
+	)
 
 	if (!inGame || !bundle) return null
 

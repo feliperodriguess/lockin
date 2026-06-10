@@ -28,7 +28,7 @@ The app is read-mostly: it reads state from the local League client and (optiona
 
 ### 2.2 Non-Goals (explicitly out of scope for v1)
 - **No** post-game analytics, match history, or stat tracking.
-- ~~**No** starting-item recommendations and **no** crowd-sourced / "pro" data~~ **Now in scope (v1.1):** item builds, rune pages, skill order, and summoner-spell recommendations are sourced from **one external read source (OP.GG MCP)** behind a swappable `BuildProvider`, disk-cached per (champion, role, patch). DDragon remains the catalog. Still **no first-party backend** and no other crowd-sourced surfaces (no win-rate dashboards, no match history). User-defined matchup notes and the offline spell heuristic remain and take precedence over OP.GG where they apply. See §6.1.
+- ~~**No** starting-item recommendations and **no** crowd-sourced / "pro" data~~ **Now in scope (v1.1):** item builds, rune pages, skill order, and summoner-spell recommendations are sourced from **one external read source (OP.GG MCP)** behind a swappable `BuildRecommendationProvider`, disk-cached per (champion, role, patch). DDragon remains the catalog. Still **no first-party backend** and no other crowd-sourced surfaces (no win-rate dashboards, no match history). User-defined matchup notes and the offline spell heuristic remain and take precedence over OP.GG where they apply. See §6.1.
 - **No** in-game overlay or interaction with the running game process / Live Client Data API. We touch the **client** (LCU) only — never the game. (See §14 Compliance.)
 - **No** Windows/Linux build.
 - **No** multi-account sync, cloud storage, or telemetry.
@@ -122,7 +122,7 @@ Each feature lists: behavior, trigger, data source, edge cases, and acceptance c
 
 ### 6.1 Recommendations: Summoner Spells, Runes, Items & Skill Order
 
-> **Scope note (v1.1):** Data Dragon is the **catalog** (what each rune/spell/item/ability *is*); it never says what's *good* for champion X in role Y. Per-champ/per-role recommendations come from **OP.GG MCP** (`mcp-api.op.gg/mcp`, keyless JSON-RPC, tool `lol_get_champion_analysis`), normalized into a `BuildRecommendation` and disk-cached per (championKey, role, patch). It is accessed only in the **main process** behind a swappable `BuildProvider` interface (`src/main/build/`), so the source can be replaced later; network or parse failure degrades to **null** (the UI hides the build, never crashes). The renderer reads recommendations via the `build:get` IPC query (TanStack Query, long `staleTime`). The deterministic **heuristic engine** below stays as the **offline fallback** for spells.
+> **Scope note (v1.1):** Data Dragon is the **catalog** (what each rune/spell/item/ability *is*); it never says what's *good* for champion X in role Y. Per-champ/per-role recommendations come from **OP.GG MCP** (`mcp-api.op.gg/mcp`, keyless JSON-RPC, tool `lol_get_champion_analysis`), normalized into a `BuildRecommendation` and disk-cached per (championKey, role, patch). It is accessed only in the **main process** behind a swappable `BuildRecommendationProvider` interface (`src/main/build/`), so the source can be replaced later; network or parse failure degrades to **null** (the UI hides the build, never crashes). The renderer reads recommendations via the `build:get` IPC query (TanStack Query, long `staleTime`). The deterministic **heuristic engine** below stays as the **offline fallback** for spells.
 
 **Behavior.** Once the user's champion + assigned role are known, show a suggested pair of summoner spells (2 icons). If the user has pinned spells on a matching note, **the pinned values win** and are labeled "Your pick."
 
@@ -394,7 +394,7 @@ interface AppSettings {
   mains: { championId: number; role: Role }[]; // v1.1 — default []
 }
 
-// ---------- Recommendations (normalized from BuildProvider) — v1.1 ----------
+// ---------- Recommendations (normalized from BuildRecommendationProvider) — v1.1 ----------
 type Role = "top" | "jungle" | "middle" | "bottom" | "utility";
 
 interface RunePageRec {
@@ -568,7 +568,7 @@ Exposed via `contextBridge` in the preload script. The renderer never imports No
 - **Automated client writes (v1.1).** Beyond accepting the ready check, the app can: (a) **apply recommended rune pages and summoner spells** during champ select, and (b) **start a ranked/flex queue** from the tray. Riot's third-party policy explicitly permits rune/build/spell recommendation **and import** — Blitz, OP.GG, and Porofessor do exactly this. The line we hold: **rune/spell apply and queue-start are opt-in and off by default**; rune apply only ever touches a **lockin-owned** page (never the user's pages); queue-start fires **only on an explicit user click** and is **never** chained with auto-accept into a hands-off matchmaking loop. Auto-accept itself stays **off by default**, opt-in, with a clear in-app note. The user assumes the (small) automation risk.
 - **Vanguard (anti-cheat).** Vanguard targets kernel-level cheats and game-process tampering. Stay strictly on the **LCU (client) API** and **never** read game memory or hook the running game; that keeps the app on the tolerated surface that other companion apps occupy. **Verify the current state of Riot's developer/automation policy and Vanguard behavior before public release** — treat this as a release-gate checklist item.
 - **No automated gameplay decisions.** No auto-pick, auto-ban, or auto-dodge — ever. The app advises; the human decides. The automated *writes* are limited to: accepting the ready check, applying a lockin-owned rune page, setting summoner spells, and (on explicit click) creating a lobby + starting matchmaking. All are opt-in and off by default except none are looped or chained.
-- **External data source (v1.1).** Recommendations come from **OP.GG MCP** (one keyless external read, main process only) behind a swappable `BuildProvider`. There is still **no first-party backend, login, or telemetry**. DDragon remains the icon/catalog source. OP.GG availability/format is a third-party dependency risk, mitigated by the swappable interface + disk cache; on failure the build silently degrades to none.
+- **External data source (v1.1).** Recommendations come from **OP.GG MCP** (one keyless external read, main process only) behind a swappable `BuildRecommendationProvider`. There is still **no first-party backend, login, or telemetry**. DDragon remains the icon/catalog source. OP.GG availability/format is a third-party dependency risk, mitigated by the swappable interface + disk cache; on failure the build silently degrades to none.
 - **Branding.** Ship as unofficial; no Riot trademarks in the app identity (see §11).
 
 ---

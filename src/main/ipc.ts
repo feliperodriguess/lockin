@@ -3,7 +3,7 @@ import { ipcMain } from "electron"
 import { IPC } from "@/shared/constants"
 import type { AppSettings, BanListEntry, MatchupNote, RunePageRec } from "@/shared/types"
 
-import { getBuild } from "./build/opgg"
+import { getBuild } from "./build-recommendations/opgg"
 import { getDDragonBundle } from "./ddragon"
 import {
 	acceptReadyCheck,

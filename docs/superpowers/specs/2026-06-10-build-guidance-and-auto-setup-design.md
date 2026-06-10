@@ -30,7 +30,7 @@ DDragon and CommunityDragon are **catalog only** — they define what each rune/
 | Lolalytics `mega` (`a1.lolalytics.com`) | `200`, but undocumented/drifting params (`invalid end point` on guessed params) | Fragile fallback only |
 | **OP.GG MCP (`mcp-api.op.gg/mcp`)** | `200`, **keyless**, full build payload confirmed | **Chosen** |
 
-**Decision: OP.GG MCP, behind a swappable `BuildProvider` interface, disk-cached per (champion, role, patch).** Lolalytics may be added later as a fallback adapter; U.GG is not viable.
+**Decision: OP.GG MCP, behind a swappable `BuildRecommendationProvider` interface, disk-cached per (champion, role, patch).** Lolalytics may be added later as a fallback adapter; U.GG is not viable.
 
 ### 2.1 OP.GG provider details (verified)
 
@@ -53,10 +53,10 @@ DDragon and CommunityDragon are **catalog only** — they define what each rune/
 - **Parsing:** the text format self-describes field order via its `class X: a,b,c` header lines, then a positional constructor dump. Implement a **tolerant parser** keyed off the schema header (so field reordering by OP.GG doesn't silently misalign). Cover the parser with unit tests using a captured fixture.
 - **Caching:** cache normalized results to disk under `userData` keyed by `championKey:role:patch`, mirroring `ddragon.ts`. Serve from cache; refresh in the background. Network failure → serve cache or return `null` gracefully (UI degrades, never crashes).
 
-### 2.2 `BuildProvider` interface
+### 2.2 `BuildRecommendationProvider` interface
 
 ```ts
-interface BuildProvider {
+interface BuildRecommendationProvider {
   getBuild(championKey: number, role: DisplayRole, opts?: { tier?: string }): Promise<BuildRecommendation | null>
 }
 ```
@@ -116,7 +116,7 @@ Features 1 & 2 intentionally reverse current non-goals. Update **PRD.md** (§2.2
 ## 5. New types & data models
 
 ```ts
-// Recommendation (normalized from BuildProvider) — shared/types.ts
+// Recommendation (normalized from BuildRecommendationProvider) — shared/types.ts
 interface RunePageRec {
   primaryStyleId: number
   subStyleId: number
@@ -276,13 +276,13 @@ The `lcu:summoner` / `lcu:inGame` pushes follow the existing `subscribeWithSnaps
 Keep the **mock-first** discipline (PRD §15). Extend the fake layer so every new state is previewable without a client:
 - `scenario.ts`/`bridge.ts`: add an **"In game"** phase, a **summoner** fixture, and a **build** fixture (sample `BuildRecommendation`).
 - `state-switcher.tsx`: add the In-Game phase button, an auto-runes/auto-spells toggle preview, and a "build available / unavailable" toggle.
-- Hooks (`useBuild()`, `useSummoner()`, `useInGame()`) return mock fixtures first, repointed to real IPC later — components stay source-agnostic.
+- Hooks (`useBuildRecommendation()`, `useSummoner()`, `useInGame()`) return mock fixtures first, repointed to real IPC later — components stay source-agnostic.
 
 ---
 
 ## 9. Suggested build order
 
-1. **Plumbing:** widen `request()`; new types; IPC channels; settings; `BuildProvider` (OP.GG adapter + parser + cache + tests); fake fixtures + state-switcher.
+1. **Plumbing:** widen `request()`; new types; IPC channels; settings; `BuildRecommendationProvider` (OP.GG adapter + parser + cache + tests); fake fixtures + state-switcher.
 2. **Feature 3 (sidebar) + Feature 5 (copy)** — quick wins, low risk.
 3. **Feature 4 (tray).**
 4. **Feature 1 (responsiveness + auto-setup).**

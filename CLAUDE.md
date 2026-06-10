@@ -43,7 +43,7 @@ Electron three-process split (electron-vite, configured in `electron.vite.config
 State ownership (PRD §3.1/§8.1 — keep these separate, never mirror data between them):
 - **TanStack Query** wraps request/response IPC (`invoke`) — notes, settings, Data Dragon bundle, ranks. Invalidate query keys after mutations.
 - **`LcuProvider`** (plain React context, `src/renderer/src/providers/lcu-provider.tsx`) holds the live LCU push state (`lcu:status`, `lcu:phase`, `lcu:readyCheck`, `lcu:champSelect`, plus v1.1 `lcu:summoner` and `lcu:inGame`) — it subscribes once and exposes two churn-split contexts (summoner in the status-ish context, `inGame` in the live context); never poll for these, and don't add Zustand unless re-render pressure demands it.
-- **OP.GG recommendations** are a TanStack Query (`build:get` → `useBuild(championKey, position)`, `staleTime: Infinity`), fetched and disk-cached only in the **main process** (`src/main/build/`) behind a swappable `BuildProvider`; the renderer never talks to OP.GG directly. Failure returns `null` and the UI hides the build — never crashes.
+- **OP.GG recommendations** are a TanStack Query (`build:get` → `useBuildRecommendation(championKey, position)`, `staleTime: Infinity`), fetched and disk-cached only in the **main process** (`src/main/build/`) behind a swappable `BuildRecommendationProvider`; the renderer never talks to OP.GG directly. Failure returns `null` and the UI hides the build — never crashes.
 - Plain `useState` for small local UI state.
 
 Build strategy is **UI-first** (PRD §15): screens consume data through hooks (e.g. `useChampSelect()`, `useNotes()`) that return mock fixtures first and are repointed at real IPC later — keep components agnostic to the data source.
@@ -64,5 +64,5 @@ Path aliases (tsconfig + vite): `@renderer/*` → `src/renderer/src/*`, `@/*` �
 
 - Touch the **LCU (client) API only** — never the game process or game memory.
 - **Automated writes are limited and opt-in.** Accept ready check (off by default); apply rune pages + summoner spells during champ select (`autoRunes`/`autoSpells`, both off by default); create lobby + start matchmaking from the tray (explicit click only). **No auto-pick / auto-ban / auto-dodge, ever.** Rune apply only ever touches a **lockin-owned** page — never the user's pages. Queue-start is **never** looped or chained with auto-accept.
-- **Recommendations come from OP.GG MCP** — one keyless external read, main process only, behind a swappable `BuildProvider`, disk-cached. Still no first-party backend, login, or telemetry. DDragon stays the icon/catalog source.
+- **Recommendations come from OP.GG MCP** — one keyless external read, main process only, behind a swappable `BuildRecommendationProvider`, disk-cached. Still no first-party backend, login, or telemetry. DDragon stays the icon/catalog source.
 - Ship as unofficial: no Riot logos, wordmarks, or "League of Legends" in the app identity.
