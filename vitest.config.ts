@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
-		include: ["src/shared/lib/**/*.test.ts", "src/main/**/*.test.ts"],
+		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+		environment: "node",
 	},
 })
