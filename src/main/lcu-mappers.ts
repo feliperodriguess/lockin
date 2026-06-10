@@ -2,8 +2,10 @@ import type {
 	ChampSelectAction,
 	ChampSelectPlayer,
 	ChampSelectSession,
+	InGameState,
 	RankInfo,
 	ReadyCheck,
+	SummonerIdentity,
 } from "@/shared/types"
 
 export interface RawReadyCheck {
@@ -100,8 +102,57 @@ export const RANKED_QUEUE_ID = {
 	FLEX: 440,
 } as const
 
+interface RawChampionSelection {
+	championId?: number
+	spell1Id?: number
+	spell2Id?: number
+	puuid?: string
+	summonerInternalName?: string
+}
+
 export interface RawGameflowSession {
-	gameData?: { queue?: { id?: number; type?: string } }
+	gameData?: {
+		queue?: { id?: number; type?: string }
+		playerChampionSelections?: RawChampionSelection[]
+	}
+}
+
+export interface RawCurrentSummoner {
+	gameName?: string
+	displayName?: string
+	tagLine?: string
+	profileIconId?: number
+	summonerLevel?: number
+	puuid?: string
+}
+
+export function toSummonerIdentity(raw: RawCurrentSummoner): SummonerIdentity {
+	return {
+		gameName: raw.gameName || raw.displayName || "",
+		tagLine: raw.tagLine ?? "",
+		profileIconId: raw.profileIconId ?? 0,
+		summonerLevel: raw.summonerLevel ?? 0,
+		puuid: raw.puuid ?? "",
+	}
+}
+
+/** Resolve the local player's in-game champion from a gameflow session.
+ *  Matches the selection by puuid; returns null when not in a game or unmatched. */
+export function toInGameState(
+	session: RawGameflowSession | null,
+	localPuuid: string,
+): InGameState | null {
+	const selections = session?.gameData?.playerChampionSelections
+	if (!selections || selections.length === 0) return null
+	const mine = localPuuid ? selections.find((s) => s.puuid === localPuuid) : undefined
+	const selection = mine ?? selections[0] // fall back to first if puuid absent in payload
+	if (!selection?.championId) return null
+	return {
+		championId: selection.championId,
+		spell1Id: selection.spell1Id ?? 0,
+		spell2Id: selection.spell2Id ?? 0,
+		queueId: session?.gameData?.queue?.id ?? 0,
+	}
 }
 
 /** Queue-aware rank: show the rank for the queue this lobby is actually in —
