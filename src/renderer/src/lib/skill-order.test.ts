@@ -39,7 +39,8 @@ describe("formatSkillOrder", () => {
 
 	it("marks the cell at each level for the leveled ability and the running count", () => {
 		const rows = formatSkillOrder(ORDER)
-		const q = rows.find((r) => r.ability === "Q")!
+		const q = rows.find((r) => r.ability === "Q")
+		if (!q) throw new Error("Q row missing")
 		// Q leveled at 1,4,5,7,9 (1-indexed) → cells[0,3,4,6,8]
 		expect(q.cells[0]).toEqual({ active: true, point: 1 })
 		expect(q.cells[3]).toEqual({ active: true, point: 2 })
@@ -51,7 +52,8 @@ describe("formatSkillOrder", () => {
 
 	it("places R at levels 6, 11, 16 (0-indexed 5, 10, 15)", () => {
 		const rows = formatSkillOrder(ORDER)
-		const r = rows.find((row) => row.ability === "R")!
+		const r = rows.find((row) => row.ability === "R")
+		if (!r) throw new Error("R row missing")
 		expect(r.cells[5].active).toBe(true)
 		expect(r.cells[10].active).toBe(true)
 		expect(r.cells[15].active).toBe(true)
