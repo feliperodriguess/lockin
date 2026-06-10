@@ -60,7 +60,7 @@ export function NotesRegion({
 				saving={upsert.isPending}
 			/>
 		)
-	} else {
+	} else if (opponent) {
 		body = (
 			<div className="flex flex-1 flex-col justify-center gap-3">
 				<div className="flex items-center gap-2">
@@ -70,7 +70,24 @@ export function NotesRegion({
 				</div>
 				<p className="m-0 text-[14px] leading-normal text-paper-200">
 					No note yet for <b className="font-semibold text-paper-100">{me.champion?.name}</b> vs{" "}
-					<b className="font-semibold text-paper-100">{opponent?.name}</b>.
+					<b className="font-semibold text-paper-100">{opponent.name}</b>.
+				</p>
+				<Button
+					className="self-start"
+					onClick={() => navigate({ to: "/notes", search: { new: true } })}
+				>
+					<Plus size={16} />
+					Add a note
+				</Button>
+			</div>
+		)
+	} else {
+		// no lane opponent resolved (role pending, or no enemy maps to my lane)
+		body = (
+			<div className="flex flex-1 flex-col justify-center gap-3">
+				<ChampionPortrait champion={me.champion} version={version} size={24} />
+				<p className="m-0 text-[14px] leading-normal text-paper-200">
+					No note yet for <b className="font-semibold text-paper-100">{me.champion?.name}</b>.
 				</p>
 				<Button
 					className="self-start"

@@ -1,8 +1,8 @@
-import { type DisplayRole, displayRole } from "@renderer/lib/roles"
+import { championLane, type DisplayRole, displayRole } from "@renderer/lib/roles"
 import { useEffect, useMemo, useRef, useState } from "react"
 
 import { suggestBans } from "@/shared/lib/bans"
-import { matchNotes } from "@/shared/lib/notes-match"
+import { matchupNote } from "@/shared/lib/notes-match"
 import { flagMismatch } from "@/shared/lib/rank"
 import { recommendSpells } from "@/shared/lib/spells"
 import type { ChampionStatic, MatchupNote, RankInfo, SummonerSpellStatic } from "@/shared/types"
@@ -109,19 +109,21 @@ export function useChampSelect(): ChampSelectVM | null {
 
 		const enemyVisible = session.theirTeam.filter((p) => p.championId > 0)
 		const enemyHidden = enemyVisible.length === 0
-		// matchup target: same assignedPosition if known, else first visible enemy
-		const laneOpponent =
-			enemyVisible.find((p) => p.assignedPosition === me.assignedPosition) ??
-			enemyVisible[0] ??
-			null
+		// matchup target = the enemy in MY lane. Riot doesn't expose enemy
+		// assignedPosition in champ select, so prefer it when present but otherwise
+		// infer the enemy's lane from the champion (CHAMPION_LANE). No confident
+		// match (role pending, or no enemy maps to my lane) → no specific matchup,
+		// rather than guessing the wrong enemy.
+		const laneOpponent = role
+			? (enemyVisible.find(
+					(p) =>
+						(displayRole(p.assignedPosition) ?? championLane(champ(p.championId)?.id ?? "")) ===
+						role,
+				) ?? null)
+			: null
 		const opponent = laneOpponent ? champ(laneOpponent.championId) : null
 
-		const matching = matchNotes(
-			notes ?? [],
-			me.championId,
-			enemyVisible.map((p) => p.championId),
-		)
-		const note = matching[0] ?? null
+		const note = matchupNote(notes ?? [], me.championId, laneOpponent?.championId ?? null)
 
 		// pinned pre-validated against DDragon (§6.1: unresolvable pin → heuristic)
 		const pinned = note?.pinnedSpells
