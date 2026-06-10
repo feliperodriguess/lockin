@@ -7,5 +7,6 @@ export function phaseSub(connected: boolean, phase: GameflowPhase): string {
 	if (phase === "ChampSelect") return "Champ Selection"
 	if (phase === "Matchmaking") return "In Queue"
 	if (phase === "Lobby") return "In Lobby"
+	if (phase === "InProgress" || phase === "GameStart") return "In Game"
 	return "Idle"
 }

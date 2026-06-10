@@ -18,7 +18,7 @@ import {
 } from "@renderer/hooks/use-data"
 import { useInGame } from "@renderer/hooks/use-lcu"
 import { winSampleLabel } from "@renderer/lib/build-format"
-import { championLane, displayToRole, roleToDisplay, roleToPosition } from "@renderer/lib/roles"
+import { championLane, displayToRole, roleToDisplay } from "@renderer/lib/roles"
 import { useNavigate } from "@tanstack/react-router"
 import { Plus, Swords } from "lucide-react"
 
@@ -42,7 +42,7 @@ export function InGameScreen(): React.JSX.Element | null {
 	const displayRole = champion ? championLane(champion.id) : null
 	const role: Role | null = displayRole ? displayToRole(displayRole) : null
 
-	const { data: build } = useBuild(inGame?.championId ?? null, role ? roleToPosition(role) : null)
+	const { data: build } = useBuild(inGame?.championId ?? null, role)
 
 	if (!inGame || !bundle) return null
 

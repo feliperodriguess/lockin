@@ -216,9 +216,24 @@ export const fakeBridge: Api = {
 	},
 	async getBuild(championKey, position): Promise<BuildRecommendation | null> {
 		if (!scenario.buildAvailable) return null
-		return championKey === FIXTURE_BUILD.championKey && position === FIXTURE_BUILD.role
-			? { ...FIXTURE_BUILD }
-			: null
+		if (championKey !== FIXTURE_BUILD.championKey) return null
+		// mirror the real provider's tolerant position matching so any caller convention
+		// (Role | LCU position | OP.GG enum | shorthand) resolves a build in fake mode too
+		const norm: Record<string, string> = {
+			top: "top",
+			jungle: "jungle",
+			jg: "jungle",
+			middle: "middle",
+			mid: "middle",
+			bottom: "bottom",
+			bot: "bottom",
+			adc: "bottom",
+			utility: "utility",
+			support: "utility",
+			sup: "utility",
+		}
+		const role = norm[position.trim().toLowerCase()]
+		return role === FIXTURE_BUILD.role ? { ...FIXTURE_BUILD } : null
 	},
 	async setSpells(_spell1Id: number, _spell2Id: number): Promise<void> {
 		// no-op in the fake bridge — the real LCU write lands in Phase 1B
