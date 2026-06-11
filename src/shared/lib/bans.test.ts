@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import type { BanListEntry, ChampSelectSession } from "@/shared/types"
+import type { BanListEntry, ChampSelectSession, CounterEntry } from "@/shared/types"
 
-import { suggestBans } from "./bans"
+import { statisticalBans, suggestBans } from "./bans"
 
 const entry = (championId: number, priority: number, reason?: string): BanListEntry => ({
 	championId,
@@ -103,5 +103,59 @@ describe("suggestBans (PRD §6.3)", () => {
 		const out = suggestBans([entry(114, 1)], s)
 		expect(out.entries[0]?.status).toBe("banned")
 		expect(out.entries[0]?.threat).toBe(true)
+	})
+})
+
+const weak = (championId: number, winRate: number, games = 500): CounterEntry => ({
+	championId,
+	winRate,
+	games,
+})
+
+describe("suggestBans with counter data", () => {
+	it("attaches the flipped counter win rate to matching rows", () => {
+		const out = suggestBans([entry(114, 1), entry(122, 2)], session(), [weak(114, 0.46)])
+		expect(out.entries[0]?.counterWinRate).toBeCloseTo(0.54, 5)
+		expect(out.entries[1]?.counterWinRate).toBeNull()
+	})
+
+	it("lifts counters above plain rows but below threats", () => {
+		const s = session({ theirTeam: [player(133)] })
+		const out = suggestBans([entry(114, 1), entry(157, 2), entry(133, 3)], s, [weak(157, 0.46)])
+		expect(out.entries.map((e) => e.entry.championId)).toEqual([133, 157, 114])
+	})
+
+	it("omitting counter data keeps every row's counterWinRate null", () => {
+		const out = suggestBans([entry(114, 1)], session())
+		expect(out.entries[0]?.counterWinRate).toBeNull()
+	})
+})
+
+describe("statisticalBans", () => {
+	const myWeak = [
+		weak(114, 0.46),
+		weak(122, 0.465),
+		weak(164, 0.47),
+		weak(875, 0.475),
+		weak(86, 0.48),
+	]
+
+	it("suggests top counters not on the list, flipped to their win rate into me", () => {
+		const out = statisticalBans(myWeak, [entry(114, 1), entry(122, 2)], session())
+		expect(out.map((r) => r.championId)).toEqual([164, 875, 86])
+		expect(out[0]?.winRate).toBeCloseTo(0.53, 5)
+	})
+
+	it("caps at 3 and excludes banned/picked champions", () => {
+		const s = session({
+			bans: { myTeamBans: [164], theirTeamBans: [], numBans: 10 },
+			theirTeam: [player(875)],
+		})
+		const out = statisticalBans(myWeak, [], s)
+		expect(out.map((r) => r.championId)).toEqual([114, 122, 86])
+	})
+
+	it("empty input → empty output", () => {
+		expect(statisticalBans([], [entry(114, 1)], session())).toEqual([])
 	})
 })
