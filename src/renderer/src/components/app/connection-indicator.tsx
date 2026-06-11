@@ -29,7 +29,7 @@ export function ConnectionIndicator({
 						connected ? "text-paper-200" : "text-paper-300",
 					)}
 				>
-					{connected ? "Client Connected" : "Client Not Detected"}
+					{connected ? "Client connected" : "Client not detected"}
 				</p>
 			)}
 		</span>

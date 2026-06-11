@@ -61,7 +61,7 @@ export function InGameTeams({ inGame, bundle, version }: InGameTeamsProps): Reac
 					))}
 				</ul>
 			</Section>
-			<Section label="Their team" grow scroll>
+			<Section label="Enemy team" grow scroll>
 				<ul className="m-0 flex flex-1 flex-col gap-px p-0">
 					{byRole(inGame.theirTeam).map((p) => (
 						<PlayerRow

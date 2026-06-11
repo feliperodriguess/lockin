@@ -71,7 +71,7 @@ export function NotesPage(): React.JSX.Element {
 				<div className="flex flex-col gap-1">
 					<h1 className="m-0 text-[24px] font-semibold leading-none text-(--fg-1)">Notes</h1>
 					<span className="font-mono text-[12px] font-normal leading-none text-(--fg-4)">
-						{notes.length} matchup{notes.length === 1 ? "" : "s"}
+						{notes.length} note{notes.length === 1 ? "" : "s"}
 					</span>
 				</div>
 				<div className="flex items-center gap-[10px]">

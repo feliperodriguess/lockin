@@ -16,9 +16,9 @@ import { RANKED_QUEUE_ID } from "./lcu-mappers"
 
 const AUTO_ACCEPT_ACCELERATOR = "Control+Alt+A"
 
-export const QUEUE_ACTIONS: { label: string; queueId: number }[] = [
-	{ label: "Start ranked queue", queueId: RANKED_QUEUE_ID.SOLO_DUO },
-	{ label: "Start flex queue", queueId: RANKED_QUEUE_ID.FLEX },
+export const QUEUE_ACTIONS: { label: string; name: string; queueId: number }[] = [
+	{ label: "Start Solo/Duo Queue", name: "Solo/Duo", queueId: RANKED_QUEUE_ID.SOLO_DUO },
+	{ label: "Start Flex Queue", name: "Flex", queueId: RANKED_QUEUE_ID.FLEX },
 ]
 
 export interface TraySnapshot {
@@ -43,9 +43,9 @@ export interface TrayDeps {
 	onChange: (rebuild: () => void) => void
 }
 
-function notifyQueueError(label: string, error?: string): void {
+function notifyQueueError(name: string, error?: string): void {
 	if (!Notification.isSupported()) return
-	new Notification({ title: "lockin", body: queueErrorMessage(label, error) }).show()
+	new Notification({ title: "lockin", body: queueErrorMessage(name, error) }).show()
 }
 
 export function createTray(deps: TrayDeps): { unregister: () => void } {
@@ -61,15 +61,15 @@ export function createTray(deps: TrayDeps): { unregister: () => void } {
 		rebuild()
 	}
 
-	const startQueue = (label: string, queueId: number): void => {
+	const startQueue = (name: string, queueId: number): void => {
 		deps.surface()
 		void deps
 			.startQueue(queueId)
 			.then((result) => {
-				if (!result.ok) notifyQueueError(label, result.error)
+				if (!result.ok) notifyQueueError(name, result.error)
 			})
 			.catch((error: unknown) => {
-				notifyQueueError(label, error instanceof Error ? error.message : undefined)
+				notifyQueueError(name, error instanceof Error ? error.message : undefined)
 			})
 	}
 
@@ -80,7 +80,7 @@ export function createTray(deps: TrayDeps): { unregister: () => void } {
 		const queueItems: MenuItemConstructorOptions[] = QUEUE_ACTIONS.map((action) => ({
 			label: action.label,
 			enabled: snapshot.connected,
-			click: () => startQueue(action.label, action.queueId),
+			click: () => startQueue(action.name, action.queueId),
 		}))
 
 		const template: MenuItemConstructorOptions[] = [
@@ -133,7 +133,7 @@ function identityLabel(snapshot: TraySnapshot): string {
 }
 
 /** Human-readable notification body when a tray queue-start fails. */
-export function queueErrorMessage(label: string, error?: string): string {
-	if (error) return `${label} failed: ${error}`
-	return `${label} failed. Check the League client and try again.`
+export function queueErrorMessage(name: string, error?: string): string {
+	if (error) return `Couldn't start ${name}: ${error}`
+	return `Couldn't start ${name}. Check the League client and try again.`
 }

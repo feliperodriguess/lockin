@@ -16,7 +16,8 @@ export function Disconnected(): React.JSX.Element {
 					Waiting for the League client
 				</p>
 				<p className="m-0 text-[13.5px] leading-[1.55] text-paper-300">
-					Lockin starts up as soon as it opens. Your notes and settings stay available until then.
+					lockin connects on its own when the client opens. Your notes and settings stay available
+					until then.
 				</p>
 			</div>
 

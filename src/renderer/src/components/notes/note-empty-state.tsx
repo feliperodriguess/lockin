@@ -46,7 +46,7 @@ export function NoteEmptyState({
 				) : (
 					<>
 						Notes you write for <b className="font-semibold text-paper-200">{champion?.name}</b>{" "}
-						show up here once a matchup is known.
+						show up here once your lane opponent is revealed.
 					</>
 				)}
 			</p>

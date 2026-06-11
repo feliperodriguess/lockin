@@ -79,7 +79,7 @@ export function BansRegion({
 			{statBanRows.length > 0 && (
 				<div className="mt-[10px] border-t border-(--stroke-subtle) pt-[8px]">
 					<span className="font-mono text-[10px] font-medium uppercase leading-none tracking-[0.06em] text-paper-400">
-						Statistical counters to your pick
+						Counters your pick
 					</span>
 					<ul className="mt-[6px] flex flex-col gap-[2px]">
 						{statBanRows.map((row, i) => (
@@ -193,7 +193,7 @@ function EmptyBanList(): React.JSX.Element {
 				icon={Shield}
 				compact
 				title="Your ban list is empty"
-				line="Add the champions you never want to face."
+				line="Add your perma-bans — the champs you never want to see."
 				action={
 					<Button variant="ghost" size="sm" onClick={() => navigate({ to: "/settings" })}>
 						Manage ban list

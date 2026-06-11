@@ -54,10 +54,12 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 					stroke={8}
 					progress={1}
 					tone="warn"
-					value={<X size={48} strokeWidth={2.5} className="text-[var(--color-warn)]" />}
+					value={<X size={48} strokeWidth={2.5} className="text-warn" />}
 					label="Declined"
 				/>
-				<p className="m-0 text-[13px] leading-[1.4] text-paper-300">Back to the queue.</p>
+				<p className="m-0 text-[13px] leading-[1.4] text-paper-300">
+					Back to the lobby. Queue again when you're ready.
+				</p>
 			</section>
 		)
 	}
@@ -71,10 +73,12 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 					stroke={8}
 					progress={1}
 					tone="warn"
-					value={<X size={48} strokeWidth={2.5} className="text-[var(--color-warn)]" />}
+					value={<X size={48} strokeWidth={2.5} className="text-warn" />}
 					label="Missed"
 				/>
-				<p className="m-0 text-[13px] leading-[1.4] text-paper-300">Back to the queue.</p>
+				<p className="m-0 text-[13px] leading-[1.4] text-paper-300">
+					Back to the lobby. Queue again when you're ready.
+				</p>
 			</section>
 		)
 	}
@@ -98,7 +102,7 @@ export function ReadyCheckScreen(): React.JSX.Element | null {
 					{autoAccept ? "Auto-accepting" : "Match found. Accept?"}
 				</h1>
 				<p className="m-0 font-mono text-[12.5px] leading-none text-paper-400">
-					{autoAccept ? `Firing in ${left}s · cancel to take over` : "Your move"}
+					{autoAccept ? `Accepting in ${left}s · hit Decline to stop it` : "Your move"}
 				</p>
 			</div>
 			<div className="flex gap-3">

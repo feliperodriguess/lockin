@@ -51,7 +51,7 @@ interface MismatchFlagProps {
 	label?: string
 }
 
-export function MismatchFlag({ label = "Rank spread" }: MismatchFlagProps): React.JSX.Element {
+export function MismatchFlag({ label = "Rank gap" }: MismatchFlagProps): React.JSX.Element {
 	return (
 		<span
 			className={cn(

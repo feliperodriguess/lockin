@@ -44,7 +44,7 @@ export function SettingsPage(): React.JSX.Element | null {
 					title="Auto-accept delay"
 					desc={
 						settings.autoAccept
-							? "Wait this long before accepting, so you can cancel."
+							? "Wait this long before accepting, so you can still decline."
 							: "Enable auto-accept to set a delay."
 					}
 					control={
@@ -64,7 +64,7 @@ export function SettingsPage(): React.JSX.Element | null {
 			<Group label="Champ select">
 				<Row
 					title="Summoner-spell keys"
-					desc="Which key holds your left spell. Shown beside your champion in champ select."
+					desc="Flash on D or F. It sets how your spells are shown in champ select."
 					control={
 						<div className="flex items-center gap-3">
 							<div className="flex gap-1">
@@ -93,7 +93,7 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 				<Row
-					title="Auto-set Runes"
+					title="Auto-set runes"
 					desc="When you select a champion, create a lockin rune page from the recommendation and set it active. Your own pages are never touched."
 					control={
 						<Switch
@@ -103,7 +103,7 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 				<Row
-					title="Auto-set Spells"
+					title="Auto-set spells"
 					desc="Set your summoner spells to the recommendation when you select a champion."
 					control={
 						<Switch
@@ -113,7 +113,7 @@ export function SettingsPage(): React.JSX.Element | null {
 					}
 				/>
 				<Row
-					title="Build Tier"
+					title="Build tier"
 					desc="Which rank bracket the recommendations are pulled from."
 					control={
 						<Segmented
@@ -133,8 +133,8 @@ export function SettingsPage(): React.JSX.Element | null {
 				/>
 				<Row
 					last
-					title="Rank-mismatch sensitivity"
-					desc="How wide a rank spread must be before the team card flags it."
+					title="Rank-gap sensitivity"
+					desc="How wide a rank gap must be before the team card flags it."
 					control={
 						<Segmented
 							value={settings.rankDiffThreshold}

@@ -360,7 +360,7 @@ class LcuService {
 			return { ok: true }
 		} catch (error) {
 			console.error("[lcu] applyRunePage failed:", error)
-			return { ok: false, error: "Could not apply runes. Pages can't change once locked in." }
+			return { ok: false, error: "Couldn't apply runes — too late to swap rune pages." }
 		}
 	}
 
@@ -393,7 +393,7 @@ class LcuService {
 			console.error("[lcu] startQueue failed:", error)
 			return {
 				ok: false,
-				error: "Could not start the queue. Check you're in a lobby-eligible state.",
+				error: "Couldn't start the queue. Leave your current game or lobby first.",
 			}
 		}
 	}

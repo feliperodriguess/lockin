@@ -164,7 +164,7 @@ export function NoteEditor({
 					</Field>
 
 					{/* pinned spells */}
-					<Field label="Pinned spells" hint="Overrides the suggestion in the header">
+					<Field label="Pinned spells" hint="Overrides the recommended spells for this matchup">
 						<div className="flex flex-wrap gap-2">
 							{allSpells.map((s) => {
 								const on = spells.includes(s.key)
