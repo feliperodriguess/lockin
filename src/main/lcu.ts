@@ -280,7 +280,13 @@ class LcuService {
 	): Promise<unknown> {
 		if (!this.credentials) throw new Error("LCU not connected")
 		const response = await createHttp1Request({ method, url, body }, this.credentials)
-		if (!response.ok) throw new Error(`LCU ${method} ${url} → ${response.status}`)
+		if (!response.ok) {
+			let detail = ""
+			try {
+				detail = response.text()
+			} catch {}
+			throw new Error(`LCU ${method} ${url} → ${response.status}${detail ? ` ${detail}` : ""}`)
+		}
 		// many LCU writes return 204/empty; json() throws on empty body, so guard it
 		try {
 			return response.json()
@@ -350,7 +356,7 @@ class LcuService {
 			}
 
 			const created = (await this.request("POST", "/lol-perks/v1/pages", {
-				name: this.runePageName(page),
+				name: this.runePageName(page, championName),
 				primaryStyleId: page.primaryStyleId,
 				subStyleId: page.subStyleId,
 				selectedPerkIds: page.selectedPerkIds,
@@ -380,14 +386,14 @@ class LcuService {
 				try {
 					await this.request(
 						"PUT",
-						"/lol-lobby/v1/lobby/members/localMember/position-preferences",
+						"/lol-lobby/v2/lobby/members/localMember/position-preferences",
 						resolveRankedPreferences(getSettings().rankedPositions),
 					)
 				} catch (error) {
 					console.warn("[lcu] position-preferences (best-effort) failed:", error)
 				}
 			}
-			await this.request("POST", "/lol-matchmaking/v1/search")
+			await this.request("POST", "/lol-lobby/v2/lobby/matchmaking/search")
 			return { ok: true }
 		} catch (error) {
 			console.error("[lcu] startQueue failed:", error)
@@ -400,7 +406,7 @@ class LcuService {
 
 	async stopQueue(): Promise<void> {
 		try {
-			await this.request("DELETE", "/lol-matchmaking/v1/search")
+			await this.request("DELETE", "/lol-lobby/v2/lobby/matchmaking/search")
 		} catch (error) {
 			// already stopped / not in queue → not an error worth surfacing
 			console.warn("[lcu] stopQueue failed (already stopped?):", error)
