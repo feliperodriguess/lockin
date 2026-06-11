@@ -9,6 +9,9 @@ export const spellIconUrl = (version: string, imageFull: string) =>
 export const itemIconUrl = (version: string, itemId: number) =>
 	`${CDN}/${version}/img/item/${itemId}.png`
 
+export const passiveIconUrl = (version: string, imageFull: string) =>
+	`${CDN}/${version}/img/passive/${imageFull}`
+
 export const profileIconUrl = (version: string, iconId: number) =>
 	`${CDN}/${version}/img/profileicon/${iconId}.png`
 

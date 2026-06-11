@@ -121,10 +121,22 @@ interface RawChampionSelection {
 	summonerInternalName?: string
 }
 
+interface RawGameflowPlayer {
+	puuid?: string
+	summonerId?: number
+	summonerName?: string
+	summonerInternalName?: string
+	gameName?: string
+	selectedPosition?: string
+	championId?: number
+}
+
 export interface RawGameflowSession {
 	gameData?: {
 		queue?: { id?: number; type?: string }
 		playerChampionSelections?: RawChampionSelection[]
+		teamOne?: RawGameflowPlayer[]
+		teamTwo?: RawGameflowPlayer[]
 	}
 }
 
@@ -165,7 +177,65 @@ export function toInGameState(
 		queueId: session?.gameData?.queue?.id ?? 0,
 		assignedPosition: "",
 		opponentChampionId: null,
+		myTeam: [],
+		theirTeam: [],
 	}
+}
+
+/** Build both in-game rosters from the gameflow session. Unlike champ select,
+ *  the in-game payload exposes EVERY player's identity (puuid + summoner name) —
+ *  champion/spell picks are joined in from playerChampionSelections by puuid.
+ *  "My" team is whichever side contains the local player (teamOne when unknown). */
+export function toInGameTeams(
+	session: RawGameflowSession | null,
+	localPuuid: string,
+): { myTeam: ChampSelectPlayer[]; theirTeam: ChampSelectPlayer[] } {
+	const selections = session?.gameData?.playerChampionSelections ?? []
+	const selectionByPuuid = new Map(selections.filter((s) => s.puuid).map((s) => [s.puuid, s]))
+	const toRosterPlayer = (p: RawGameflowPlayer, team: number, i: number): ChampSelectPlayer => {
+		const selection = p.puuid ? selectionByPuuid.get(p.puuid) : undefined
+		const gameName = p.summonerName || p.gameName || p.summonerInternalName || ""
+		return {
+			cellId: (team - 1) * 5 + i, // synthetic, stable within the session
+			championId: selection?.championId ?? p.championId ?? 0,
+			championPickIntent: 0,
+			assignedPosition: (p.selectedPosition ?? "").toLowerCase(),
+			summonerId: p.summonerId ?? 0,
+			puuid: p.puuid ?? "",
+			gameName: gameName || undefined,
+			spell1Id: selection?.spell1Id ?? 0,
+			spell2Id: selection?.spell2Id ?? 0,
+			team,
+		}
+	}
+	const one = (session?.gameData?.teamOne ?? []).map((p, i) => toRosterPlayer(p, 1, i))
+	const two = (session?.gameData?.teamTwo ?? []).map((p, i) => toRosterPlayer(p, 2, i))
+	const mineIsTwo = localPuuid !== "" && two.some((p) => p.puuid === localPuuid)
+	return mineIsTwo ? { myTeam: two, theirTeam: one } : { myTeam: one, theirTeam: two }
+}
+
+/** Enrich a gameflow roster with champ-select carry-over context (assigned
+ *  positions, names the gameflow payload lacked). Players are matched by puuid
+ *  first (allies), then by champion (enemies, whose champ-select rows have no
+ *  identity). Falls back to the carry-over roster when the session gave none. */
+export function mergeRoster(
+	fromSession: ChampSelectPlayer[],
+	fromCarryOver: ChampSelectPlayer[],
+): ChampSelectPlayer[] {
+	if (fromSession.length === 0) return fromCarryOver
+	return fromSession.map((p) => {
+		const match = fromCarryOver.find(
+			(c) =>
+				(p.puuid !== "" && c.puuid === p.puuid) ||
+				(p.championId !== 0 && c.championId === p.championId),
+		)
+		if (!match) return p
+		return {
+			...p,
+			assignedPosition: p.assignedPosition || match.assignedPosition,
+			gameName: p.gameName ?? match.gameName,
+		}
+	})
 }
 
 /** Queue-aware rank: show the rank for the queue this lobby is actually in —

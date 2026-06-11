@@ -16,6 +16,7 @@ import type {
 
 import {
 	C,
+	FIXTURE_ABILITIES,
 	FIXTURE_BANLIST,
 	FIXTURE_BUILD,
 	FIXTURE_BUNDLE,
@@ -179,6 +180,10 @@ export const fakeBridge: Api = {
 	},
 	async getDDragonBundle() {
 		return FIXTURE_BUNDLE
+	},
+	async getChampionAbilities(championKey) {
+		// only the live fixture champion has abilities — others exercise the letter fallback
+		return championKey === FIXTURE_ABILITIES.championKey ? FIXTURE_ABILITIES : null
 	},
 	async getSettings() {
 		return { ...settings }

@@ -127,6 +127,13 @@ export interface ItemGroup {
 	pickRate?: number
 }
 
+/** One candidate item for a late build slot, with its own stats when OP.GG has them. */
+export interface ItemOption {
+	id: number
+	winRate?: number
+	pickRate?: number
+}
+
 export interface BuildRecommendation {
 	championKey: number
 	role: Role
@@ -139,7 +146,9 @@ export interface BuildRecommendation {
 		starter: ItemGroup
 		boots: ItemGroup
 		core: ItemGroup // build-order sequence
-		situational: ItemGroup // 4th/5th/6th merged + deduped
+		fourth: ItemOption[]
+		fifth: ItemOption[]
+		sixth: ItemOption[]
 	}
 	skillOrder: ("Q" | "W" | "E" | "R")[] // length 18; ability leveled at each level 1..18
 	skillPriority: ("Q" | "W" | "E")[] // max-order priority, e.g. ["Q","E","W"]
@@ -181,6 +190,16 @@ export interface InGameState {
 	 *  (app restarted mid-game). Same convention as ChampSelectPlayer. */
 	assignedPosition: string
 	opponentChampionId: number | null
+	/** rosters carried over from the same champ select; [] when unknown */
+	myTeam: ChampSelectPlayer[]
+	theirTeam: ChampSelectPlayer[]
+}
+
+/** Q/W/E/R ability + passive icons for one champion (DDragon per-champion detail). */
+export interface ChampionAbilities {
+	championKey: number
+	abilities: { key: "Q" | "W" | "E" | "R"; name: string; imageFull: string }[]
+	passive: { name: string; imageFull: string } | null
 }
 
 /** LCU lobby position-preference strings (PUT /lol-lobby/v1/.../position-preferences). */

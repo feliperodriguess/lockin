@@ -2,7 +2,9 @@ import type {
 	AppSettings,
 	BanListEntry,
 	BuildRecommendation,
+	ChampionAbilities,
 	ChampionStatic,
+	ChampSelectPlayer,
 	CounterTable,
 	DDragonBundle,
 	InGameState,
@@ -227,6 +229,9 @@ const ITEMS: DDragonBundle["itemsById"][number][] = [
 	{ id: 3053, name: "Sterak's Gage", imageFull: "3053.png" },
 	{ id: 3065, name: "Spirit Visage", imageFull: "3065.png" },
 	{ id: 3156, name: "Maw of Malmortius", imageFull: "3156.png" },
+	{ id: 3742, name: "Dead Man's Plate", imageFull: "3742.png" },
+	{ id: 3026, name: "Guardian Angel", imageFull: "3026.png" },
+	{ id: 3033, name: "Mortal Reminder", imageFull: "3033.png" },
 ]
 
 export const FIXTURE_BUNDLE: DDragonBundle = {
@@ -385,12 +390,49 @@ export const MY_TEAM: FixturePlayer[] = [
 		gameName: "hook or feed",
 	},
 ]
+/* enemy identities exist on the fixtures (known once the game starts); the
+   champ select scenario blanks them (scenario.ts), mirroring the LCU's masking */
 export const THEIR_TEAM: FixturePlayer[] = [
-	{ cellId: 5, championId: C.fiora, position: "top", puuid: "", summonerId: 0, gameName: "" },
-	{ cellId: 6, championId: C.khazix, position: "jungle", puuid: "", summonerId: 0, gameName: "" },
-	{ cellId: 7, championId: C.yasuo, position: "middle", puuid: "", summonerId: 0, gameName: "" },
-	{ cellId: 8, championId: C.caitlyn, position: "bottom", puuid: "", summonerId: 0, gameName: "" },
-	{ cellId: 9, championId: C.lulu, position: "utility", puuid: "", summonerId: 0, gameName: "" },
+	{
+		cellId: 5,
+		championId: C.fiora,
+		position: "top",
+		puuid: "p-riposte",
+		summonerId: 201,
+		gameName: "riposte enjoyer",
+	},
+	{
+		cellId: 6,
+		championId: C.khazix,
+		position: "jungle",
+		puuid: "p-bugs",
+		summonerId: 202,
+		gameName: "isolated target",
+	},
+	{
+		cellId: 7,
+		championId: C.yasuo,
+		position: "middle",
+		puuid: "p-windwall",
+		summonerId: 203,
+		gameName: "0 and 10 spike",
+	},
+	{
+		cellId: 8,
+		championId: C.caitlyn,
+		position: "bottom",
+		puuid: "p-headshot",
+		summonerId: 204,
+		gameName: "trap city",
+	},
+	{
+		cellId: 9,
+		championId: C.lulu,
+		position: "utility",
+		puuid: "p-whimsy",
+		summonerId: 205,
+		gameName: "pix and chill",
+	},
 ]
 
 /* ranks — 4 around Gold/Plat, one Diamond so the mismatch flag has a reason (data.js:91) */
@@ -400,6 +442,12 @@ export const FIXTURE_RANKS: Record<string, RankInfo | null> = {
 	"p-foxfire": { tier: "GOLD", division: "II", lp: 67, queueType: "RANKED_SOLO_5x5" },
 	"p-zapzap": { tier: "DIAMOND", division: "IV", lp: 8, queueType: "RANKED_SOLO_5x5" },
 	"p-hook": { tier: "GOLD", division: "IV", lp: 23, queueType: "RANKED_SOLO_5x5" },
+	// their team — visible in-game only (enemy puuids are blank during champ select)
+	"p-riposte": { tier: "EMERALD", division: "III", lp: 55, queueType: "RANKED_SOLO_5x5" },
+	"p-bugs": { tier: "PLATINUM", division: "I", lp: 72, queueType: "RANKED_SOLO_5x5" },
+	"p-windwall": { tier: "EMERALD", division: "IV", lp: 1, queueType: "RANKED_SOLO_5x5" },
+	"p-headshot": { tier: "GOLD", division: "I", lp: 88, queueType: "RANKED_SOLO_5x5" },
+	"p-whimsy": { tier: "PLATINUM", division: "II", lp: 30, queueType: "RANKED_SOLO_5x5" },
 }
 
 export const FIXTURE_SUMMONER: SummonerIdentity = {
@@ -410,6 +458,21 @@ export const FIXTURE_SUMMONER: SummonerIdentity = {
 	puuid: "p-me",
 }
 
+/* in-game rosters mirror the champ select carry-over: everything revealed,
+   enemy identities blank (the LCU masks them) */
+const inGamePlayer = (p: FixturePlayer, team: 1 | 2): ChampSelectPlayer => ({
+	cellId: p.cellId,
+	championId: p.championId,
+	championPickIntent: 0,
+	assignedPosition: p.position,
+	summonerId: p.summonerId,
+	puuid: p.puuid,
+	gameName: p.gameName || undefined,
+	spell1Id: team === 1 ? 4 : 0,
+	spell2Id: team === 1 ? 12 : 0,
+	team,
+})
+
 export const FIXTURE_IN_GAME: InGameState = {
 	championId: C.aatrox,
 	spell1Id: 4, // Flash
@@ -417,6 +480,20 @@ export const FIXTURE_IN_GAME: InGameState = {
 	queueId: 420, // Ranked Solo
 	assignedPosition: "top",
 	opponentChampionId: C.fiora,
+	myTeam: MY_TEAM.map((p) => inGamePlayer(p, 1)),
+	theirTeam: THEIR_TEAM.map((p) => inGamePlayer(p, 2)),
+}
+
+/* Aatrox Q/W/E/R — real DDragon image names so icons load from the CDN in dev */
+export const FIXTURE_ABILITIES: ChampionAbilities = {
+	championKey: C.aatrox,
+	abilities: [
+		{ key: "Q", name: "The Darkin Blade", imageFull: "AatroxQ.png" },
+		{ key: "W", name: "Infernal Chains", imageFull: "AatroxW.png" },
+		{ key: "E", name: "Umbral Dash", imageFull: "AatroxE.png" },
+		{ key: "R", name: "World Ender", imageFull: "AatroxR.png" },
+	],
+	passive: { name: "Deathbringer Stance", imageFull: "Aatrox_Passive.png" },
 }
 
 /* a complete Aatrox-top build the in-game + champ-select panels render against */
@@ -439,7 +516,21 @@ export const FIXTURE_BUILD: BuildRecommendation = {
 		starter: { ids: [1054, 2003], winRate: 0.515, pickRate: 0.62 },
 		boots: { ids: [3047], winRate: 0.518, pickRate: 0.71 },
 		core: { ids: [6630, 3071, 6333], winRate: 0.531, pickRate: 0.44 },
-		situational: { ids: [3053, 3065, 3156] },
+		fourth: [
+			{ id: 3053, winRate: 0.547, pickRate: 0.31 },
+			{ id: 3065, winRate: 0.534, pickRate: 0.24 },
+			{ id: 3156, winRate: 0.521, pickRate: 0.18 },
+		],
+		fifth: [
+			{ id: 3065, winRate: 0.556, pickRate: 0.27 },
+			{ id: 3742, winRate: 0.538, pickRate: 0.21 },
+			{ id: 3156, winRate: 0.525, pickRate: 0.16 },
+		],
+		sixth: [
+			{ id: 3026, winRate: 0.561, pickRate: 0.29 },
+			{ id: 3742, winRate: 0.54, pickRate: 0.19 },
+			{ id: 3033, winRate: 0.528, pickRate: 0.14 },
+		],
 	},
 	// 18 entries: Q maxed first, then E, then W; R at 6/11/16
 	skillOrder: [

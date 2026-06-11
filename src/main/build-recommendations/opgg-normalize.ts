@@ -1,4 +1,4 @@
-import type { BuildRecommendation, ItemGroup, Role, RunePageRec } from "@/shared/types"
+import type { BuildRecommendation, ItemGroup, ItemOption, Role, RunePageRec } from "@/shared/types"
 
 import type { OpggNode, OpggValue } from "./opgg-parse"
 
@@ -53,33 +53,24 @@ function toItemGroup(node: OpggNode | null): ItemGroup {
 	return group
 }
 
-/** A situational slot (4th/5th/6th) is either a single item group with an `ids`
- *  array, or an array of per-option `CoreItems` nodes (OP.GG's real shape). Yield
- *  every item id either form contributes, in order. */
-function slotIds(value: unknown): number[] {
-	const out: number[] = []
-	if (Array.isArray(value)) {
-		for (const entry of value) {
-			const node = asNode(entry)
-			if (node) out.push(...asNumberArray(node.ids))
-		}
-		return out
-	}
-	const node = asNode(value)
-	return node ? asNumberArray(node.ids) : out
-}
-
-function mergeSituational(data: OpggNode): ItemGroup {
-	const ids: number[] = []
+/** A late slot (4th/5th/6th) is either a single item group with an `ids` array,
+ *  or an array of per-option nodes (OP.GG's real shape), each option carrying its
+ *  own play/win counts. Yield one ItemOption per item id, deduped within the
+ *  slot, preserving OP.GG's order (most-picked first). */
+function slotOptions(value: unknown): ItemOption[] {
+	const nodes = Array.isArray(value) ? value.map(asNode) : [asNode(value)]
+	const out: ItemOption[] = []
 	const seen = new Set<number>()
-	for (const key of ["fourth_items", "fifth_items", "sixth_items"]) {
-		for (const id of slotIds(data[key])) {
+	for (const node of nodes) {
+		if (!node) continue
+		const group = toItemGroup(node)
+		for (const id of group.ids) {
 			if (seen.has(id)) continue
 			seen.add(id)
-			ids.push(id)
+			out.push({ id, winRate: group.winRate, pickRate: group.pickRate })
 		}
 	}
-	return { ids }
+	return out
 }
 
 function toRunes(data: OpggNode): RunePageRec | null {
@@ -183,7 +174,9 @@ export function normalizeOpgg(
 			starter: toItemGroup(asNode(data.starter_items)),
 			boots: toItemGroup(asNode(data.boots)),
 			core: toItemGroup(asNode(data.core_items)),
-			situational: mergeSituational(data),
+			fourth: slotOptions(data.fourth_items),
+			fifth: slotOptions(data.fifth_items),
+			sixth: slotOptions(data.sixth_items),
 		},
 		skillOrder,
 		skillPriority: skillPriorityFrom(skillOrder),

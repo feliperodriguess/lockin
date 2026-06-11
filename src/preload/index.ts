@@ -41,6 +41,7 @@ const api: Partial<Api> = {
 	acceptReadyCheck: () => ipcRenderer.invoke(IPC.ACCEPT_READY_CHECK),
 	declineReadyCheck: () => ipcRenderer.invoke(IPC.DECLINE_READY_CHECK),
 	getDDragonBundle: () => ipcRenderer.invoke(IPC.DDRAGON_GET_BUNDLE),
+	getChampionAbilities: (championKey) => ipcRenderer.invoke(IPC.DDRAGON_GET_ABILITIES, championKey),
 	listNotes: () => ipcRenderer.invoke(IPC.NOTES_LIST),
 	upsertNote: (note) => ipcRenderer.invoke(IPC.NOTES_UPSERT, note),
 	deleteNote: (id) => ipcRenderer.invoke(IPC.NOTES_DELETE, id),

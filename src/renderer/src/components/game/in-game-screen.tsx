@@ -1,7 +1,7 @@
 import { Card } from "@renderer/components/app/card"
-import { Eyebrow } from "@renderer/components/app/eyebrow"
 import { Section } from "@renderer/components/champ-select/section"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
+import { InGameTeams } from "@renderer/components/game/in-game-teams"
 import { ItemStrip } from "@renderer/components/game/item-strip"
 import { MatchupPill } from "@renderer/components/game/matchup-pill"
 import { RoleTag } from "@renderer/components/game/role"
@@ -12,6 +12,7 @@ import { NoteCard } from "@renderer/components/notes/note-card"
 import { NoteEmptyState } from "@renderer/components/notes/note-empty-state"
 import {
 	useBuildRecommendation,
+	useChampionAbilities,
 	useCounterTable,
 	useDDragon,
 	useNotes,
@@ -48,6 +49,7 @@ export function InGameScreen(): React.JSX.Element | null {
 		role,
 		settings?.buildTier,
 	)
+	const { data: abilities } = useChampionAbilities(inGame?.championId ?? null)
 
 	const opponentId = inGame?.opponentChampionId ?? null
 	const { data: enemyCounters } = useCounterTable(opponentId, role, settings?.buildTier)
@@ -141,6 +143,8 @@ export function InGameScreen(): React.JSX.Element | null {
 									<SkillOrderGrid
 										skillOrder={build.skillOrder}
 										skillPriority={build.skillPriority}
+										abilities={abilities ?? null}
+										version={version}
 									/>
 								</div>
 							)}
@@ -149,33 +153,13 @@ export function InGameScreen(): React.JSX.Element | null {
 				)}
 			</div>
 
-			{/* right rail */}
 			<div className="flex min-h-0 flex-col gap-[14px]">
-				<Section label="You" grow>
-					<div className="flex flex-1 flex-col gap-3">
-						<div className="flex items-center gap-[10px]">
-							<ChampionPortrait champion={champion} version={version} size={36} ring />
-							<div className="flex min-w-0 flex-col gap-[3px]">
-								<span className="text-[13px] font-semibold leading-none text-paper-100">
-									{champion?.name}
-								</span>
-								{role && (
-									<span className="font-mono text-[10px] leading-none text-paper-400">
-										{roleToDisplay(role)}
-									</span>
-								)}
-							</div>
-						</div>
-						{build?.runes ? (
-							<div className="border-t border-(--stroke-subtle) pt-3">
-								<Eyebrow line={18}>Runes</Eyebrow>
-								<div className="pt-3">
-									<RunesReference runes={build.runes} bundle={bundle} />
-								</div>
-							</div>
-						) : null}
-					</div>
-				</Section>
+				{build?.runes && (
+					<Section label="Runes">
+						<RunesReference runes={build.runes} bundle={bundle} />
+					</Section>
+				)}
+				<InGameTeams inGame={inGame} bundle={bundle} version={version} />
 			</div>
 		</section>
 	)

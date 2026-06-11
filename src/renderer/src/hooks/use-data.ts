@@ -5,6 +5,7 @@ import type {
 	AppSettings,
 	BanListEntry,
 	BuildRecommendation,
+	ChampionAbilities,
 	CounterTable,
 	MatchupNote,
 } from "@/shared/types"
@@ -87,6 +88,15 @@ export function useCounterTable(
 		queryKey: ["counters", championKey, position, tier ?? null],
 		queryFn: () => api.getCounters(championKey as number, position as string, tier),
 		enabled: championKey != null && position != null,
+		staleTime: Infinity,
+	})
+}
+
+export function useChampionAbilities(championKey: number | null) {
+	return useQuery<ChampionAbilities | null>({
+		queryKey: ["abilities", championKey],
+		queryFn: () => api.getChampionAbilities(championKey as number),
+		enabled: championKey != null,
 		staleTime: Infinity,
 	})
 }

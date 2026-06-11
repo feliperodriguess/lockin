@@ -133,14 +133,17 @@ describe("normalizeOpgg (synthetic)", () => {
 		expect(build?.spells).toEqual([4, 12])
 	})
 
-	it("maps item groups and dedups situational across 4th/5th/6th", () => {
+	it("maps item groups and keeps per-slot options with their stats", () => {
 		expect(build?.items.starter.ids).toEqual([1054, 2003])
 		expect(build?.items.boots.ids).toEqual([3047])
 		expect(build?.items.core.ids).toEqual([6630, 3071, 6333])
-		expect(build?.items.situational.ids).toEqual([3065, 3742, 3193, 3026]) // 3742 deduped
+		expect(build?.items.fourth.map((o) => o.id)).toEqual([3065, 3742])
+		expect(build?.items.fifth.map((o) => o.id)).toEqual([3742, 3193]) // slots keep their own options
+		expect(build?.items.sixth.map((o) => o.id)).toEqual([3026])
 		// winRate is derived from counts (win/play) into the 0..1 contract
 		expect(build?.items.starter.winRate).toBeCloseTo(0.6)
 		expect(build?.items.core.winRate).toBeCloseTo(0.63)
+		expect(build?.items.fourth[0]?.winRate).toBeCloseTo(0.6)
 	})
 
 	it("keeps skill order (18) and derives priority", () => {
@@ -163,7 +166,9 @@ describe("normalizeOpgg (real fixture invariants)", () => {
 		expect(build?.skillPriority.length).toBeGreaterThanOrEqual(1)
 		expect(build?.items.starter.ids.length).toBeGreaterThan(0)
 		expect(build?.items.core.ids.length).toBeGreaterThan(0)
-		expect(build?.items.situational.ids.length).toBeGreaterThan(0)
+		expect(build?.items.fourth.length).toBeGreaterThan(0)
+		expect(build?.items.fifth.length).toBeGreaterThan(0)
+		expect(build?.items.sixth.length).toBeGreaterThan(0)
 		expect(build?.winRate).toBeGreaterThan(0)
 		expect(build?.winRate).toBeLessThanOrEqual(1)
 		expect(build?.sampleSize).toBeGreaterThan(0)

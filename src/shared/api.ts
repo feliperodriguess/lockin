@@ -2,6 +2,7 @@ import type {
 	AppSettings,
 	BanListEntry,
 	BuildRecommendation,
+	ChampionAbilities,
 	ChampSelectSession,
 	CounterTable,
 	DDragonBundle,
@@ -20,6 +21,7 @@ export interface Api {
 	acceptReadyCheck(): Promise<void>
 	declineReadyCheck(): Promise<void>
 	getDDragonBundle(): Promise<DDragonBundle>
+	getChampionAbilities(championKey: number): Promise<ChampionAbilities | null>
 	getSettings(): Promise<AppSettings>
 	setSettings(partial: Partial<AppSettings>): Promise<AppSettings>
 	listNotes(): Promise<MatchupNote[]>

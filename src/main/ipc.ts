@@ -4,7 +4,7 @@ import { IPC } from "@/shared/constants"
 import type { AppSettings, BanListEntry, MatchupNote, RunePageRec } from "@/shared/types"
 
 import { getBuild, getCounters } from "./build-recommendations/opgg"
-import { getDDragonBundle } from "./ddragon"
+import { getChampionAbilities, getDDragonBundle } from "./ddragon"
 import {
 	acceptReadyCheck,
 	applyRunePage,
@@ -34,6 +34,9 @@ ipcMain.handle(IPC.ACCEPT_READY_CHECK, () => acceptReadyCheck())
 ipcMain.handle(IPC.DECLINE_READY_CHECK, () => declineReadyCheck())
 
 ipcMain.handle(IPC.DDRAGON_GET_BUNDLE, () => getDDragonBundle())
+ipcMain.handle(IPC.DDRAGON_GET_ABILITIES, (_event, championKey: number) =>
+	getChampionAbilities(championKey),
+)
 
 ipcMain.handle(IPC.NOTES_LIST, () => listNotes())
 ipcMain.handle(IPC.NOTES_UPSERT, (_event, note: Partial<MatchupNote>) => upsertNote(note))

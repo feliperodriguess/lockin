@@ -23,6 +23,7 @@ import {
 
 import { getDDragonBundle } from "./ddragon"
 import {
+	mergeRoster,
 	RANKED_QUEUE_ID,
 	type RawChampSelectSession,
 	type RawCurrentSummoner,
@@ -33,6 +34,7 @@ import {
 	resolveRankedPreferences,
 	toChampSelectSession,
 	toInGameState,
+	toInGameTeams,
 	toRankInfo,
 	toReadyCheck,
 	toSummonerIdentity,
@@ -215,29 +217,48 @@ class LcuService {
 		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
 		if (this.credentials !== credentials) return
 		const base = toInGameState(session, this.localPuuid)
+		const teams = toInGameTeams(session, this.localPuuid)
 		const carry = await this.champSelectCarryOver()
 		// re-check: the carry-over await may have outlived the game / session
 		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
 		if (this.credentials !== credentials) return
-		this.setInGame(base ? { ...base, ...carry } : null)
+		this.setInGame(
+			base
+				? {
+						...base,
+						assignedPosition: carry.assignedPosition,
+						opponentChampionId: carry.opponentChampionId,
+						// gameflow rosters carry full identity in-game; champ select fills positions
+						myTeam: mergeRoster(teams.myTeam, carry.myTeam),
+						theirTeam: mergeRoster(teams.theirTeam, carry.theirTeam),
+					}
+				: null,
+		)
 	}
 
 	/** Matchup context remembered from the champ select that led into this game —
-	 *  the gameflow session doesn't expose assigned positions or lane opponents
-	 *  once the game starts. Best-effort: defaults when the app missed champ
-	 *  select (e.g. restarted mid-game) or DDragon is unavailable. */
+	 *  the gameflow session doesn't expose assigned positions, lane opponents or
+	 *  rosters once the game starts. Best-effort: defaults when the app missed
+	 *  champ select (e.g. restarted mid-game) or DDragon is unavailable. */
 	private async champSelectCarryOver(): Promise<{
 		assignedPosition: string
 		opponentChampionId: number | null
+		myTeam: ChampSelectSession["myTeam"]
+		theirTeam: ChampSelectSession["theirTeam"]
 	}> {
 		const session = this.lastChampSelect
-		if (!session) return { assignedPosition: "", opponentChampionId: null }
+		if (!session)
+			return { assignedPosition: "", opponentChampionId: null, myTeam: [], theirTeam: [] }
+		const teams = { myTeam: session.myTeam, theirTeam: session.theirTeam }
 		try {
 			const bundle = await getDDragonBundle()
-			return findLaneOpponent(session, (key) => bundle.championsByKey[key]?.id ?? null)
+			return {
+				...findLaneOpponent(session, (key) => bundle.championsByKey[key]?.id ?? null),
+				...teams,
+			}
 		} catch (error) {
 			console.warn("[lcu] champ select carry-over failed:", error)
-			return { assignedPosition: "", opponentChampionId: null }
+			return { assignedPosition: "", opponentChampionId: null, ...teams }
 		}
 	}
 

@@ -3,7 +3,12 @@ import { join } from "node:path"
 
 import { app } from "electron"
 
-import type { ChampionStatic, DDragonBundle, SummonerSpellStatic } from "@/shared/types"
+import type {
+	ChampionAbilities,
+	ChampionStatic,
+	DDragonBundle,
+	SummonerSpellStatic,
+} from "@/shared/types"
 
 import { normalizeItems, normalizeRunes, type RawRuneStyle } from "./ddragon-normalize"
 
@@ -158,4 +163,53 @@ export function getDDragonBundle(): Promise<DDragonBundle> {
 			})
 	}
 	return loading
+}
+
+/* per-champion Q/W/E/R ability icons — fetched on demand from the champion
+   detail endpoint and memoized for the session (same lifetime as the bundle) */
+const ABILITY_KEYS = ["Q", "W", "E", "R"] as const
+
+interface RawChampionDetail {
+	data?: Record<
+		string,
+		{
+			spells?: { name?: string; image?: { full?: string } }[]
+			passive?: { name?: string; image?: { full?: string } }
+		}
+	>
+}
+
+const abilitiesMemo = new Map<number, Promise<ChampionAbilities | null>>()
+
+export function getChampionAbilities(championKey: number): Promise<ChampionAbilities | null> {
+	const cached = abilitiesMemo.get(championKey)
+	if (cached) return cached
+	const load = (async (): Promise<ChampionAbilities | null> => {
+		const bundle = await getDDragonBundle()
+		const champion = bundle.championsByKey[championKey]
+		if (!champion) return null
+		const detail = await fetchJson<RawChampionDetail>(
+			`${BASE}/cdn/${bundle.version}/data/${LOCALE}/champion/${champion.id}.json`,
+		)
+		const entry = detail.data?.[champion.id]
+		const spells = entry?.spells ?? []
+		if (spells.length < 4) return null
+		return {
+			championKey,
+			abilities: ABILITY_KEYS.map((key, i) => ({
+				key,
+				name: spells[i]?.name ?? key,
+				imageFull: spells[i]?.image?.full ?? "",
+			})),
+			passive: entry?.passive?.image?.full
+				? { name: entry.passive.name ?? "Passive", imageFull: entry.passive.image.full }
+				: null,
+		}
+	})().catch((error) => {
+		console.warn(`[ddragon] abilities fetch failed for ${championKey}:`, error)
+		abilitiesMemo.delete(championKey) // a later call may retry
+		return null
+	})
+	abilitiesMemo.set(championKey, load)
+	return load
 }

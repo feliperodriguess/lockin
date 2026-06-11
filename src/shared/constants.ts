@@ -2,6 +2,7 @@ export const IPC = {
 	ACCEPT_READY_CHECK: "lcu:acceptReadyCheck",
 	DECLINE_READY_CHECK: "lcu:declineReadyCheck",
 	DDRAGON_GET_BUNDLE: "ddragon:getBundle",
+	DDRAGON_GET_ABILITIES: "ddragon:getAbilities",
 	SETTINGS_GET: "settings:get",
 	SETTINGS_SET: "settings:set",
 	SETTINGS_CHANGED: "settings:changed",
