@@ -143,6 +143,9 @@ class LcuService {
 					socket.subscribe<RawChampSelectSession>("/lol-champ-select/v1/session", (data) => {
 						this.setChampSelect(data ? toChampSelectSession(data) : null)
 					})
+					socket.subscribe<RawCurrentSummoner>("/lol-summoner/v1/current-summoner", (data) => {
+						this.setSummoner(data ? toSummonerIdentity(data) : null)
+					})
 
 					// initial state after subscribing; a later push reconciles any
 					// in-between transition (last-writer race, self-heals within ~1 WS tick).
@@ -156,7 +159,7 @@ class LcuService {
 					if (settled) return // client died during the GETs — emit nothing on a dead session
 
 					this.setConnected(true)
-					this.setSummoner(summoner ? toSummonerIdentity(summoner) : null)
+					if (summoner) this.setSummoner(toSummonerIdentity(summoner))
 					this.setPhase(phase ?? "None")
 					this.handleReadyCheck(readyCheck ? toReadyCheck(readyCheck) : null)
 					this.setChampSelect(champSelect ? toChampSelectSession(champSelect) : null)
@@ -208,6 +211,14 @@ class LcuService {
 	private async refreshInGame(): Promise<void> {
 		const credentials = this.credentials
 		if (!credentials) return
+		if (!this.localPuuid) {
+			const summoner = await this.fetchJson<RawCurrentSummoner>(
+				"/lol-summoner/v1/current-summoner",
+				credentials,
+			)
+			if (this.credentials !== credentials) return
+			if (summoner) this.setSummoner(toSummonerIdentity(summoner))
+		}
 		const session = await this.fetchJson<RawGameflowSession>(
 			"/lol-gameflow/v1/session",
 			credentials,
@@ -216,8 +227,8 @@ class LcuService {
 		// re-populate stale in-game state after we've left the in-game range
 		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
 		if (this.credentials !== credentials) return
-		const base = toInGameState(session, this.localPuuid)
-		const teams = toInGameTeams(session, this.localPuuid)
+		const base = toInGameState(session, this.localPuuid, this.lastChampSelect)
+		const teams = toInGameTeams(session, this.localPuuid, this.lastChampSelect)
 		const carry = await this.champSelectCarryOver()
 		// re-check: the carry-over await may have outlived the game / session
 		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return

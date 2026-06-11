@@ -159,21 +159,42 @@ export function toSummonerIdentity(raw: RawCurrentSummoner): SummonerIdentity {
 	}
 }
 
+/** The slice of the remembered champ select used to recover the local player
+ *  when the gameflow payload alone can't identify them. */
+type ChampSelectCarryOver = Pick<ChampSelectSession, "localPlayerCellId" | "myTeam">
+
+function localCarryPlayer(carryOver?: ChampSelectCarryOver | null): ChampSelectPlayer | null {
+	if (!carryOver) return null
+	return carryOver.myTeam.find((p) => p.cellId === carryOver.localPlayerCellId) ?? null
+}
+
 /** Resolve the local player's in-game champion from a gameflow session.
- *  Matches the selection by puuid; returns null when not in a game or unmatched. */
+ *  Matches the selection by puuid, then via the gameflow roster, then via the
+ *  champ select carry-over. Returns null when the local player can't be
+ *  identified — never another player's pick (showing nothing beats lying). */
 export function toInGameState(
 	session: RawGameflowSession | null,
 	localPuuid: string,
+	carryOver?: ChampSelectCarryOver | null,
 ): InGameState | null {
 	const selections = session?.gameData?.playerChampionSelections
 	if (!selections || selections.length === 0) return null
-	const mine = localPuuid ? selections.find((s) => s.puuid === localPuuid) : undefined
-	const selection = mine ?? selections[0] // fall back to first if puuid absent in payload
-	if (!selection?.championId) return null
+	const carryMe = localCarryPlayer(carryOver)
+	const roster = [...(session?.gameData?.teamOne ?? []), ...(session?.gameData?.teamTwo ?? [])]
+	const rosterMe = localPuuid ? roster.find((p) => p.puuid === localPuuid) : undefined
+	const byChampion = (championId?: number) =>
+		championId ? selections.find((s) => s.championId === championId) : undefined
+	const selection =
+		(localPuuid ? selections.find((s) => s.puuid === localPuuid) : undefined) ??
+		(carryMe?.puuid ? selections.find((s) => s.puuid === carryMe.puuid) : undefined) ??
+		byChampion(rosterMe?.championId) ??
+		byChampion(carryMe?.championId)
+	const championId = selection?.championId ?? rosterMe?.championId ?? carryMe?.championId ?? 0
+	if (!championId) return null
 	return {
-		championId: selection.championId,
-		spell1Id: selection.spell1Id ?? 0,
-		spell2Id: selection.spell2Id ?? 0,
+		championId,
+		spell1Id: selection?.spell1Id ?? carryMe?.spell1Id ?? 0,
+		spell2Id: selection?.spell2Id ?? carryMe?.spell2Id ?? 0,
 		queueId: session?.gameData?.queue?.id ?? 0,
 		assignedPosition: "",
 		opponentChampionId: null,
@@ -185,10 +206,12 @@ export function toInGameState(
 /** Build both in-game rosters from the gameflow session. Unlike champ select,
  *  the in-game payload exposes EVERY player's identity (puuid + summoner name) —
  *  champion/spell picks are joined in from playerChampionSelections by puuid.
- *  "My" team is whichever side contains the local player (teamOne when unknown). */
+ *  "My" team is whichever side contains the local player or a remembered champ
+ *  select ally (teamOne when unknown). */
 export function toInGameTeams(
 	session: RawGameflowSession | null,
 	localPuuid: string,
+	carryOver?: ChampSelectCarryOver | null,
 ): { myTeam: ChampSelectPlayer[]; theirTeam: ChampSelectPlayer[] } {
 	const selections = session?.gameData?.playerChampionSelections ?? []
 	const selectionByPuuid = new Map(selections.filter((s) => s.puuid).map((s) => [s.puuid, s]))
@@ -210,7 +233,10 @@ export function toInGameTeams(
 	}
 	const one = (session?.gameData?.teamOne ?? []).map((p, i) => toRosterPlayer(p, 1, i))
 	const two = (session?.gameData?.teamTwo ?? []).map((p, i) => toRosterPlayer(p, 2, i))
-	const mineIsTwo = localPuuid !== "" && two.some((p) => p.puuid === localPuuid)
+	const allyPuuids = new Set((carryOver?.myTeam ?? []).map((p) => p.puuid).filter(Boolean))
+	const hasMine = (team: ChampSelectPlayer[]): boolean =>
+		team.some((p) => p.puuid !== "" && (p.puuid === localPuuid || allyPuuids.has(p.puuid)))
+	const mineIsTwo = !hasMine(one) && hasMine(two)
 	return mineIsTwo ? { myTeam: two, theirTeam: one } : { myTeam: one, theirTeam: two }
 }
 
