@@ -48,6 +48,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 					opponent={vm.opponent}
 					version={version}
 					grow
+					difficulty={vm.difficulty}
 				/>
 				<YourMains />
 			</div>

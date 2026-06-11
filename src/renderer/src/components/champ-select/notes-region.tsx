@@ -1,5 +1,6 @@
 import { Section } from "@renderer/components/champ-select/section"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
+import { MatchupPill } from "@renderer/components/game/matchup-pill"
 import { NoteCard } from "@renderer/components/notes/note-card"
 import { Button } from "@renderer/components/ui/button"
 import type { ChampSelectVM } from "@renderer/hooks/use-champ-select"
@@ -8,6 +9,7 @@ import { timeAgo } from "@renderer/lib/time"
 import { useNavigate } from "@tanstack/react-router"
 import { EyeOff, Plus } from "lucide-react"
 
+import type { MatchupDifficulty } from "@/shared/lib/counters"
 import type { ChampionStatic, MatchupNote } from "@/shared/types"
 
 interface NotesRegionProps {
@@ -17,6 +19,7 @@ interface NotesRegionProps {
 	opponent: ChampionStatic | null
 	version: string
 	grow?: boolean
+	difficulty: MatchupDifficulty | null
 }
 
 export function NotesRegion({
@@ -26,6 +29,7 @@ export function NotesRegion({
 	opponent,
 	version,
 	grow,
+	difficulty,
 }: NotesRegionProps): React.JSX.Element {
 	const navigate = useNavigate()
 	const upsert = useUpsertNote()
@@ -106,13 +110,18 @@ export function NotesRegion({
 			grow={grow}
 			emphasis={showNote}
 			right={
-				showNote ? (
-					<time
-						dateTime={note.updatedAt}
-						className="font-mono text-[10px] leading-none text-paper-400"
-					>
-						{timeAgo(note.updatedAt)}
-					</time>
+				difficulty || showNote ? (
+					<div className="flex items-center gap-2">
+						{difficulty && <MatchupPill difficulty={difficulty} />}
+						{showNote && (
+							<time
+								dateTime={note.updatedAt}
+								className="font-mono text-[10px] leading-none text-paper-400"
+							>
+								{timeAgo(note.updatedAt)}
+							</time>
+						)}
+					</div>
 				) : null
 			}
 		>
