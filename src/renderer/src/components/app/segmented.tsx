@@ -1,4 +1,7 @@
+import { tweenBase } from "@renderer/lib/motion"
 import { cn } from "@renderer/lib/utils"
+import { motion } from "motion/react"
+import { useId } from "react"
 
 export interface SegmentedOption<T> {
 	value: T
@@ -18,6 +21,7 @@ function Segmented<T extends string | number>({
 	onChange,
 	className,
 }: SegmentedProps<T>): React.JSX.Element {
+	const pillId = useId()
 	return (
 		<div
 			className={cn(
@@ -34,15 +38,20 @@ function Segmented<T extends string | number>({
 						type="button"
 						onClick={() => onChange(opt.value)}
 						className={cn(
-							"px-3 py-[5px] rounded-[4px] border-0 cursor-pointer",
+							"relative px-3 py-[5px] rounded-[4px] border-0 cursor-pointer",
 							"text-[12px] font-semibold leading-none",
-							"transition-[background-color,color] duration-(--dur-base) ease-(--ease-standard)",
-							selected
-								? "bg-accent text-accent-fg"
-								: "bg-transparent text-(--fg-2) hover:text-(--fg-1)",
+							"transition-colors duration-(--dur-base) ease-(--ease-standard)",
+							selected ? "text-accent-fg" : "text-(--fg-2) hover:text-(--fg-1)",
 						)}
 					>
-						{opt.label}
+						{selected && (
+							<motion.span
+								layoutId={pillId}
+								transition={tweenBase}
+								className="absolute inset-0 rounded-[4px] bg-accent"
+							/>
+						)}
+						<span className="relative">{opt.label}</span>
 					</button>
 				)
 			})}

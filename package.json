@@ -33,6 +33,7 @@
 		"electron-store": "^11.0.2",
 		"league-connect": "6.0.0-rc13",
 		"lucide-react": "^1.17.0",
+		"motion": "^12.40.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tailwind-merge": "^3.6.0",

@@ -84,6 +84,7 @@ export interface ChampSelectVM {
 	championKey: number | null // effective champion (locked || hovered)
 	position: string | null // raw LCU assignedPosition ("top"…), null when pending
 	build: BuildRecommendation | null
+	buildLoading: boolean // OP.GG fetch in flight for the effective champion
 	counterPicks: CounterPicksVM | null
 	difficulty: MatchupDifficulty | null
 	statBanRows: StatBanRowVM[]
@@ -137,7 +138,11 @@ export function useChampSelect(): ChampSelectVM | null {
 		[session, bundle],
 	)
 
-	const { data: build } = useBuildRecommendation(championKey, position, settings?.buildTier)
+	const { data: build, isLoading: buildLoading } = useBuildRecommendation(
+		championKey,
+		position,
+		settings?.buildTier,
+	)
 	const { data: enemyCounters } = useCounterTable(opponentChampionId, position, settings?.buildTier)
 	const { data: myCounters } = useCounterTable(championKey, position, settings?.buildTier)
 
@@ -291,6 +296,7 @@ export function useChampSelect(): ChampSelectVM | null {
 			championKey: effectiveChampId || null,
 			position: me.assignedPosition || null,
 			build: build ?? null,
+			buildLoading,
 			counterPicks: counterPicksVM,
 			difficulty,
 			statBanRows,
@@ -304,6 +310,7 @@ export function useChampSelect(): ChampSelectVM | null {
 		ranks,
 		elapsedMs,
 		build,
+		buildLoading,
 		opponentChampionId,
 		enemyCounters,
 		myCounters,

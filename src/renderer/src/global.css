@@ -241,30 +241,6 @@
 	animation-delay: 1.6s;
 }
 
-@keyframes ccpFade {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-.ccp-fade {
-	animation: ccpFade var(--dur-base) var(--ease-standard);
-}
-
-@keyframes ccpDrawer {
-	from {
-		transform: translateX(26px);
-	}
-	to {
-		transform: none;
-	}
-}
-.ccp-drawer {
-	animation: ccpDrawer var(--dur-slow) var(--ease-emphasized);
-}
-
 @keyframes ccpScreenIn {
 	from {
 		transform: translateY(7px);
@@ -291,15 +267,95 @@
 	animation: ccpRise var(--dur-slow) var(--ease-emphasized);
 }
 
+/* mount choreography: each direct child rises in, 60ms apart */
+.ccp-stagger > * {
+	animation: ccpRise var(--dur-slow) var(--ease-emphasized) backwards;
+}
+.ccp-stagger > :nth-child(2) {
+	animation-delay: 60ms;
+}
+.ccp-stagger > :nth-child(3) {
+	animation-delay: 120ms;
+}
+.ccp-stagger > :nth-child(4) {
+	animation-delay: 180ms;
+}
+.ccp-stagger > :nth-child(5) {
+	animation-delay: 240ms;
+}
+.ccp-stagger > :nth-child(n + 6) {
+	animation-delay: 300ms;
+}
+
+/* loading shimmer for skeleton blocks */
+@keyframes ccpShimmer {
+	from {
+		background-position: 200% 0;
+	}
+	to {
+		background-position: -200% 0;
+	}
+}
+.ccp-shimmer {
+	background: linear-gradient(
+		90deg,
+		var(--color-ink-800) 25%,
+		var(--color-ink-750) 37%,
+		var(--color-ink-800) 63%
+	);
+	background-size: 200% 100%;
+	animation: ccpShimmer 1.6s linear infinite;
+}
+
+/* one-shot attention pop (badges appearing) */
+@keyframes ccpPop {
+	0% {
+		opacity: 0;
+		transform: scale(0.85);
+	}
+	60% {
+		opacity: 1;
+		transform: scale(1.05);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+.ccp-pop {
+	animation: ccpPop var(--dur-slow) var(--ease-emphasized) backwards;
+}
+
+/* per-second timer digit tick */
+@keyframes ccpTick {
+	from {
+		opacity: 0.3;
+		transform: translateY(2px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+.ccp-tick {
+	animation: ccpTick var(--dur-fast) var(--ease-standard);
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.ac-blink,
 	.ccp-breathe,
 	.ccp-ping,
 	.ccp-halo,
 	.ccp-screen,
-	.ccp-drawer,
-	.ccp-fade,
-	.ccp-rise {
+	.ccp-rise,
+	.ccp-stagger > *,
+	.ccp-shimmer,
+	.ccp-pop,
+	.ccp-tick {
 		animation: none;
+	}
+	/* shimmer must read as a quiet solid block, not a frozen gradient */
+	.ccp-shimmer {
+		background: var(--color-ink-800);
 	}
 }

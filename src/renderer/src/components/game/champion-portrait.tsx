@@ -89,6 +89,7 @@ export function ChampionPortrait({
 					onError={() => setErrKey(champion.key)}
 					className={cn(
 						"w-full h-full object-cover block",
+						"transition-[filter] duration-(--dur-slow) ease-(--ease-standard)",
 						dim && "grayscale-[0.6] brightness-[0.6]",
 					)}
 				/>
@@ -101,7 +102,13 @@ export function ChampionPortrait({
 					{initials}
 				</div>
 			)}
-			{dim && <div className="absolute inset-0 bg-[rgba(12,13,14,0.35)]" />}
+			<div
+				className={cn(
+					"absolute inset-0 bg-[rgba(12,13,14,0.35)] pointer-events-none",
+					"transition-opacity duration-(--dur-slow) ease-(--ease-standard)",
+					dim ? "opacity-100" : "opacity-0",
+				)}
+			/>
 		</div>
 	)
 }

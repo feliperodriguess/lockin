@@ -123,6 +123,7 @@ function BanRow({
 		<li
 			className={cn(
 				"flex items-center gap-[10px] rounded-sm border px-[9px] py-[7px]",
+				"transition-opacity duration-(--dur-slow) ease-(--ease-standard)",
 				showThreat
 					? "border-[rgba(255,107,94,0.22)] bg-(--fail-bg)"
 					: "border-transparent bg-transparent",

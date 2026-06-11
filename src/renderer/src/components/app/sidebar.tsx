@@ -1,7 +1,9 @@
+import { tweenBase } from "@renderer/lib/motion"
 import { phaseSub } from "@renderer/lib/phase"
 import { cn } from "@renderer/lib/utils"
 import { useMatchRoute, useNavigate } from "@tanstack/react-router"
 import { Activity, BookOpen, Settings } from "lucide-react"
+import { motion } from "motion/react"
 
 import type { GameflowPhase } from "@/shared/types"
 
@@ -76,7 +78,7 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 				<SidebarIdentity />
 				<ConnectionIndicator connected={connected} />
 				{connected && (
-					<span className="font-mono text-[10px] font-normal leading-none text-paper-400 pl-4 whitespace-nowrap">
+					<span className="font-mono text-[10px] font-normal leading-none text-paper-400 whitespace-nowrap">
 						LCU · 127.0.0.1
 					</span>
 				)}
@@ -120,7 +122,11 @@ function SidebarItem({
 		>
 			{/* active accent bar — left:-12px is outside the button, clipped by aside padding */}
 			{active && (
-				<span className="absolute left-[-12px] top-1/2 -translate-y-1/2 w-[2.5px] h-[18px] bg-accent rounded-[2px]" />
+				<motion.span
+					layoutId="nav-indicator"
+					transition={tweenBase}
+					className="absolute left-[-12px] top-[calc(50%-9px)] w-[2.5px] h-[18px] bg-accent rounded-[2px]"
+				/>
 			)}
 
 			{icon}
@@ -143,6 +149,7 @@ function SidebarItem({
 				<span
 					className={cn(
 						"w-[6px] h-[6px] rounded-full shrink-0",
+						"transition-colors duration-(--dur-base) ease-(--ease-standard)",
 						connected ? "bg-accent" : "bg-ink-600",
 					)}
 				/>

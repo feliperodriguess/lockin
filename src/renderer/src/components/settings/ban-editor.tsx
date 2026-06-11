@@ -1,15 +1,12 @@
-// settings.jsx:81-239 — BanEditor: priority-ordered ban list with reorder, reason, remove, add.
-// NOTE: ThreatBadge intentionally omitted — BanListEntry has no threat field and settings has
-// no session context (ThreatBadge is a champ-select-only concept). This is an intentional
-// simplification per the task spec.
-
 import { Card } from "@renderer/components/app/card"
 import { ChampionPicker } from "@renderer/components/app/champion-picker"
 import { Eyebrow } from "@renderer/components/app/eyebrow"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { useBanList, useDDragon, useSetBanList } from "@renderer/hooks/use-data"
+import { chip } from "@renderer/lib/motion"
 import { cn } from "@renderer/lib/utils"
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 import { useState } from "react"
 
 import type { BanListEntry } from "@/shared/types"
@@ -24,6 +21,7 @@ function BanRow({
 	onMove,
 	onRemove,
 	onReasonBlur,
+	ref,
 }: {
 	entry: BanListEntry
 	index: number
@@ -33,6 +31,7 @@ function BanRow({
 	onMove: (dir: -1 | 1) => void
 	onRemove: () => void
 	onReasonBlur: (reason: string) => void
+	ref?: React.Ref<HTMLLIElement>
 }): React.JSX.Element {
 	const [localReason, setLocalReason] = useState(entry.reason ?? "")
 	const champion = bundle.championsByKey[entry.championId] ?? null
@@ -40,7 +39,15 @@ function BanRow({
 	const atBottom = index === total - 1
 
 	return (
-		<li className="flex list-none items-center gap-[10px] rounded-sm border border-[var(--stroke-subtle)] bg-ink-950 px-2 py-[7px]">
+		<motion.li
+			ref={ref}
+			layout
+			variants={chip}
+			initial="hidden"
+			animate="visible"
+			exit="exit"
+			className="flex list-none items-center gap-[10px] rounded-sm border border-(--stroke-subtle) bg-ink-950 px-2 py-[7px]"
+		>
 			{/* Move chevrons */}
 			<span className="flex flex-col items-center text-paper-400">
 				<button
@@ -98,11 +105,11 @@ function BanRow({
 				type="button"
 				onClick={onRemove}
 				title="Remove"
-				className="flex cursor-pointer border-none bg-transparent p-1 text-paper-400 transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)] hover:text-[var(--color-fail)]"
+				className="flex cursor-pointer border-none bg-transparent p-1 text-paper-400 transition-colors duration-(--dur-base) ease-(--ease-standard) hover:text-fail"
 			>
 				<Trash2 size={15} />
 			</button>
-		</li>
+		</motion.li>
 	)
 }
 
@@ -152,26 +159,28 @@ export function BanEditor(): React.JSX.Element {
 			<Card className="flex flex-col gap-1 p-2">
 				{/* Empty state */}
 				{banlist.length === 0 && (
-					<p className="m-0 px-6 py-6 text-center text-[13px] leading-[1.5] text-paper-400">
+					<p className="m-0 px-6 py-6 text-center text-[13px] leading-normal text-paper-400">
 						Your ban list is empty. Add the champions you'd rather not face.
 					</p>
 				)}
 
 				{/* Ban rows */}
 				<ul className="m-0 flex flex-col gap-1 p-0">
-					{banlist.map((entry, i) => (
-						<BanRow
-							key={entry.championId}
-							entry={entry}
-							index={i}
-							total={banlist.length}
-							version={bundle.version}
-							bundle={bundle}
-							onMove={(dir) => move(i, dir)}
-							onRemove={() => remove(i)}
-							onReasonBlur={(reason) => updateReason(i, reason)}
-						/>
-					))}
+					<AnimatePresence initial={false} mode="popLayout">
+						{banlist.map((entry, i) => (
+							<BanRow
+								key={entry.championId}
+								entry={entry}
+								index={i}
+								total={banlist.length}
+								version={bundle.version}
+								bundle={bundle}
+								onMove={(dir) => move(i, dir)}
+								onRemove={() => remove(i)}
+								onReasonBlur={(reason) => updateReason(i, reason)}
+							/>
+						))}
+					</AnimatePresence>
 				</ul>
 
 				{/* Footer: add champion picker */}

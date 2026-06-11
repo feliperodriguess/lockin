@@ -5,9 +5,11 @@ import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { RoleGlyph } from "@renderer/components/game/role"
 import { useDDragon, useSetSettings, useSettings } from "@renderer/hooks/use-data"
 import { MAIN_ROLE_ORDER } from "@renderer/lib/mains"
+import { chip, tweenBase } from "@renderer/lib/motion"
 import { ROLE_ABBR, roleToDisplay } from "@renderer/lib/roles"
 import { cn } from "@renderer/lib/utils"
 import { Plus, X } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 import { useState } from "react"
 
 import type { DDragonBundle, Role } from "@/shared/types"
@@ -17,15 +19,25 @@ function MainChip({
 	role,
 	bundle,
 	onRemove,
+	ref,
 }: {
 	championId: number
 	role: Role
 	bundle: DDragonBundle
 	onRemove: (championId: number, role: Role) => void
+	ref?: React.Ref<HTMLLIElement>
 }): React.JSX.Element {
 	const champ = bundle.championsByKey[championId] ?? null
 	return (
-		<li className="group flex items-center gap-2 rounded-sm border border-(--stroke-subtle) bg-ink-950 py-1 pl-1 pr-2">
+		<motion.li
+			ref={ref}
+			layout
+			variants={chip}
+			initial="hidden"
+			animate="visible"
+			exit="exit"
+			className="group flex items-center gap-2 rounded-sm border border-(--stroke-subtle) bg-ink-950 py-1 pl-1 pr-2"
+		>
 			<ChampionPortrait champion={champ} version={bundle.version} size={26} />
 			<span className="text-[12.5px] font-medium leading-none text-paper-100">
 				{champ?.name ?? "Unknown"}
@@ -42,7 +54,7 @@ function MainChip({
 			>
 				<X size={13} />
 			</button>
-		</li>
+		</motion.li>
 	)
 }
 
@@ -93,16 +105,18 @@ export function MainsEditor(): React.JSX.Element | null {
 								{ROLE_ABBR[display]}
 							</h3>
 							<ul className="m-0 flex flex-wrap items-center gap-2 p-0">
-								{ids.map((id) => (
-									<MainChip
-										key={id}
-										championId={id}
-										role={role}
-										bundle={bundle}
-										onRemove={remove}
-									/>
-								))}
-								<li className="list-none">
+								<AnimatePresence initial={false} mode="popLayout">
+									{ids.map((id) => (
+										<MainChip
+											key={id}
+											championId={id}
+											role={role}
+											bundle={bundle}
+											onRemove={remove}
+										/>
+									))}
+								</AnimatePresence>
+								<motion.li layout transition={tweenBase} className="list-none">
 									{addingRole === role ? (
 										<div className="w-[230px]">
 											<ChampionPicker
@@ -134,7 +148,7 @@ export function MainsEditor(): React.JSX.Element | null {
 											{ids.length === 0 ? `Add a ${display} main` : "Add"}
 										</button>
 									)}
-								</li>
+								</motion.li>
 							</ul>
 						</section>
 					)

@@ -5,8 +5,10 @@ import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { RankBadge } from "@renderer/components/game/rank-badge"
 import { RoleGlyph } from "@renderer/components/game/role"
 import type { TeamRowVM } from "@renderer/hooks/use-champ-select"
+import { stamp } from "@renderer/lib/motion"
 import { cn } from "@renderer/lib/utils"
 import { WifiOff } from "lucide-react"
+import { motion } from "motion/react"
 
 interface TeamRegionProps {
 	team: TeamRowVM[]
@@ -52,7 +54,15 @@ function TeamRow({ p, version }: { p: TeamRowVM; version: string }): React.JSX.E
 	return (
 		<li className="flex items-center gap-[10px] px-1 py-[6px]">
 			<RoleGlyph role={p.role} size={15} color="var(--fg-4)" />
-			<ChampionPortrait champion={p.champion} version={version} size={30} ring={p.you} />
+			<motion.div
+				key={p.champion?.key ?? "empty"}
+				variants={stamp}
+				initial={p.champion ? "hidden" : false}
+				animate="visible"
+				className="shrink-0"
+			>
+				<ChampionPortrait champion={p.champion} version={version} size={30} ring={p.you} />
+			</motion.div>
 			<div className="flex min-w-0 flex-1 flex-col gap-[2px]">
 				<span
 					className={cn(

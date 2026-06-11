@@ -55,7 +55,7 @@ export function MismatchFlag({ label = "Rank spread" }: MismatchFlagProps): Reac
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-[5px] px-2 py-[3px] rounded-sm",
+				"ccp-pop inline-flex items-center gap-[5px] px-2 py-[3px] rounded-sm",
 				"bg-(--warn-bg) text-warn border border-[rgba(245,183,64,0.25)]",
 				"font-mono text-[10px] font-semibold uppercase leading-none tracking-[0.04em]",
 			)}

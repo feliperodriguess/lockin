@@ -70,7 +70,8 @@ export function CountdownRing({
 			>
 				{value != null && (
 					<div
-						className="text-paper-100 tabular-nums leading-none font-normal"
+						key={String(value)}
+						className="ccp-tick text-paper-100 tabular-nums leading-none font-normal"
 						style={{
 							fontFamily: "var(--font-display)",
 							fontSize: `${Math.round(size * 0.32)}px`,

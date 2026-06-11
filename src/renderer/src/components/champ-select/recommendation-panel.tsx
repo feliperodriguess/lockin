@@ -3,7 +3,9 @@ import { Section } from "@renderer/components/champ-select/section"
 import { SpellPair } from "@renderer/components/game/spell-pair"
 import { useSettings } from "@renderer/hooks/use-data"
 import { runeIconUrl } from "@renderer/lib/ddragon-urls"
+import { fade, rise } from "@renderer/lib/motion"
 import { cn } from "@renderer/lib/utils"
+import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { BuildRecommendation, DDragonBundle, SummonerSpellStatic } from "@/shared/types"
@@ -11,6 +13,7 @@ import type { BuildRecommendation, DDragonBundle, SummonerSpellStatic } from "@/
 interface RecommendationPanelProps {
 	championKey: number | null
 	build: BuildRecommendation | null
+	buildLoading: boolean
 	spellPair: [SummonerSpellStatic, SummonerSpellStatic] | null
 	layout: "DF" | "FD"
 	bundle: DDragonBundle | undefined
@@ -29,6 +32,7 @@ function formatGames(n: number): string {
 export function RecommendationPanel({
 	championKey,
 	build,
+	buildLoading,
 	spellPair,
 	layout,
 	bundle,
@@ -96,7 +100,26 @@ export function RecommendationPanel({
 		}
 	}, [])
 
-	if (!championKey || !build) return null
+	if (!championKey || (!build && !buildLoading)) return null
+
+	if (!build) {
+		return (
+			<Section label="Recommended">
+				<div aria-busy className="flex items-center gap-4">
+					<div className="flex shrink-0 items-center gap-[5px]">
+						<div className="ccp-shimmer h-9 w-9 rounded-full" />
+						<div className="ccp-shimmer h-6 w-6 rounded-full" />
+						<div className="ccp-shimmer h-6 w-6 rounded-full" />
+						<div className="ccp-shimmer h-6 w-6 rounded-full" />
+						<div className="ccp-shimmer h-6 w-6 rounded-full" />
+						<div className="ccp-shimmer h-6 w-6 rounded-full" />
+					</div>
+					<span className="shrink-0 h-8 w-px bg-(--stroke-default)" />
+					<div className="ccp-shimmer h-8 w-[120px] rounded-sm" />
+				</div>
+			</Section>
+		)
+	}
 
 	const runes = build.runes
 	// keystone + 6 chosen perks (skip the 3 stat shards for the compact cluster)
@@ -116,7 +139,13 @@ export function RecommendationPanel({
 				</span>
 			}
 		>
-			<div className="flex items-center gap-4">
+			<motion.div
+				key={championKey}
+				variants={rise}
+				initial="hidden"
+				animate="visible"
+				className="flex items-center gap-4"
+			>
 				{perkIcons.length > 0 && (
 					<div className="flex shrink-0 items-center gap-[5px]">
 						{perkIcons.map((rune, i) => (
@@ -143,17 +172,32 @@ export function RecommendationPanel({
 
 				<div className="flex-1" />
 
-				{status && (
-					<span className="shrink-0 font-mono text-[10px] font-semibold leading-none tracking-[0.06em] text-accent">
-						{status}
-					</span>
-				)}
-				{(autoRunes || autoSpells) && !status && (
-					<span className="shrink-0 font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-paper-400">
-						Auto-setup on
-					</span>
-				)}
-			</div>
+				<AnimatePresence mode="wait" initial={false}>
+					{status ? (
+						<motion.span
+							key={status}
+							variants={fade}
+							initial="hidden"
+							animate="visible"
+							exit="exit"
+							className="shrink-0 font-mono text-[10px] font-semibold leading-none tracking-[0.06em] text-accent"
+						>
+							{status}
+						</motion.span>
+					) : autoRunes || autoSpells ? (
+						<motion.span
+							key="auto"
+							variants={fade}
+							initial="hidden"
+							animate="visible"
+							exit="exit"
+							className="shrink-0 font-mono text-[10px] font-medium leading-none tracking-[0.06em] text-paper-400"
+						>
+							Auto-setup on
+						</motion.span>
+					) : null}
+				</AnimatePresence>
+			</motion.div>
 		</Section>
 	)
 }

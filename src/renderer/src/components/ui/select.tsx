@@ -54,6 +54,9 @@ function Select<T extends string>({
 						className={cn(
 							"min-w-(--anchor-width) overflow-hidden rounded-sm p-1",
 							"border border-(--stroke-default) bg-ink-900 shadow-lg",
+							"origin-(--transform-origin) transition-[scale,opacity] duration-(--dur-base) ease-(--ease-standard) motion-reduce:transition-none",
+							"data-starting-style:scale-95 data-starting-style:opacity-0",
+							"data-ending-style:scale-95 data-ending-style:opacity-0",
 						)}
 					>
 						{options.map((opt) => (

@@ -5,8 +5,10 @@ import { Field } from "@renderer/components/notes/note-field"
 import { Button } from "@renderer/components/ui/button"
 import { Textarea } from "@renderer/components/ui/textarea"
 import { useDeleteNote, useUpsertNote } from "@renderer/hooks/use-data"
+import { tweenBase, tweenEmphasized, tweenExit } from "@renderer/lib/motion"
 import { cn } from "@renderer/lib/utils"
 import { Check, Trash2, X } from "lucide-react"
+import { motion } from "motion/react"
 import { useEffect, useState } from "react"
 
 import type { AppSettings, DDragonBundle, MatchupNote } from "@/shared/types"
@@ -87,19 +89,24 @@ export function NoteEditor({
 	return (
 		<>
 			{/* backdrop — Esc handled via useEffect; click closes drawer */}
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop dismiss; keyboard handled via Esc useEffect */}
-			{/* biome-ignore lint/a11y/useKeyWithClickEvents: same */}
-			<div
+			<motion.div
 				onClick={onClose}
-				className="ccp-fade absolute inset-0 z-60 bg-[rgba(0,0,0,0.55)] backdrop-blur-[2px]"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				exit={{ opacity: 0 }}
+				transition={tweenBase}
+				className="absolute inset-0 z-60 bg-[rgba(0,0,0,0.55)] backdrop-blur-[2px]"
 			/>
 
-			<aside
+			<motion.aside
 				role="dialog"
 				aria-modal
 				aria-label={isNew ? "New note" : "Edit note"}
+				initial={{ x: 26 }}
+				animate={{ x: 0, transition: tweenEmphasized }}
+				exit={{ x: 26, opacity: 0, transition: tweenExit }}
 				className={cn(
-					"ccp-drawer absolute inset-y-0 right-0 z-61",
+					"absolute inset-y-0 right-0 z-61",
 					"flex flex-col",
 					"bg-ink-900 border-l border-(--stroke-strong) shadow-(--shadow-lg)",
 					"max-w-[92%] w-[392px]",
@@ -218,7 +225,7 @@ export function NoteEditor({
 						</Button>
 					</div>
 				</div>
-			</aside>
+			</motion.aside>
 		</>
 	)
 }

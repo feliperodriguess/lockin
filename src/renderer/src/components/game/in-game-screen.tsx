@@ -73,7 +73,7 @@ export function InGameScreen(): React.JSX.Element | null {
 
 	return (
 		<section className="grid h-full min-h-0 gap-[14px] grid-cols-[1fr_314px] grid-rows-[minmax(0,1fr)]">
-			<div className="flex min-h-0 flex-col gap-[14px] overflow-y-auto -mr-1 pr-1">
+			<div className="ccp-stagger flex min-h-0 flex-col gap-[14px] overflow-y-auto -mr-1 pr-1">
 				{/* header strip */}
 				<Card className="flex min-h-[78px] items-center justify-between gap-3 p-4">
 					<div className="flex min-w-0 items-center gap-3">
@@ -153,7 +153,7 @@ export function InGameScreen(): React.JSX.Element | null {
 				)}
 			</div>
 
-			<div className="flex min-h-0 flex-col gap-[14px]">
+			<div className="ccp-stagger flex min-h-0 flex-col gap-[14px]">
 				{build?.runes && (
 					<Section label="Runes">
 						<RunesReference runes={build.runes} bundle={bundle} />

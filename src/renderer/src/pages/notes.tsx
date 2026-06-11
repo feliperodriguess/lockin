@@ -5,8 +5,10 @@ import { NoteCard } from "@renderer/components/notes/note-card"
 import { NoteEditor } from "@renderer/components/notes/note-editor"
 import { Button } from "@renderer/components/ui/button"
 import { useDDragon, useNotes, useSettings } from "@renderer/hooks/use-data"
+import { gridItem } from "@renderer/lib/motion"
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import { BookOpen, Plus, Search } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useState } from "react"
 
 export function NotesPage(): React.JSX.Element {
@@ -111,29 +113,43 @@ export function NotesPage(): React.JSX.Element {
 				</Card>
 			) : (
 				<div className="-mr-6 grid min-h-0 flex-1 auto-rows-[220px] grid-cols-[repeat(auto-fill,minmax(340px,1fr))] content-start gap-[14px] overflow-y-auto pb-1 pr-6">
-					{sorted.map((n) => (
-						<NoteCard
-							key={n.id}
-							note={n}
-							bundle={bundle}
-							version={version}
-							variant="full"
-							spellSlotLayout={spellSlotLayout}
-							onClick={() => openEdit(n.id)}
-						/>
-					))}
+					<AnimatePresence mode="popLayout">
+						{sorted.map((n, i) => (
+							<motion.div
+								layout
+								key={n.id}
+								custom={i}
+								variants={gridItem}
+								initial="hidden"
+								animate="visible"
+								exit="exit"
+							>
+								<NoteCard
+									note={n}
+									bundle={bundle}
+									version={version}
+									variant="full"
+									spellSlotLayout={spellSlotLayout}
+									onClick={() => openEdit(n.id)}
+								/>
+							</motion.div>
+						))}
+					</AnimatePresence>
 				</div>
 			)}
 
-			{editorOpen && (
-				<NoteEditor
-					note={editingId === "new" ? null : editingNote}
-					bundle={bundle}
-					version={version}
-					spellSlotLayout={spellSlotLayout}
-					onClose={closeEditor}
-				/>
-			)}
+			<AnimatePresence>
+				{editorOpen && (
+					<NoteEditor
+						key="editor"
+						note={editingId === "new" ? null : editingNote}
+						bundle={bundle}
+						version={version}
+						spellSlotLayout={spellSlotLayout}
+						onClose={closeEditor}
+					/>
+				)}
+			</AnimatePresence>
 		</div>
 	)
 }

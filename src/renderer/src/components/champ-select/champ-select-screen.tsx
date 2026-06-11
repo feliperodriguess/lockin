@@ -21,7 +21,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 
 	return (
 		<section className="grid h-full min-h-0 gap-[14px] grid-cols-[1fr_314px] grid-rows-[minmax(0,1fr)]">
-			<div className="flex min-h-0 flex-col gap-[14px]">
+			<div className="ccp-stagger flex min-h-0 flex-col gap-[14px]">
 				<HeaderStrip
 					me={vm.me}
 					spells={vm.spells}
@@ -35,6 +35,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 				<RecommendationPanel
 					championKey={vm.championKey}
 					build={vm.build}
+					buildLoading={vm.buildLoading}
 					spellPair={vm.spells.pair}
 					layout={layout}
 					bundle={bundle}
@@ -53,7 +54,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 				<YourMains />
 			</div>
 
-			<div className="flex min-h-0 flex-col gap-[14px]">
+			<div key={vm.subPhase} className="ccp-stagger flex min-h-0 flex-col gap-[14px]">
 				<TeamRegion
 					team={vm.team}
 					ranksAvailable={vm.ranksAvailable}
