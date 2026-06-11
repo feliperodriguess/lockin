@@ -39,6 +39,8 @@ interface ChampionPickerProps {
 	allowClear?: boolean
 	size?: "sm" | "md"
 	excludeIds?: number[]
+	defaultOpen?: boolean
+	onOpenChange?: (open: boolean) => void
 }
 
 export function ChampionPicker({
@@ -50,8 +52,14 @@ export function ChampionPicker({
 	allowClear,
 	size = "md",
 	excludeIds = [],
+	defaultOpen = false,
+	onOpenChange,
 }: ChampionPickerProps): React.JSX.Element {
-	const [open, setOpen] = useState(false)
+	const [open, setOpenState] = useState(defaultOpen)
+	const setOpen = (v: boolean) => {
+		setOpenState(v)
+		onOpenChange?.(v)
+	}
 	const [q, setQ] = useState("")
 	const ref = useRef<HTMLDivElement>(null)
 	// Viewport-aware placement so the dropdown never clips at small window heights
@@ -64,12 +72,13 @@ export function ChampionPicker({
 
 	// click-outside close
 	useEffect(() => {
+		if (!open) return
 		const h = (e: MouseEvent) => {
 			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
 		}
 		document.addEventListener("mousedown", h)
 		return () => document.removeEventListener("mousedown", h)
-	}, [])
+	})
 
 	// Measure available space around the trigger whenever the dropdown opens, and on
 	// resize/scroll while open, to choose direction + a non-clipping max height. Bounds
@@ -124,7 +133,7 @@ export function ChampionPicker({
 			<div className="relative">
 				<button
 					type="button"
-					onClick={() => setOpen((v) => !v)}
+					onClick={() => setOpen(!open)}
 					className={cn(
 						"flex items-center gap-[9px] w-full text-left cursor-pointer",
 						"bg-ink-950 border rounded-sm",
