@@ -1,8 +1,9 @@
 import { type DisplayRole, displayRole } from "@renderer/lib/roles"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-import { suggestBans } from "@/shared/lib/bans"
-import { findLaneOpponent } from "@/shared/lib/lanes"
+import { statisticalBans, suggestBans } from "@/shared/lib/bans"
+import { counterPicks, type MatchupDifficulty, matchupDifficulty } from "@/shared/lib/counters"
+import { asRole, findLaneOpponent } from "@/shared/lib/lanes"
 import { matchupNote } from "@/shared/lib/notes-match"
 import { flagMismatch } from "@/shared/lib/rank"
 import { resolveSpells } from "@/shared/lib/spell-precedence"
@@ -17,6 +18,7 @@ import type {
 import {
 	useBanList,
 	useBuildRecommendation,
+	useCounterTable,
 	useDDragon,
 	useNotes,
 	useSettings,
@@ -35,6 +37,20 @@ export interface BanRowVM {
 	reason?: string
 	status: "open" | "banned" | "picked"
 	threat: boolean
+	counterWinRate: number | null
+}
+export interface CounterPickVM {
+	champion: ChampionStatic | null
+	winRate: number // displayed: this pick's win rate INTO the opponent
+}
+export interface CounterPicksVM {
+	opponent: ChampionStatic
+	yours: CounterPickVM[]
+	best: CounterPickVM[]
+}
+export interface StatBanRowVM {
+	champion: ChampionStatic | null
+	winRate: number // displayed: their win rate INTO my champion
 }
 export interface TeamRowVM {
 	cellId: number
@@ -68,6 +84,9 @@ export interface ChampSelectVM {
 	championKey: number | null // effective champion (locked || hovered)
 	position: string | null // raw LCU assignedPosition ("top"…), null when pending
 	build: BuildRecommendation | null
+	counterPicks: CounterPicksVM | null
+	difficulty: MatchupDifficulty | null
+	statBanRows: StatBanRowVM[]
 }
 
 export function useChampSelect(): ChampSelectVM | null {
@@ -119,6 +138,8 @@ export function useChampSelect(): ChampSelectVM | null {
 	)
 
 	const { data: build } = useBuildRecommendation(championKey, position, settings?.buildTier)
+	const { data: enemyCounters } = useCounterTable(opponentChampionId, position, settings?.buildTier)
+	const { data: myCounters } = useCounterTable(championKey, position, settings?.buildTier)
 
 	return useMemo(() => {
 		if (!session) return null
@@ -158,6 +179,32 @@ export function useChampSelect(): ChampSelectVM | null {
 			: null
 		const opponent = laneOpponent ? champ(laneOpponent.championId) : null
 
+		// counter-pick assist: only while the decision is live (opponent visible, not locked)
+		const myRole = asRole(me.assignedPosition)
+		const mainIds = (settings?.mains ?? [])
+			.filter((m) => m.role === myRole)
+			.map((m) => m.championId)
+		const picks =
+			me.championId === 0 && opponent ? counterPicks(enemyCounters ?? null, mainIds) : null
+		const counterPicksVM: CounterPicksVM | null =
+			picks && opponent && (picks.yours.length > 0 || picks.best.length > 0)
+				? {
+						opponent,
+						yours: picks.yours.map((p) => ({ champion: champ(p.championId), winRate: p.winRate })),
+						best: picks.best.map((p) => ({ champion: champ(p.championId), winRate: p.winRate })),
+					}
+				: null
+
+		const difficulty =
+			effectiveChampId && opponentChampionId
+				? matchupDifficulty(
+						effectiveChampId,
+						opponentChampionId,
+						enemyCounters ?? null,
+						myCounters ?? null,
+					)
+				: null
+
 		const note = matchupNote(notes ?? [], effectiveChampId, laneOpponent?.championId ?? null)
 
 		// spell precedence: pinned-note > OP.GG build > deterministic heuristic.
@@ -178,13 +225,24 @@ export function useChampSelect(): ChampSelectVM | null {
 			rolePending: rec.rolePending,
 		}
 
-		const rows: BanRowVM[] = suggestBans(banlist ?? [], session).entries.map((row) => ({
+		const rows: BanRowVM[] = suggestBans(
+			banlist ?? [],
+			session,
+			myCounters?.weakAgainst ?? [],
+		).entries.map((row) => ({
 			championId: row.entry.championId,
 			champion: champ(row.entry.championId),
 			reason: row.entry.reason,
 			status: row.status,
 			threat: row.threat,
+			counterWinRate: row.counterWinRate,
 		}))
+
+		const statBanRows: StatBanRowVM[] = statisticalBans(
+			myCounters?.weakAgainst ?? [],
+			banlist ?? [],
+			session,
+		).map((r) => ({ champion: champ(r.championId), winRate: r.winRate }))
 
 		const team: TeamRowVM[] = session.myTeam.map((p) => ({
 			cellId: p.cellId,
@@ -231,6 +289,21 @@ export function useChampSelect(): ChampSelectVM | null {
 			championKey: effectiveChampId || null,
 			position: me.assignedPosition || null,
 			build: build ?? null,
+			counterPicks: counterPicksVM,
+			difficulty,
+			statBanRows,
 		}
-	}, [session, bundle, notes, banlist, settings, ranks, elapsedMs, build, opponentChampionId])
+	}, [
+		session,
+		bundle,
+		notes,
+		banlist,
+		settings,
+		ranks,
+		elapsedMs,
+		build,
+		opponentChampionId,
+		enemyCounters,
+		myCounters,
+	])
 }
