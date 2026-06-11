@@ -19,6 +19,7 @@ import {
 	FIXTURE_BANLIST,
 	FIXTURE_BUILD,
 	FIXTURE_BUNDLE,
+	FIXTURE_COUNTERS,
 	FIXTURE_IN_GAME,
 	FIXTURE_NOTES,
 	FIXTURE_RANKS,
@@ -148,6 +149,24 @@ export function setScenario(next: Partial<ScenarioState>): void {
 	emitAll()
 }
 
+/* mirror the real provider's tolerant position matching (Role | LCU position | OP.GG enum | shorthand) */
+const POSITION_NORM: Record<string, string> = {
+	top: "top",
+	jungle: "jungle",
+	jg: "jungle",
+	middle: "middle",
+	mid: "middle",
+	bottom: "bottom",
+	bot: "bottom",
+	adc: "bottom",
+	utility: "utility",
+	support: "utility",
+	sup: "utility",
+}
+function normalizePosition(position: string): string | undefined {
+	return POSITION_NORM[position.trim().toLowerCase()]
+}
+
 /* ------------------------------------------------------------------- the Api */
 export const fakeBridge: Api = {
 	async acceptReadyCheck() {
@@ -215,29 +234,16 @@ export const fakeBridge: Api = {
 		}
 		return out
 	},
-	async getCounters(): Promise<CounterTable | null> {
-		return null
+	async getCounters(championKey, position): Promise<CounterTable | null> {
+		if (!scenario.countersAvailable) return null
+		const table = FIXTURE_COUNTERS[championKey]
+		if (!table) return null
+		return normalizePosition(position) === table.role ? structuredClone(table) : null
 	},
 	async getBuild(championKey, position): Promise<BuildRecommendation | null> {
 		if (!scenario.buildAvailable) return null
 		if (championKey !== FIXTURE_BUILD.championKey) return null
-		// mirror the real provider's tolerant position matching so any caller convention
-		// (Role | LCU position | OP.GG enum | shorthand) resolves a build in fake mode too
-		const norm: Record<string, string> = {
-			top: "top",
-			jungle: "jungle",
-			jg: "jungle",
-			middle: "middle",
-			mid: "middle",
-			bottom: "bottom",
-			bot: "bottom",
-			adc: "bottom",
-			utility: "utility",
-			support: "utility",
-			sup: "utility",
-		}
-		const role = norm[position.trim().toLowerCase()]
-		return role === FIXTURE_BUILD.role ? { ...FIXTURE_BUILD } : null
+		return normalizePosition(position) === FIXTURE_BUILD.role ? { ...FIXTURE_BUILD } : null
 	},
 	async setSpells(_spell1Id: number, _spell2Id: number): Promise<void> {
 		// no-op in the fake bridge — the real LCU write lands in Phase 1B

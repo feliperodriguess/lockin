@@ -3,6 +3,7 @@ import type {
 	BanListEntry,
 	BuildRecommendation,
 	ChampionStatic,
+	CounterTable,
 	DDragonBundle,
 	InGameState,
 	MatchupNote,
@@ -323,7 +324,14 @@ export const FIXTURE_BANLIST: BanListEntry[] = [
 	{ championId: C.yasuo, priority: 5, reason: "Roams mid, ints my jungler" },
 ]
 
-export const FIXTURE_SETTINGS: AppSettings = { ...DEFAULT_SETTINGS }
+export const FIXTURE_SETTINGS: AppSettings = {
+	...DEFAULT_SETTINGS,
+	mains: [
+		{ championId: C.aatrox, role: "top" },
+		{ championId: C.renekton, role: "top" },
+		{ championId: C.leesin, role: "jungle" },
+	],
+}
 
 /* my team — cellIds 0-4, me = cell 2 (PRD §17 appendix) */
 export const ME_CELL_ID = 2
@@ -453,4 +461,40 @@ export const FIXTURE_BUILD: BuildRecommendation = {
 		"W",
 	],
 	skillPriority: ["Q", "E", "W"],
+}
+
+/* counter tables for the live fake matchup (Aatrox vs Fiora, top).
+   winRate is the TABLE OWNER's — display flips it. */
+export const FIXTURE_COUNTERS: Record<number, CounterTable> = {
+	[C.fiora]: {
+		championKey: C.fiora,
+		role: "top",
+		patch: "14.10",
+		weakAgainst: [
+			{ championId: C.quinn, winRate: 0.44, games: 310 },
+			{ championId: C.renekton, winRate: 0.46, games: 1480 },
+			{ championId: C.garen, winRate: 0.47, games: 1820 },
+			{ championId: C.sett, winRate: 0.485, games: 960 },
+		],
+		strongAgainst: [
+			{ championId: C.aatrox, winRate: 0.54, games: 1620 },
+			{ championId: C.camille, winRate: 0.53, games: 890 },
+		],
+	},
+	[C.aatrox]: {
+		championKey: C.aatrox,
+		role: "top",
+		patch: "14.10",
+		weakAgainst: [
+			{ championId: C.fiora, winRate: 0.46, games: 1620 },
+			{ championId: C.darius, winRate: 0.465, games: 2210 },
+			{ championId: C.camille, winRate: 0.47, games: 890 },
+			{ championId: C.sett, winRate: 0.475, games: 1040 },
+			{ championId: C.garen, winRate: 0.48, games: 1530 },
+		],
+		strongAgainst: [
+			{ championId: C.quinn, winRate: 0.52, games: 410 },
+			{ championId: C.yasuo, winRate: 0.53, games: 260 },
+		],
+	},
 }

@@ -12,6 +12,8 @@ export interface ScenarioState {
 	roleAssigned: boolean
 	autoAcceptFired: boolean
 	buildAvailable: boolean // dev toggle: OP.GG recommendation present vs unavailable
+	myPickLocked: boolean // false = I'm only hovering (counter-pick assist visible)
+	countersAvailable: boolean // dev toggle: counter tables present vs fetch-failed
 }
 
 export const INITIAL_SCENARIO: ScenarioState = {
@@ -23,6 +25,8 @@ export const INITIAL_SCENARIO: ScenarioState = {
 	roleAssigned: true,
 	autoAcceptFired: false,
 	buildAvailable: true,
+	myPickLocked: true,
+	countersAvailable: true,
 }
 
 export const GAMEFLOW_BY_SCENARIO: Record<ScenarioState["phase"], GameflowPhase> = {
@@ -63,8 +67,8 @@ export function buildSession(
 		bans: { myTeamBans: [164], theirTeamBans: [], numBans: 10 }, // Camille banned
 		myTeam: MY_TEAM.map((p) => ({
 			cellId: p.cellId,
-			championId: p.championId,
-			championPickIntent: 0,
+			championId: p.cellId === ME_CELL_ID && !s.myPickLocked ? 0 : p.championId,
+			championPickIntent: p.cellId === ME_CELL_ID && !s.myPickLocked ? p.championId : 0,
 			assignedPosition: p.cellId === ME_CELL_ID && !s.roleAssigned ? "" : p.position,
 			summonerId: p.summonerId,
 			puuid: p.puuid,

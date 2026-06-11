@@ -240,6 +240,28 @@ export default function StateSwitcher(): React.JSX.Element {
 							]}
 						/>
 					</div>
+					<div className="flex items-center gap-[7px]">
+						<DemoLabel>Pick</DemoLabel>
+						<Seg
+							value={snapshot.myPickLocked ? "locked" : "hover"}
+							onChange={(v) => drive({ myPickLocked: v === "locked" })}
+							options={[
+								{ value: "locked", label: "Locked" },
+								{ value: "hover", label: "Hovering" },
+							]}
+						/>
+					</div>
+					<div className="flex items-center gap-[7px]">
+						<DemoLabel>Counters</DemoLabel>
+						<Seg
+							value={snapshot.countersAvailable ? "on" : "off"}
+							onChange={(v) => drive({ countersAvailable: v === "on" })}
+							options={[
+								{ value: "on", label: "Available" },
+								{ value: "off", label: "None" },
+							]}
+						/>
+					</div>
 					<div className="flex items-center gap-[10px] border-l border-(--stroke-default) pl-3">
 						<Switch
 							id="dev-auto-runes"
