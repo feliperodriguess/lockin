@@ -79,6 +79,8 @@ export default function StateSwitcher(): React.JSX.Element {
 		setSnapshot(getScenario())
 		qc.invalidateQueries({ queryKey: ["notes"] })
 		qc.invalidateQueries({ queryKey: ["ranks"] })
+		qc.invalidateQueries({ queryKey: ["build"] })
+		qc.invalidateQueries({ queryKey: ["counters"] })
 	}
 
 	const forceFake = localStorage.getItem(FORCE_FAKE_KEY) === "1"
