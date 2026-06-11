@@ -163,6 +163,8 @@ export function toInGameState(
 		spell1Id: selection.spell1Id ?? 0,
 		spell2Id: selection.spell2Id ?? 0,
 		queueId: session?.gameData?.queue?.id ?? 0,
+		assignedPosition: "",
+		opponentChampionId: null,
 	}
 }
 

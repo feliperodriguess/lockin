@@ -415,6 +415,8 @@ export const FIXTURE_IN_GAME: InGameState = {
 	spell1Id: 4, // Flash
 	spell2Id: 12, // Teleport
 	queueId: 420, // Ranked Solo
+	assignedPosition: "top",
+	opponentChampionId: C.fiora,
 }
 
 /* a complete Aatrox-top build the in-game + champ-select panels render against */

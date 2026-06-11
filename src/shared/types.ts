@@ -177,6 +177,10 @@ export interface InGameState {
 	spell1Id: number
 	spell2Id: number
 	queueId: number
+	/** carried over from the champ select this app observed; "" when unknown
+	 *  (app restarted mid-game). Same convention as ChampSelectPlayer. */
+	assignedPosition: string
+	opponentChampionId: number | null
 }
 
 /** LCU lobby position-preference strings (PUT /lol-lobby/v1/.../position-preferences). */

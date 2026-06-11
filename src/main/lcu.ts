@@ -8,6 +8,7 @@ import {
 } from "league-connect"
 
 import { IPC } from "@/shared/constants"
+import { findLaneOpponent } from "@/shared/lib/lanes"
 import {
 	type ChampSelectSession,
 	DISCONNECTED_SNAPSHOT,
@@ -20,6 +21,7 @@ import {
 	type SummonerIdentity,
 } from "@/shared/types"
 
+import { getDDragonBundle } from "./ddragon"
 import {
 	RANKED_QUEUE_ID,
 	type RawChampSelectSession,
@@ -50,6 +52,7 @@ class LcuService {
 	private endSession: (() => void) | null = null
 	private credentials: Credentials | null = null
 	private localPuuid = ""
+	private lastChampSelect: ChampSelectSession | null = null
 	private aaDeclined = false
 	private aaFired = false
 	private aaTimer: NodeJS.Timeout | null = null
@@ -176,6 +179,7 @@ class LcuService {
 			// disconnect resets phase + live state in the renderer too
 			this.resetAutoAccept()
 			this.localPuuid = ""
+			this.lastChampSelect = null
 			if (prev.phase !== "None") this.emit(IPC.LCU_PHASE, { phase: this.snapshot.phase })
 			if (prev.readyCheck !== null) this.emit(IPC.LCU_READY_CHECK, null)
 			if (prev.champSelect !== null) this.emit(IPC.LCU_CHAMP_SELECT, null)
@@ -189,6 +193,9 @@ class LcuService {
 		this.snapshot = { ...this.snapshot, phase }
 		console.log(`[lcu] phase: ${phase}`)
 		this.emit(IPC.LCU_PHASE, { phase })
+		if (phase === "None" || phase === "Lobby" || phase === "Matchmaking") {
+			this.lastChampSelect = null
+		}
 		if (phase === "InProgress" || phase === "GameStart") {
 			void this.refreshInGame()
 		} else if (this.snapshot.inGame !== null) {
@@ -207,7 +214,27 @@ class LcuService {
 		// re-populate stale in-game state after we've left the in-game range
 		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
 		if (this.credentials !== credentials) return
-		this.setInGame(toInGameState(session, this.localPuuid))
+		const base = toInGameState(session, this.localPuuid)
+		this.setInGame(base ? { ...base, ...(await this.champSelectCarryOver()) } : null)
+	}
+
+	/** Matchup context remembered from the champ select that led into this game —
+	 *  the gameflow session doesn't expose assigned positions or lane opponents
+	 *  once the game starts. Best-effort: defaults when the app missed champ
+	 *  select (e.g. restarted mid-game) or DDragon is unavailable. */
+	private async champSelectCarryOver(): Promise<{
+		assignedPosition: string
+		opponentChampionId: number | null
+	}> {
+		const session = this.lastChampSelect
+		if (!session) return { assignedPosition: "", opponentChampionId: null }
+		try {
+			const bundle = await getDDragonBundle()
+			return findLaneOpponent(session, (key) => bundle.championsByKey[key]?.id ?? null)
+		} catch (error) {
+			console.warn("[lcu] champ select carry-over failed:", error)
+			return { assignedPosition: "", opponentChampionId: null }
+		}
 	}
 
 	/** GET that treats non-ok (404 while idle) and transport hiccups as null. */
@@ -418,6 +445,7 @@ class LcuService {
 	}
 
 	private setChampSelect(champSelect: ChampSelectSession | null): void {
+		if (champSelect) this.lastChampSelect = champSelect
 		if (champSelect === null && this.snapshot.champSelect === null) return
 		this.snapshot = { ...this.snapshot, champSelect }
 		this.emit(IPC.LCU_CHAMP_SELECT, champSelect)
