@@ -298,6 +298,10 @@ export const fakeBridge: Api = {
 		// tray-driven nav has no fake source — no-op subscription
 		return () => {}
 	},
+	onSettingsChanged: () => {
+		// settings only change through the renderer in fake mode — no-op subscription
+		return () => {}
+	},
 }
 
 // Called once at module init. Edits to this module trigger a full page reload

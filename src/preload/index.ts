@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from "electron"
 
 import type { Api, Unsubscribe } from "@/shared/api"
 import { IPC } from "@/shared/constants"
-import type { LcuSnapshot } from "@/shared/types"
+import type { AppSettings, LcuSnapshot } from "@/shared/types"
 
 declare global {
 	interface Window {
@@ -71,6 +71,11 @@ const api: Partial<Api> = {
 		): void => cb(payload)
 		ipcRenderer.on(IPC.NAV_GO, listener)
 		return () => ipcRenderer.removeListener(IPC.NAV_GO, listener)
+	},
+	onSettingsChanged: (cb) => {
+		const listener = (_event: Electron.IpcRendererEvent, payload: AppSettings): void => cb(payload)
+		ipcRenderer.on(IPC.SETTINGS_CHANGED, listener)
+		return () => ipcRenderer.removeListener(IPC.SETTINGS_CHANGED, listener)
 	},
 }
 

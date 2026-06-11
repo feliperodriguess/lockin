@@ -72,7 +72,7 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 
 			<div className="flex-1" />
 
-			<footer className="border-t border-(--stroke-default) pt-3 flex flex-col gap-[6px]">
+			<footer className="border-t border-(--stroke-default) pt-3 flex flex-col gap-2 px-2">
 				<SidebarIdentity />
 				<ConnectionIndicator connected={connected} />
 				{connected && (

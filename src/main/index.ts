@@ -84,7 +84,7 @@ app.whenReady().then(() => {
 	electronApp.setAppUserModelId("com.electron")
 
 	app.on("browser-window-created", (_, window) => {
-		optimizer.watchWindowShortcuts(window)
+		optimizer.watchWindowShortcuts(window, { zoom: true })
 	})
 
 	createWindow()
@@ -111,7 +111,13 @@ app.whenReady().then(() => {
 		},
 	})
 
-	const offSettings = onSettingsChange(() => rebuildTray?.())
+	const offSettings = onSettingsChange(() => {
+		rebuildTray?.()
+		const settings = getSettings()
+		for (const w of BrowserWindow.getAllWindows()) {
+			w.webContents.send(IPC.SETTINGS_CHANGED, settings)
+		}
+	})
 
 	startLcuService((channel, payload) => {
 		for (const w of BrowserWindow.getAllWindows()) {

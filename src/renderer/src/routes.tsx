@@ -9,6 +9,7 @@ import {
 import { lazy, Suspense } from "react"
 
 import { NavListener } from "./components/app/nav-listener"
+import { SettingsListener } from "./components/app/settings-listener"
 import { Sidebar } from "./components/app/sidebar"
 import { WindowFrame } from "./components/app/window-frame"
 import { ReadyCheckScreen } from "./components/ready-check/ready-check-screen"
@@ -34,6 +35,7 @@ function RootLayout(): React.JSX.Element {
 	return (
 		<WindowFrame connected={connected} phase={phase}>
 			<NavListener />
+			<SettingsListener />
 			<div className="flex min-h-0 flex-1">
 				<Sidebar connected={connected} phase={phase} />
 				<main className="relative min-w-0 flex-1 overflow-hidden bg-ink-950">

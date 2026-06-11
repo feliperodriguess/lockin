@@ -17,18 +17,18 @@ export function SidebarIdentity(): React.JSX.Element | null {
 				<img
 					src={avatar}
 					alt=""
-					width={24}
-					height={24}
-					className="size-6 shrink-0 rounded-full border border-(--stroke-default) object-cover bg-ink-800"
+					width={32}
+					height={32}
+					className="size-8 shrink-0 rounded-full border border-(--stroke-default) object-cover bg-ink-800"
 				/>
 			) : (
 				<span className="size-6 shrink-0 rounded-full border border-(--stroke-default) bg-ink-800" />
 			)}
 			<span className="flex min-w-0 flex-col gap-px">
-				<span className="truncate text-[12px] font-medium leading-[1.1] text-paper-100">
+				<span className="truncate text-[14px] font-medium leading-[1.1] text-paper-100">
 					{summoner.gameName}
 				</span>
-				<span className="font-mono text-[10px] font-normal leading-none text-paper-400">
+				<span className="font-mono text-[12px] font-normal leading-none text-paper-400">
 					#{summoner.tagLine}
 				</span>
 			</span>

@@ -8,7 +8,9 @@ import {
 	Tray,
 } from "electron"
 
-import trayIcon from "~/resources/lockinTemplate.png"
+import trayIcon2x from "~/resources/lockinTemplate@2x.png"
+import trayIcon3x from "~/resources/lockinTemplate@3x.png"
+import trayIcon1x from "~/resources/lockinTemplate.png"
 
 import { RANKED_QUEUE_ID } from "./lcu-mappers"
 
@@ -47,7 +49,11 @@ function notifyQueueError(label: string, error?: string): void {
 }
 
 export function createTray(deps: TrayDeps): { unregister: () => void } {
-	const icon = nativeImage.createFromDataURL(trayIcon)
+	const icon = nativeImage.createEmpty()
+	icon.addRepresentation({ scaleFactor: 1, dataURL: trayIcon1x })
+	icon.addRepresentation({ scaleFactor: 2, dataURL: trayIcon2x })
+	icon.addRepresentation({ scaleFactor: 3, dataURL: trayIcon3x })
+	icon.setTemplateImage(true)
 	const tray = new Tray(icon)
 
 	const toggleAutoAccept = (): void => {

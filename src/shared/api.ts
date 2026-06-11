@@ -45,4 +45,5 @@ export interface Api {
 	onSummoner(cb: (s: SummonerIdentity | null) => void): Unsubscribe
 	onInGame(cb: (s: InGameState | null) => void): Unsubscribe
 	onNav(cb: (n: { to: string; search?: Record<string, unknown> }) => void): Unsubscribe
+	onSettingsChanged(cb: (s: AppSettings) => void): Unsubscribe
 }

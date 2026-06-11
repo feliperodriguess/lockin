@@ -4,6 +4,7 @@ export const IPC = {
 	DDRAGON_GET_BUNDLE: "ddragon:getBundle",
 	SETTINGS_GET: "settings:get",
 	SETTINGS_SET: "settings:set",
+	SETTINGS_CHANGED: "settings:changed",
 	NOTES_LIST: "notes:list",
 	NOTES_UPSERT: "notes:upsert",
 	NOTES_DELETE: "notes:delete",

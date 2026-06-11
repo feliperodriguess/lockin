@@ -20,7 +20,7 @@ export function ConnectionIndicator({
 			{!compact && (
 				<p
 					className={cn(
-						"font-mono text-[11px] font-medium leading-none tracking-[0.02em] whitespace-nowrap",
+						"font-mono text-[12px] font-medium leading-none tracking-[0.02em] whitespace-nowrap",
 						connected ? "text-paper-200" : "text-paper-300",
 					)}
 				>
