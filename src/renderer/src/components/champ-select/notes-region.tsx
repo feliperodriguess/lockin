@@ -1,13 +1,11 @@
 import { Section } from "@renderer/components/champ-select/section"
-import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { MatchupPill } from "@renderer/components/game/matchup-pill"
 import { NoteCard } from "@renderer/components/notes/note-card"
-import { Button } from "@renderer/components/ui/button"
+import { NoteEmptyState } from "@renderer/components/notes/note-empty-state"
 import type { ChampSelectVM } from "@renderer/hooks/use-champ-select"
 import { useDDragon, useUpsertNote } from "@renderer/hooks/use-data"
 import { timeAgo } from "@renderer/lib/time"
-import { useNavigate } from "@tanstack/react-router"
-import { EyeOff, Plus } from "lucide-react"
+import { EyeOff } from "lucide-react"
 
 import type { MatchupDifficulty } from "@/shared/lib/counters"
 import type { ChampionStatic, MatchupNote } from "@/shared/types"
@@ -31,7 +29,6 @@ export function NotesRegion({
 	grow,
 	difficulty,
 }: NotesRegionProps): React.JSX.Element {
-	const navigate = useNavigate()
 	const upsert = useUpsertNote()
 	const { data: bundle } = useDDragon()
 	const showNote = !!note && !enemyHidden
@@ -64,44 +61,9 @@ export function NotesRegion({
 				saving={upsert.isPending}
 			/>
 		)
-	} else if (opponent) {
-		body = (
-			<div className="flex flex-1 flex-col justify-center gap-3">
-				<div className="flex items-center gap-2">
-					<ChampionPortrait champion={me.champion} version={version} size={24} />
-					<span className="font-mono text-[11px] leading-none text-paper-400">vs</span>
-					<ChampionPortrait champion={opponent} version={version} size={24} />
-				</div>
-				<p className="m-0 text-[14px] leading-normal text-paper-200">
-					No note yet for <b className="font-semibold text-paper-100">{me.champion?.name}</b> vs{" "}
-					<b className="font-semibold text-paper-100">{opponent.name}</b>.
-				</p>
-				<Button
-					className="self-start"
-					onClick={() => navigate({ to: "/notes", search: { new: true } })}
-				>
-					<Plus size={16} />
-					Add a note
-				</Button>
-			</div>
-		)
 	} else {
-		// no lane opponent resolved (role pending, or no enemy maps to my lane)
-		body = (
-			<div className="flex flex-1 flex-col justify-center gap-3">
-				<ChampionPortrait champion={me.champion} version={version} size={24} />
-				<p className="m-0 text-[14px] leading-normal text-paper-200">
-					No note yet for <b className="font-semibold text-paper-100">{me.champion?.name}</b>.
-				</p>
-				<Button
-					className="self-start"
-					onClick={() => navigate({ to: "/notes", search: { new: true } })}
-				>
-					<Plus size={16} />
-					Add a note
-				</Button>
-			</div>
-		)
+		// opponent may be null: role pending, or no enemy maps to my lane
+		body = <NoteEmptyState champion={me.champion} opponent={opponent} version={version} />
 	}
 
 	return (

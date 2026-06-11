@@ -9,7 +9,7 @@ import { RunesReference } from "@renderer/components/game/runes-reference"
 import { SkillOrderGrid } from "@renderer/components/game/skill-order-grid"
 import { SpellPair } from "@renderer/components/game/spell-pair"
 import { NoteCard } from "@renderer/components/notes/note-card"
-import { Button } from "@renderer/components/ui/button"
+import { NoteEmptyState } from "@renderer/components/notes/note-empty-state"
 import {
 	useBuildRecommendation,
 	useCounterTable,
@@ -21,8 +21,7 @@ import {
 import { useInGame } from "@renderer/hooks/use-lcu"
 import { winSampleLabel } from "@renderer/lib/build-format"
 import { roleToDisplay } from "@renderer/lib/roles"
-import { useNavigate } from "@tanstack/react-router"
-import { Plus, Swords } from "lucide-react"
+import { Swords } from "lucide-react"
 
 import { type MatchupDifficulty, matchupDifficulty } from "@/shared/lib/counters"
 import { asRole, championLaneRole } from "@/shared/lib/lanes"
@@ -35,7 +34,6 @@ export function InGameScreen(): React.JSX.Element | null {
 	const { data: settings } = useSettings()
 	const { data: notes } = useNotes()
 	const upsert = useUpsertNote()
-	const navigate = useNavigate()
 
 	const version = bundle?.version ?? ""
 	const layout = settings?.spellSlotLayout ?? "DF"
@@ -122,19 +120,7 @@ export function InGameScreen(): React.JSX.Element | null {
 							saving={upsert.isPending}
 						/>
 					) : (
-						<div className="flex flex-1 flex-col justify-center gap-3">
-							<ChampionPortrait champion={champion} version={version} size={24} />
-							<p className="m-0 text-[14px] leading-normal text-paper-200">
-								No note yet for <b className="font-semibold text-paper-100">{champion?.name}</b>.
-							</p>
-							<Button
-								className="self-start"
-								onClick={() => navigate({ to: "/notes", search: { new: true } })}
-							>
-								<Plus size={16} />
-								Add a note
-							</Button>
-						</div>
+						<NoteEmptyState champion={champion} opponent={opponent} version={version} />
 					)}
 				</Section>
 
