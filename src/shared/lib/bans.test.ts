@@ -138,6 +138,7 @@ describe("statisticalBans", () => {
 		weak(164, 0.47),
 		weak(875, 0.475),
 		weak(86, 0.48),
+		weak(36, 0.485),
 	]
 
 	it("suggests top counters not on the list, flipped to their win rate into me", () => {
