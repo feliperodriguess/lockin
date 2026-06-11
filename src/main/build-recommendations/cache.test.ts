@@ -1,9 +1,11 @@
+import { join } from "node:path"
+
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { BuildRecommendation } from "@/shared/types"
 
 const FAKE_DIR = "/fake-userdata"
-const FILE = `${FAKE_DIR}/opgg-cache.json`
+const FILE = join(FAKE_DIR, "opgg-cache.json")
 
 /** in-memory stand-in for the cache file on disk */
 let files: Record<string, string>
