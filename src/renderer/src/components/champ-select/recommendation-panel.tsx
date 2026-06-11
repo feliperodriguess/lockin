@@ -1,6 +1,6 @@
-import { api } from "@renderer/api"
 import { Section } from "@renderer/components/champ-select/section"
 import { SpellPair } from "@renderer/components/game/spell-pair"
+import { useAutoApply } from "@renderer/hooks/use-auto-apply"
 import { useSettings } from "@renderer/hooks/use-data"
 import { runeIconUrl } from "@renderer/lib/ddragon-urls"
 import { fade, rise } from "@renderer/lib/motion"
@@ -41,62 +41,32 @@ export function RecommendationPanel({
 	const { data: settings } = useSettings()
 	const [status, setStatus] = useState<string | null>(null)
 	const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-	const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
-	const lastApplied = useRef<number | null>(null)
 
 	const autoRunes = settings?.autoRunes ?? false
 	const autoSpells = settings?.autoSpells ?? false
 
 	// transient status helper — clears itself after 2.4s. Stable identity so the
-	// auto-apply effect below only re-fires on its real trigger (the champion).
+	// auto-apply hook only re-fires on its real trigger (the champion).
 	const flash = useCallback((msg: string): void => {
 		setStatus(msg)
 		if (statusTimer.current) clearTimeout(statusTimer.current)
 		statusTimer.current = setTimeout(() => setStatus(null), 2400)
 	}, [])
 
-	// Auto-apply: when opted in and the effective champion changes, debounce ~400ms
-	// (rapid hover shouldn't spam the client) then write spells/runes. Off by
-	// default → this effect makes no calls. Writes go through the already-wired
-	// invoke handlers (api.setSpells / api.applyRunes); no main-process code here.
-	useEffect(() => {
-		if (!championKey || !build) return
-		// only act when the EFFECTIVE CHAMPION actually changes — never on a mere
-		// settings-toggle flip or a build refetch (both keep championKey the same)
-		if (championKey === lastApplied.current) return
-		lastApplied.current = championKey
-		if (!autoRunes && !autoSpells) return
-		if (debounce.current) clearTimeout(debounce.current)
-		debounce.current = setTimeout(async () => {
-			// spells: write the precedence-RESOLVED pair shown in the panel
-			// (pinned > OP.GG > heuristic) — never the raw OP.GG pair
-			if (autoSpells && spellPair) {
-				try {
-					await api.setSpells(spellPair[0].key, spellPair[1].key)
-					flash("Spells applied")
-				} catch {
-					flash("Couldn't set spells")
-				}
-			}
-			if (autoRunes && build.runes) {
-				try {
-					const championName = bundle?.championsByKey[championKey]?.name
-					const res = await api.applyRunes(build.runes, championName)
-					flash(res.ok ? "Runes applied" : (res.error ?? "Couldn't set runes"))
-				} catch {
-					flash("Couldn't set runes")
-				}
-			}
-		}, 400)
-		return () => {
-			if (debounce.current) clearTimeout(debounce.current)
-		}
-	}, [championKey, build, spellPair, autoRunes, autoSpells, bundle, flash])
+	useAutoApply({
+		championKey,
+		build,
+		spellPair,
+		autoRunes,
+		autoSpells,
+		championName: championKey ? bundle?.championsByKey[championKey]?.name : undefined,
+		layout,
+		flash,
+	})
 
 	useEffect(() => {
 		return () => {
 			if (statusTimer.current) clearTimeout(statusTimer.current)
-			if (debounce.current) clearTimeout(debounce.current)
 		}
 	}, [])
 
