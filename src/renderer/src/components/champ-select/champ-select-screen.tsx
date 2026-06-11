@@ -1,4 +1,5 @@
 import { BansRegion } from "@renderer/components/champ-select/bans-region"
+import { CounterPicksRegion } from "@renderer/components/champ-select/counter-picks-region"
 import { HeaderStrip } from "@renderer/components/champ-select/header-strip"
 import { NotesRegion } from "@renderer/components/champ-select/notes-region"
 import { RecommendationPanel } from "@renderer/components/champ-select/recommendation-panel"
@@ -39,6 +40,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 					bundle={bundle}
 					version={version}
 				/>
+				{vm.counterPicks && <CounterPicksRegion picks={vm.counterPicks} version={version} />}
 				<NotesRegion
 					note={vm.note}
 					enemyHidden={vm.enemyHidden}
