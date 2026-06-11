@@ -5,7 +5,7 @@ import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { RoleGlyph } from "@renderer/components/game/role"
 import { useDDragon, useSetSettings, useSettings } from "@renderer/hooks/use-data"
 import { MAIN_ROLE_ORDER } from "@renderer/lib/mains"
-import { chip, tweenBase } from "@renderer/lib/motion"
+import { chip } from "@renderer/lib/motion"
 import { ROLE_ABBR, roleToDisplay } from "@renderer/lib/roles"
 import { cn } from "@renderer/lib/utils"
 import { Plus, X } from "lucide-react"
@@ -116,7 +116,7 @@ export function MainsEditor(): React.JSX.Element | null {
 										/>
 									))}
 								</AnimatePresence>
-								<motion.li layout transition={tweenBase} className="list-none">
+								<li className="list-none">
 									{addingRole === role ? (
 										<div className="w-[230px]">
 											<ChampionPicker
@@ -148,7 +148,7 @@ export function MainsEditor(): React.JSX.Element | null {
 											{ids.length === 0 ? `Add a ${display} main` : "Add"}
 										</button>
 									)}
-								</motion.li>
+								</li>
 							</ul>
 						</section>
 					)
