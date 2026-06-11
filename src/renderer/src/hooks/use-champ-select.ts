@@ -1,7 +1,7 @@
 import { type DisplayRole, displayRole } from "@renderer/lib/roles"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-import { statisticalBans, suggestBans } from "@/shared/lib/bans"
+import { goneChampionIds, statisticalBans, suggestBans } from "@/shared/lib/bans"
 import { counterPicks, type MatchupDifficulty, matchupDifficulty } from "@/shared/lib/counters"
 import { asRole, findLaneOpponent } from "@/shared/lib/lanes"
 import { matchupNote } from "@/shared/lib/notes-match"
@@ -179,13 +179,15 @@ export function useChampSelect(): ChampSelectVM | null {
 			: null
 		const opponent = laneOpponent ? champ(laneOpponent.championId) : null
 
-		// counter-pick assist: only while the decision is live (opponent visible, not locked)
+		// counter-pick assist: only while the decision is live (pick phase, opponent visible, not locked)
 		const myRole = asRole(me.assignedPosition)
 		const mainIds = (settings?.mains ?? [])
 			.filter((m) => m.role === myRole)
 			.map((m) => m.championId)
 		const picks =
-			me.championId === 0 && opponent ? counterPicks(enemyCounters ?? null, mainIds) : null
+			subPhase === "pick" && me.championId === 0 && opponent
+				? counterPicks(enemyCounters ?? null, mainIds, goneChampionIds(session))
+				: null
 		const counterPicksVM: CounterPicksVM | null =
 			picks && opponent && (picks.yours.length > 0 || picks.best.length > 0)
 				? {

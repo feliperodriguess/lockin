@@ -67,17 +67,22 @@ export interface CounterPicksResult {
 
 /** Picks that beat the enemy, derived from the ENEMY's weakAgainst. Entry
  *  winRate is the enemy's rate, so flip it for display. weakAgainst arrives
- *  worst-for-the-enemy first, which is already best-counter-first for us. */
+ *  worst-for-the-enemy first, which is already best-counter-first for us.
+ *  Excludes any champion in `excludedChampionIds` (already banned or picked). */
 export function counterPicks(
 	enemyTable: CounterTable | null,
 	mainChampionIds: readonly number[],
+	excludedChampionIds: ReadonlySet<number> = new Set(),
 ): CounterPicksResult | null {
 	if (!enemyTable || enemyTable.weakAgainst.length === 0) return null
-	const all: CounterPick[] = enemyTable.weakAgainst.map((e) => ({
-		championId: e.championId,
-		winRate: 1 - e.winRate,
-		games: e.games,
-	}))
+	const all: CounterPick[] = enemyTable.weakAgainst
+		.filter((e) => !excludedChampionIds.has(e.championId))
+		.map((e) => ({
+			championId: e.championId,
+			winRate: 1 - e.winRate,
+			games: e.games,
+		}))
+	if (all.length === 0) return null
 	const mains = new Set(mainChampionIds)
 	return {
 		yours: all.filter((p) => mains.has(p.championId)),

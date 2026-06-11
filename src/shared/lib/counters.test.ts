@@ -95,4 +95,19 @@ describe("counterPicks", () => {
 		expect(counterPicks(null, [58])).toBeNull()
 		expect(counterPicks(table(114, []), [58])).toBeNull()
 	})
+
+	it("excludes banned/picked champions from both yours and best", () => {
+		// exclude 133 (would be best[0]) and 58 (would be yours[0])
+		const excluded = new Set([133, 58])
+		const picks = counterPicks(enemy, [58, 875, 999], excluded)
+		// yours: 875 remains (58 excluded), 999 not in weakAgainst
+		expect(picks?.yours.map((p) => p.championId)).toEqual([875])
+		// best: 133 excluded → starts at 86, next 17, 36
+		expect(picks?.best.map((p) => p.championId)).toEqual([86, 17, 36])
+	})
+
+	it("all weakAgainst entries excluded → null", () => {
+		const allIds = new Set([133, 58, 86, 875, 17, 36])
+		expect(counterPicks(enemy, [], allIds)).toBeNull()
+	})
 })

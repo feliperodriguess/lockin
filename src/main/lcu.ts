@@ -215,7 +215,11 @@ class LcuService {
 		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
 		if (this.credentials !== credentials) return
 		const base = toInGameState(session, this.localPuuid)
-		this.setInGame(base ? { ...base, ...(await this.champSelectCarryOver()) } : null)
+		const carry = await this.champSelectCarryOver()
+		// re-check: the carry-over await may have outlived the game / session
+		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
+		if (this.credentials !== credentials) return
+		this.setInGame(base ? { ...base, ...carry } : null)
 	}
 
 	/** Matchup context remembered from the champ select that led into this game —

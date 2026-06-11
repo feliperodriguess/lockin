@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import type { BanListEntry, ChampSelectSession, CounterEntry } from "@/shared/types"
 
-import { statisticalBans, suggestBans } from "./bans"
+import { goneChampionIds, statisticalBans, suggestBans } from "./bans"
 
 const entry = (championId: number, priority: number, reason?: string): BanListEntry => ({
 	championId,
@@ -128,6 +128,44 @@ describe("suggestBans with counter data", () => {
 	it("omitting counter data keeps every row's counterWinRate null", () => {
 		const out = suggestBans([entry(114, 1)], session())
 		expect(out.entries[0]?.counterWinRate).toBeNull()
+	})
+})
+
+describe("goneChampionIds", () => {
+	it("returns union of bans (including completed ban actions) and picks from both teams, excluding hover-only intents", () => {
+		const s = session({
+			bans: { myTeamBans: [114], theirTeamBans: [], numBans: 10 },
+			actions: [
+				[
+					{
+						actorCellId: 1,
+						championId: 122,
+						completed: true,
+						id: 1,
+						isAllyAction: true,
+						isInProgress: false,
+						pickTurn: 1,
+						type: "ban",
+					},
+				],
+			],
+			myTeam: [player(266, { team: 1 })],
+			theirTeam: [
+				player(157), // picked (championId > 0)
+				player(0, { championPickIntent: 133 }), // hover only — NOT gone
+			],
+		})
+		const gone = goneChampionIds(s)
+		// banned by session.bans: 114
+		expect(gone.has(114)).toBe(true)
+		// banned by completed ban action: 122
+		expect(gone.has(122)).toBe(true)
+		// picked by my team: 266
+		expect(gone.has(266)).toBe(true)
+		// picked by their team: 157
+		expect(gone.has(157)).toBe(true)
+		// hover-only intent: NOT included
+		expect(gone.has(133)).toBe(false)
 	})
 })
 

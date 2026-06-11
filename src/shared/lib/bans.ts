@@ -40,6 +40,11 @@ function pickedIds(session: ChampSelectSession): Set<number> {
 	)
 }
 
+/** Champions no longer pickable this session (banned by either team or already picked). */
+export function goneChampionIds(session: ChampSelectSession): Set<number> {
+	return new Set([...bannedIds(session), ...pickedIds(session)])
+}
+
 export function suggestBans(
 	banlist: readonly BanListEntry[],
 	session: ChampSelectSession,

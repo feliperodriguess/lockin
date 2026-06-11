@@ -6,8 +6,7 @@ export function YourPickBadge(): React.JSX.Element {
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-1",
-				"px-[7px] py-[2px] rounded-full",
+				"inline-flex items-center gap-1 px-[7px] py-[2px] rounded-full",
 				"bg-(--accent-bg) text-accent",
 				"font-mono text-[9px] font-semibold uppercase leading-none tracking-[0.06em]",
 			)}
@@ -22,8 +21,7 @@ export function ThreatBadge(): React.JSX.Element {
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-1",
-				"px-[7px] py-[2px] rounded-full",
+				"inline-flex items-center gap-1 px-[7px] py-[2px] rounded-full",
 				"bg-(--fail-bg) text-fail",
 				"font-mono text-[9px] font-semibold uppercase leading-none tracking-[0.06em]",
 			)}
@@ -38,8 +36,7 @@ export function CountersYouBadge({ winRate }: { winRate: number }): React.JSX.El
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-1",
-				"px-[7px] py-[2px] rounded-full",
+				"inline-flex items-center gap-1 px-[7px] py-[2px] rounded-full",
 				"bg-(--warn-bg) text-warn",
 				"font-mono text-[9px] font-semibold uppercase leading-none tracking-[0.06em]",
 			)}
@@ -58,10 +55,8 @@ export function MismatchFlag({ label = "Rank spread" }: MismatchFlagProps): Reac
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-[5px]",
-				"px-2 py-[3px] rounded-sm",
-				"bg-(--warn-bg) text-warn",
-				"border border-[rgba(245,183,64,0.25)]",
+				"inline-flex items-center gap-[5px] px-2 py-[3px] rounded-sm",
+				"bg-(--warn-bg) text-warn border border-[rgba(245,183,64,0.25)]",
 				"font-mono text-[10px] font-semibold uppercase leading-none tracking-[0.04em]",
 			)}
 		>

@@ -3,6 +3,7 @@ import { Eyebrow } from "@renderer/components/app/eyebrow"
 import { Section } from "@renderer/components/champ-select/section"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { ItemStrip } from "@renderer/components/game/item-strip"
+import { MatchupPill } from "@renderer/components/game/matchup-pill"
 import { RoleTag } from "@renderer/components/game/role"
 import { RunesReference } from "@renderer/components/game/runes-reference"
 import { SkillOrderGrid } from "@renderer/components/game/skill-order-grid"
@@ -11,6 +12,7 @@ import { NoteCard } from "@renderer/components/notes/note-card"
 import { Button } from "@renderer/components/ui/button"
 import {
 	useBuildRecommendation,
+	useCounterTable,
 	useDDragon,
 	useNotes,
 	useSettings,
@@ -18,10 +20,12 @@ import {
 } from "@renderer/hooks/use-data"
 import { useInGame } from "@renderer/hooks/use-lcu"
 import { winSampleLabel } from "@renderer/lib/build-format"
-import { championLane, displayToRole, roleToDisplay } from "@renderer/lib/roles"
+import { roleToDisplay } from "@renderer/lib/roles"
 import { useNavigate } from "@tanstack/react-router"
 import { Plus, Swords } from "lucide-react"
 
+import { type MatchupDifficulty, matchupDifficulty } from "@/shared/lib/counters"
+import { asRole, championLaneRole } from "@/shared/lib/lanes"
 import { matchupNote } from "@/shared/lib/notes-match"
 import type { Role, SummonerSpellStatic } from "@/shared/types"
 
@@ -37,11 +41,20 @@ export function InGameScreen(): React.JSX.Element | null {
 	const layout = settings?.spellSlotLayout ?? "DF"
 
 	const champion = inGame && bundle ? (bundle.championsByKey[inGame.championId] ?? null) : null
-	const displayRole = champion ? championLane(champion.id) : null
-	const role: Role | null = displayRole ? displayToRole(displayRole) : null
+	// real assigned position when champ select was observed; default-lane guess otherwise
+	const role: Role | null =
+		asRole(inGame?.assignedPosition ?? "") ?? (champion ? championLaneRole(champion.id) : null)
 
 	const { data: build } = useBuildRecommendation(
 		inGame?.championId ?? null,
+		role,
+		settings?.buildTier,
+	)
+
+	const opponentId = inGame?.opponentChampionId ?? null
+	const { data: enemyCounters } = useCounterTable(opponentId, role, settings?.buildTier)
+	const { data: myCounters } = useCounterTable(
+		opponentId ? (inGame?.championId ?? null) : null,
 		role,
 		settings?.buildTier,
 	)
@@ -52,7 +65,11 @@ export function InGameScreen(): React.JSX.Element | null {
 	const s1: SummonerSpellStatic | null = bundle.spellsByKey[inGame.spell2Id] ?? null
 	const spellPair = s0 && s1 ? ([s0, s1] as [SummonerSpellStatic, SummonerSpellStatic]) : null
 
-	const note = matchupNote(notes ?? [], inGame.championId, null)
+	const opponent = opponentId ? (bundle.championsByKey[opponentId] ?? null) : null
+	const note = matchupNote(notes ?? [], inGame.championId, opponentId)
+	const difficulty: MatchupDifficulty | null = opponentId
+		? matchupDifficulty(inGame.championId, opponentId, enemyCounters ?? null, myCounters ?? null)
+		: null
 
 	return (
 		<section className="grid h-full min-h-0 gap-[14px] grid-cols-[1fr_314px] grid-rows-[minmax(0,1fr)]">
@@ -77,7 +94,21 @@ export function InGameScreen(): React.JSX.Element | null {
 				</Card>
 
 				{/* matchup note */}
-				<Section label="Your note">
+				<Section
+					label="Your note"
+					right={
+						difficulty && opponent ? (
+							<div className="flex items-center gap-2">
+								{opponent && (
+									<span className="font-mono text-[10px] leading-none text-paper-400">
+										vs {opponent.name}
+									</span>
+								)}
+								<MatchupPill difficulty={difficulty} />
+							</div>
+						) : null
+					}
+				>
 					{note ? (
 						<NoteCard
 							key={note.id}
