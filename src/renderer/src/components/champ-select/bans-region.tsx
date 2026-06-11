@@ -1,10 +1,11 @@
 import { Card } from "@renderer/components/app/card"
 import { EmptyState } from "@renderer/components/app/empty-state"
 import { Section } from "@renderer/components/champ-select/section"
-import { ThreatBadge } from "@renderer/components/game/badges"
+import { CountersYouBadge, ThreatBadge } from "@renderer/components/game/badges"
 import { ChampionPortrait } from "@renderer/components/game/champion-portrait"
 import { Button } from "@renderer/components/ui/button"
-import type { BanRowVM } from "@renderer/hooks/use-champ-select"
+import type { BanRowVM, StatBanRowVM } from "@renderer/hooks/use-champ-select"
+import { formatWinRate } from "@renderer/lib/build-format"
 import { cn } from "@renderer/lib/utils"
 import { useNavigate } from "@tanstack/react-router"
 import { ChevronDown, ChevronUp, Shield } from "lucide-react"
@@ -12,6 +13,7 @@ import { useEffect, useState } from "react"
 
 interface BansRegionProps {
 	banRows: BanRowVM[]
+	statBanRows: StatBanRowVM[]
 	goneCount: number
 	enemyHidden: boolean
 	subPhase: "ban" | "pick"
@@ -21,6 +23,7 @@ interface BansRegionProps {
 
 export function BansRegion({
 	banRows,
+	statBanRows,
 	goneCount,
 	enemyHidden,
 	subPhase,
@@ -33,9 +36,9 @@ export function BansRegion({
 		setCollapsed(subPhase === "pick")
 	}, [subPhase])
 
-	if (banRows.length === 0) {
+	if (banRows.length === 0 && statBanRows.length === 0) {
 		return (
-			<Section label="Ban suggestions" grow={grow}>
+			<Section label="Ban radar" grow={grow}>
 				<EmptyBanList />
 			</Section>
 		)
@@ -47,7 +50,7 @@ export function BansRegion({
 
 	return (
 		<Section
-			label="Ban suggestions"
+			label="Ban radar"
 			grow={grow}
 			scroll
 			right={
@@ -73,6 +76,34 @@ export function BansRegion({
 					<BanRow key={row.championId} row={row} enemyHidden={enemyHidden} version={version} />
 				))}
 			</ul>
+			{statBanRows.length > 0 && (
+				<div className="mt-[10px] border-t border-(--stroke-subtle) pt-[8px]">
+					<span className="font-mono text-[10px] font-medium uppercase leading-none tracking-[0.06em] text-paper-400">
+						Statistical counters to your pick
+					</span>
+					<ul className="mt-[6px] flex flex-col gap-[2px]">
+						{statBanRows.map((row, i) => (
+							<li
+								key={row.champion?.key ?? i}
+								className="flex items-center gap-[10px] rounded-sm px-[9px] py-[7px]"
+							>
+								<ChampionPortrait champion={row.champion} version={version} size={30} />
+								<div className="min-w-0 flex-1">
+									<span className="text-[13px] font-semibold leading-none text-paper-100">
+										{row.champion?.name}
+									</span>
+									<div className="mt-[2px] text-[11px] leading-[1.3] text-paper-400">
+										Beats your pick — not on your list
+									</div>
+								</div>
+								<span className="shrink-0 font-mono text-[10px] leading-none text-warn">
+									{formatWinRate(row.winRate)}
+								</span>
+							</li>
+						))}
+					</ul>
+				</div>
+			)}
 		</Section>
 	)
 }
@@ -110,6 +141,7 @@ function BanRow({
 						{row.champion?.name}
 					</span>
 					{showThreat && <ThreatBadge />}
+					{row.counterWinRate != null && !gone && <CountersYouBadge winRate={row.counterWinRate} />}
 				</div>
 				{row.reason && (
 					<div className="mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-[1.3] text-paper-400">

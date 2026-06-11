@@ -1,5 +1,6 @@
+import { formatWinRate } from "@renderer/lib/build-format"
 import { cn } from "@renderer/lib/utils"
-import { Pin, TriangleAlert } from "lucide-react"
+import { Pin, Swords, TriangleAlert } from "lucide-react"
 
 export function YourPickBadge(): React.JSX.Element {
 	return (
@@ -29,6 +30,22 @@ export function ThreatBadge(): React.JSX.Element {
 		>
 			<TriangleAlert size={10} strokeWidth={2} />
 			Threat
+		</span>
+	)
+}
+
+export function CountersYouBadge({ winRate }: { winRate: number }): React.JSX.Element {
+	return (
+		<span
+			className={cn(
+				"inline-flex items-center gap-1",
+				"px-[7px] py-[2px] rounded-full",
+				"bg-(--warn-bg) text-warn",
+				"font-mono text-[9px] font-semibold uppercase leading-none tracking-[0.06em]",
+			)}
+		>
+			<Swords size={10} strokeWidth={2} />
+			Counters you · {formatWinRate(winRate)}
 		</span>
 	)
 }

@@ -63,6 +63,7 @@ export function ChampSelectScreen(): React.JSX.Element | null {
 				/>
 				<BansRegion
 					banRows={vm.banRows}
+					statBanRows={vm.statBanRows}
 					goneCount={vm.goneCount}
 					enemyHidden={vm.enemyHidden}
 					subPhase={vm.subPhase}
