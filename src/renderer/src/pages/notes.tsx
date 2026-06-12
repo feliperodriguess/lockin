@@ -21,22 +21,37 @@ export function NotesPage(): React.JSX.Element {
 
 	const [q, setQ] = useState("")
 	const [editingId, setEditingId] = useState<string | null>(null)
+	const [prefill, setPrefill] = useState<{
+		championId: number | null
+		opponentChampionId: number | null
+	} | null>(null)
 
 	// On mount, open the editor from route search params (?new / ?edit), then clear
 	// them (replace) so back-navigation doesn't reopen. The effect re-runs once after
 	// the params clear; both values are then falsy, so it no-ops.
-	const initSearch = { new: search.new, edit: search.edit }
+	const initSearch = {
+		new: search.new,
+		edit: search.edit,
+		champion: search.champion,
+		opponent: search.opponent,
+	}
 	useEffect(
 		() => {
 			if (initSearch.new) {
 				setEditingId("new")
+				if (initSearch.champion || initSearch.opponent) {
+					setPrefill({
+						championId: initSearch.champion ?? null,
+						opponentChampionId: initSearch.opponent ?? null,
+					})
+				}
 				navigate({ to: "/notes", search: {}, replace: true })
 			} else if (initSearch.edit) {
 				setEditingId(initSearch.edit)
 				navigate({ to: "/notes", search: {}, replace: true })
 			}
 		},
-		[navigate, initSearch.new, initSearch.edit], // intentionally empty — values captured in closure at mount time
+		[navigate, initSearch.new, initSearch.edit, initSearch.champion, initSearch.opponent], // intentionally empty — values captured in closure at mount time
 	)
 
 	const version = bundle?.version ?? ""
@@ -61,7 +76,10 @@ export function NotesPage(): React.JSX.Element {
 
 	const openNew = () => setEditingId("new")
 	const openEdit = (id: string) => setEditingId(id)
-	const closeEditor = useCallback(() => setEditingId(null), [])
+	const closeEditor = useCallback(() => {
+		setEditingId(null)
+		setPrefill(null)
+	}, [])
 
 	if (!bundle) return <div className="h-full" />
 
@@ -143,6 +161,7 @@ export function NotesPage(): React.JSX.Element {
 					<NoteEditor
 						key="editor"
 						note={editingId === "new" ? null : editingNote}
+						prefill={editingId === "new" ? prefill : null}
 						bundle={bundle}
 						version={version}
 						spellSlotLayout={spellSlotLayout}

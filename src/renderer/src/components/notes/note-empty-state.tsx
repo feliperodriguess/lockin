@@ -54,7 +54,12 @@ export function NoteEmptyState({
 				variant="secondary"
 				size="sm"
 				className="mt-1"
-				onClick={() => navigate({ to: "/notes", search: { new: true } })}
+				onClick={() =>
+					navigate({
+						to: "/notes",
+						search: { new: true, champion: champion?.key, opponent: opponent?.key },
+					})
+				}
 			>
 				<Plus size={14} />
 				Add a note

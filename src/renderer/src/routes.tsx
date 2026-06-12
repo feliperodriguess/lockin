@@ -64,13 +64,22 @@ const homeRoute = createRoute({
 	component: HomePage,
 })
 
+function toChampionKey(value: unknown): number | undefined {
+	const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN
+	return Number.isInteger(n) && n > 0 ? n : undefined
+}
+
 const notesRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/notes",
 	component: NotesPage,
-	validateSearch: (search: Record<string, unknown>): { new?: boolean; edit?: string } => ({
+	validateSearch: (
+		search: Record<string, unknown>,
+	): { new?: boolean; edit?: string; champion?: number; opponent?: number } => ({
 		new: search.new === true || search.new === "true" ? true : undefined,
 		edit: typeof search.edit === "string" ? search.edit : undefined,
+		champion: toChampionKey(search.champion),
+		opponent: toChampionKey(search.opponent),
 	}),
 })
 
