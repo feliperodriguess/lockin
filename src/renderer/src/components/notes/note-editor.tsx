@@ -17,6 +17,7 @@ import { PINNABLE_SPELL_KEYS } from "../../lib/spells"
 
 interface NoteEditorProps {
 	note: MatchupNote | null
+	prefill?: { championId: number | null; opponentChampionId: number | null } | null
 	bundle: DDragonBundle
 	version: string
 	spellSlotLayout: AppSettings["spellSlotLayout"]
@@ -25,6 +26,7 @@ interface NoteEditorProps {
 
 export function NoteEditor({
 	note,
+	prefill,
 	bundle,
 	version,
 	spellSlotLayout,
@@ -34,9 +36,11 @@ export function NoteEditor({
 	const upsert = useUpsertNote()
 	const del = useDeleteNote()
 
-	const [championId, setChampionId] = useState<number | null>(note?.championId ?? null)
+	const [championId, setChampionId] = useState<number | null>(
+		note?.championId ?? prefill?.championId ?? null,
+	)
 	const [opponentChampionId, setOpponentChampionId] = useState<number | null>(
-		note?.opponentChampionId ?? null,
+		note?.opponentChampionId ?? prefill?.opponentChampionId ?? null,
 	)
 	const [body, setBody] = useState(note?.body ?? "")
 	const [spells, setSpells] = useState<number[]>(note?.pinnedSpells ? [...note.pinnedSpells] : [])

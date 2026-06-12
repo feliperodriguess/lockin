@@ -77,11 +77,6 @@ export function Sidebar({ connected, phase }: SidebarProps): React.JSX.Element {
 			<footer className="border-t border-(--stroke-default) pt-3 flex flex-col gap-2 px-2">
 				<SidebarIdentity />
 				<ConnectionIndicator connected={connected} />
-				{connected && (
-					<span className="font-mono text-[10px] font-normal leading-none text-paper-400 whitespace-nowrap">
-						LCU · 127.0.0.1
-					</span>
-				)}
 			</footer>
 		</aside>
 	)

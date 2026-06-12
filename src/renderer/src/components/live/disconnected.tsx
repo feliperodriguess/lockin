@@ -20,11 +20,6 @@ export function Disconnected(): React.JSX.Element {
 					until then.
 				</p>
 			</div>
-
-			<div className="flex items-center gap-2 font-mono text-[11px] font-medium leading-none tracking-[0.04em] text-paper-400">
-				<span className="ccp-breathe inline-block size-1.5 rounded-full bg-paper-400" />
-				Listening on 127.0.0.1
-			</div>
 		</section>
 	)
 }
