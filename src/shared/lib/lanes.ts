@@ -1,4 +1,4 @@
-import type { ChampSelectSession, Role } from "@/shared/types"
+import type { ChampSelectPlayer, ChampSelectSession, Role } from "@/shared/types"
 
 /** DDragon champion id → the lane the champion most commonly plays.
  *  Moved from src/renderer/src/lib/roles.ts (values converted DisplayRole → Role)
@@ -207,6 +207,34 @@ export function findLaneOpponent(
 	const myRole = asRole(assignedPosition)
 	if (!myRole) return { assignedPosition, opponentChampionId: null }
 	const opponent = session.theirTeam.find((p) => {
+		if (p.championId <= 0) return false
+		const role = asRole(p.assignedPosition) ?? championLaneRole(championIdOf(p.championId) ?? "")
+		return role === myRole
+	})
+	return { assignedPosition, opponentChampionId: opponent?.championId ?? null }
+}
+
+/** Lane matchup from the assembled in-game rosters. Unlike champ select, the
+ *  in-game payload exposes every player's champion (and usually position), so this
+ *  works even when the app never observed champ select: it identifies the local
+ *  player by puuid (then by champion), infers my role from my assigned position or
+ *  my champion's default lane, and returns the enemy sharing that lane. Use this as
+ *  the live, more-complete source once in-game; pair it with findLaneOpponent's
+ *  champ-select carry-over as a fallback. */
+export function findInGameLaneOpponent(
+	myTeam: ChampSelectPlayer[],
+	theirTeam: ChampSelectPlayer[],
+	localPuuid: string,
+	localChampionId: number,
+	championIdOf: (championKey: number) => string | null,
+): LaneMatchup {
+	const me =
+		(localPuuid ? myTeam.find((p) => p.puuid === localPuuid) : undefined) ??
+		(localChampionId ? myTeam.find((p) => p.championId === localChampionId) : undefined)
+	const assignedPosition = me?.assignedPosition ?? ""
+	const myRole = asRole(assignedPosition) ?? championLaneRole(championIdOf(localChampionId) ?? "")
+	if (!myRole) return { assignedPosition, opponentChampionId: null }
+	const opponent = theirTeam.find((p) => {
 		if (p.championId <= 0) return false
 		const role = asRole(p.assignedPosition) ?? championLaneRole(championIdOf(p.championId) ?? "")
 		return role === myRole

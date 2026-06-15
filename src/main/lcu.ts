@@ -8,8 +8,9 @@ import {
 } from "league-connect"
 
 import { IPC } from "@/shared/constants"
-import { findLaneOpponent } from "@/shared/lib/lanes"
+import { findInGameLaneOpponent, findLaneOpponent } from "@/shared/lib/lanes"
 import {
+	type ChampSelectPlayer,
 	type ChampSelectSession,
 	DISCONNECTED_SNAPSHOT,
 	type GameflowPhase,
@@ -237,18 +238,50 @@ class LcuService {
 		// re-check: the carry-over await may have outlived the game / session
 		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
 		if (this.credentials !== credentials) return
-		this.setInGame(
-			base
-				? {
-						...base,
-						assignedPosition: carry.assignedPosition,
-						opponentChampionId: carry.opponentChampionId,
-						// gameflow rosters carry full identity in-game; champ select fills positions
-						myTeam: mergeRoster(teams.myTeam, carry.myTeam),
-						theirTeam: mergeRoster(teams.theirTeam, carry.theirTeam),
-					}
-				: null,
-		)
+		if (!base) {
+			this.setInGame(null)
+			return
+		}
+		// gameflow rosters carry full identity in-game; champ select fills positions
+		const myTeam = mergeRoster(teams.myTeam, carry.myTeam)
+		const theirTeam = mergeRoster(teams.theirTeam, carry.theirTeam)
+		// resolve the lane opponent from the assembled live roster (which always has
+		// every enemy's champion), not just the champ-select carry-over — otherwise the
+		// matchup is blank whenever the app missed champ select or my role wasn't carried
+		const matchup = await this.liveLaneMatchup(base.championId, myTeam, theirTeam, carry)
+		// re-check: the bundle await may have outlived the game / session
+		if (this.snapshot.phase !== "InProgress" && this.snapshot.phase !== "GameStart") return
+		if (this.credentials !== credentials) return
+		this.setInGame({ ...base, ...matchup, myTeam, theirTeam })
+	}
+
+	/** Lane matchup resolved from the assembled live rosters — every enemy's champion
+	 *  (and usually position) is known in-game, so this finds the opponent even when
+	 *  the app missed champ select. Falls back to the champ-select carry-over when the
+	 *  bundle is unavailable or no enemy maps to my lane. */
+	private async liveLaneMatchup(
+		championId: number,
+		myTeam: ChampSelectPlayer[],
+		theirTeam: ChampSelectPlayer[],
+		carry: { assignedPosition: string; opponentChampionId: number | null },
+	): Promise<{ assignedPosition: string; opponentChampionId: number | null }> {
+		try {
+			const bundle = await getDDragonBundle()
+			const live = findInGameLaneOpponent(
+				myTeam,
+				theirTeam,
+				this.localPuuid,
+				championId,
+				(key) => bundle.championsByKey[key]?.id ?? null,
+			)
+			return {
+				assignedPosition: live.assignedPosition || carry.assignedPosition,
+				opponentChampionId: live.opponentChampionId ?? carry.opponentChampionId,
+			}
+		} catch (error) {
+			console.warn("[lcu] live lane matchup failed:", error)
+			return carry
+		}
 	}
 
 	/** Matchup context remembered from the champ select that led into this game —

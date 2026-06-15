@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest"
 
 import type { ChampSelectSession } from "@/shared/types"
 
-import { asRole, CHAMPION_LANE, championLaneRole, findLaneOpponent } from "./lanes"
+import {
+	asRole,
+	CHAMPION_LANE,
+	championLaneRole,
+	findInGameLaneOpponent,
+	findLaneOpponent,
+} from "./lanes"
 
 const player = (over: Record<string, unknown>) => ({
 	cellId: 0,
@@ -29,7 +35,9 @@ const session = (over?: Partial<ChampSelectSession>): ChampSelectSession => ({
 
 /** id lookup over a tiny static catalog */
 const idOf = (key: number): string | null =>
-	({ 266: "Aatrox", 114: "Fiora", 157: "Yasuo", 64: "LeeSin" })[key] ?? null
+	({ 266: "Aatrox", 114: "Fiora", 157: "Yasuo", 64: "LeeSin", 54: "Malphite", 83: "Yorick" })[
+		key
+	] ?? null
 
 describe("CHAMPION_LANE (moved from renderer)", () => {
 	it("kept every entry through the Role-value conversion", () => {
@@ -86,5 +94,47 @@ describe("findLaneOpponent", () => {
 			theirTeam: [player({ cellId: 5, championId: 114, assignedPosition: "top" })],
 		})
 		expect(findLaneOpponent(s, idOf)).toEqual({ assignedPosition: "", opponentChampionId: null })
+	})
+})
+
+describe("findInGameLaneOpponent", () => {
+	const me = (over: Record<string, unknown>) =>
+		player({ puuid: "p-me", championId: 54, team: 1, ...over }) // Malphite, mine
+
+	it("resolves the lane opponent from the live roster when champ select wasn't observed", () => {
+		// the screenshot bug: app started mid-game, so no assignedPosition is carried,
+		// yet the live roster has every enemy's champion — Yorick is clearly top.
+		const myTeam = [me({ assignedPosition: "" })]
+		const theirTeam = [
+			player({ championId: 64 }), // LeeSin → jungle
+			player({ championId: 83 }), // Yorick → top, my lane
+		]
+		expect(findInGameLaneOpponent(myTeam, theirTeam, "p-me", 54, idOf)).toEqual({
+			assignedPosition: "",
+			opponentChampionId: 83,
+		})
+	})
+
+	it("prefers the enemy's assigned position when the live roster carries one", () => {
+		const myTeam = [me({ assignedPosition: "top" })]
+		const theirTeam = [
+			player({ championId: 157, assignedPosition: "top" }), // Yasuo flexed top
+			player({ championId: 83 }), // Yorick → top by default, but not assigned here
+		]
+		expect(findInGameLaneOpponent(myTeam, theirTeam, "p-me", 54, idOf).opponentChampionId).toBe(157)
+	})
+
+	it("identifies the local player by champion when the puuid is missing", () => {
+		const myTeam = [me({ puuid: "", assignedPosition: "" })]
+		const theirTeam = [player({ championId: 83 })] // Yorick → top
+		expect(findInGameLaneOpponent(myTeam, theirTeam, "", 54, idOf).opponentChampionId).toBe(83)
+	})
+
+	it("returns null when no enemy shares my lane", () => {
+		const myTeam = [me({ assignedPosition: "" })]
+		const theirTeam = [player({ championId: 64 })] // LeeSin → jungle only
+		expect(
+			findInGameLaneOpponent(myTeam, theirTeam, "p-me", 54, idOf).opponentChampionId,
+		).toBeNull()
 	})
 })
