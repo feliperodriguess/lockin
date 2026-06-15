@@ -181,6 +181,14 @@ export interface SummonerIdentity {
 	puuid: string
 }
 
+/** A player's Riot ID resolved by puuid (LCU /lol-summoner/v2/summoners/puuid).
+ *  Used in-game, where champ select / the gameflow session expose puuids but no
+ *  names. `null` (not this shape) means the lookup found nothing usable. */
+export interface SummonerName {
+	gameName: string
+	tagLine: string
+}
+
 export interface InGameState {
 	championId: number
 	spell1Id: number

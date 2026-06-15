@@ -7,6 +7,7 @@ import type {
 	RankInfo,
 	ReadyCheck,
 	SummonerIdentity,
+	SummonerName,
 } from "@/shared/types"
 
 export interface RawReadyCheck {
@@ -159,6 +160,22 @@ export function toSummonerIdentity(raw: RawCurrentSummoner): SummonerIdentity {
 	}
 }
 
+/** Response from /lol-summoner/v2/summoners/puuid/{puuid} — used in-game to put
+ *  names on players the champ-select / gameflow payloads only expose by puuid. */
+export interface RawSummonerByPuuid {
+	gameName?: string
+	tagLine?: string
+	displayName?: string
+}
+
+/** A resolved Riot ID, or null when the client returns no usable name (a private
+ *  profile or a failed lookup) so callers fall back to the champion name. */
+export function toSummonerName(raw: RawSummonerByPuuid): SummonerName | null {
+	const gameName = raw.gameName || raw.displayName || ""
+	if (!gameName) return null
+	return { gameName, tagLine: raw.tagLine ?? "" }
+}
+
 /** The slice of the remembered champ select used to recover the local player
  *  when the gameflow payload alone can't identify them. */
 type ChampSelectCarryOver = Pick<ChampSelectSession, "localPlayerCellId" | "myTeam">
@@ -243,13 +260,16 @@ export function toInGameTeams(
 /** Enrich a gameflow roster with champ-select carry-over context (assigned
  *  positions, names the gameflow payload lacked). Players are matched by puuid
  *  first (allies), then by champion (enemies, whose champ-select rows have no
- *  identity). Falls back to the carry-over roster when the session gave none. */
+ *  identity). Falls back to the carry-over roster when the session gave none, and
+ *  re-adds any ally the session roster came back short on (the gameflow session
+ *  can list four of five at game start) — matched by puuid, so anonymized enemy
+ *  rows, which carry no puuid, are never appended. */
 export function mergeRoster(
 	fromSession: ChampSelectPlayer[],
 	fromCarryOver: ChampSelectPlayer[],
 ): ChampSelectPlayer[] {
 	if (fromSession.length === 0) return fromCarryOver
-	return fromSession.map((p) => {
+	const merged = fromSession.map((p) => {
 		const match = fromCarryOver.find(
 			(c) =>
 				(p.puuid !== "" && c.puuid === p.puuid) ||
@@ -262,6 +282,9 @@ export function mergeRoster(
 			gameName: p.gameName ?? match.gameName,
 		}
 	})
+	const present = new Set(merged.map((p) => p.puuid).filter(Boolean))
+	const omitted = fromCarryOver.filter((c) => c.puuid !== "" && !present.has(c.puuid))
+	return omitted.length > 0 ? [...merged, ...omitted] : merged
 }
 
 /** Queue-aware rank: show the rank for the queue this lobby is actually in —

@@ -10,9 +10,9 @@ interface RunesReferenceProps {
 }
 
 export function RunesReference({ runes, bundle }: RunesReferenceProps): React.JSX.Element {
-	// selectedPerkIds = [keystone, p1, p2, p3, s1, s2, shard1, shard2, shard3]
+	// selectedPerkIds = [keystone, p1, p2, p3, s1, s2, shard1, shard2, shard3].
 	const keystone = runes.selectedPerkIds[0]
-	const rest = runes.selectedPerkIds.slice(1)
+	const rest = runes.selectedPerkIds.slice(1).filter((id) => bundle.runesById[id])
 	return (
 		<div className="flex flex-col gap-[10px]">
 			<div className="flex items-center gap-[10px]">

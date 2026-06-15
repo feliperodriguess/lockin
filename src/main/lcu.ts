@@ -19,6 +19,7 @@ import {
 	type ReadyCheck,
 	type RunePageRec,
 	type SummonerIdentity,
+	type SummonerName,
 } from "@/shared/types"
 
 import { getDDragonBundle } from "./ddragon"
@@ -30,6 +31,7 @@ import {
 	type RawGameflowSession,
 	type RawRankedStats,
 	type RawReadyCheck,
+	type RawSummonerByPuuid,
 	rankedQueueOf,
 	resolveRankedPreferences,
 	toChampSelectSession,
@@ -38,7 +40,9 @@ import {
 	toRankInfo,
 	toReadyCheck,
 	toSummonerIdentity,
+	toSummonerName,
 } from "./lcu-mappers"
+import { applyRunePage as applyRunePageImpl } from "./rune-apply"
 import { getLockinRunePageId, getSettings, setLockinRunePageId } from "./store"
 
 const PROCESS_POLL_MS = 2500 // league-connect's default cadence for process scans
@@ -329,64 +333,15 @@ class LcuService {
 		championName?: string,
 	): Promise<{ ok: boolean; error?: string }> {
 		if (!this.credentials) return { ok: false, error: "League client not connected" }
-		try {
-			const inventory = (await this.request("GET", "/lol-perks/v1/inventory")) as {
-				canAddCustomPage?: boolean
-			} | null
-			const existingId = getLockinRunePageId()
-			if (inventory && inventory.canAddCustomPage === false && existingId === null) {
-				return { ok: false, error: "Rune page slots are full. Delete a page and try again." }
-			}
-
-			if (existingId !== null) {
-				try {
-					await this.request("DELETE", `/lol-perks/v1/pages/${existingId}`)
-				} catch (error) {
-					// known LCU bug: DELETE can 403. Fall back to overwriting in place.
-					if (String(error).includes("403")) {
-						try {
-							await this.request("PUT", `/lol-perks/v1/pages/${existingId}`, {
-								id: existingId,
-								name: this.runePageName(page, championName),
-								primaryStyleId: page.primaryStyleId,
-								subStyleId: page.subStyleId,
-								selectedPerkIds: page.selectedPerkIds,
-								current: true,
-							})
-							return { ok: true }
-						} catch (putError) {
-							// can't delete (403) and can't overwrite — stop tracking the orphaned
-							// page so the leak doesn't compound across future applies
-							console.warn("[lcu] rune PUT fallback failed; abandoning orphaned page:", putError)
-							setLockinRunePageId(null)
-							// fall through to creating a fresh page
-						}
-					}
-					// non-403 delete failures: the page may already be gone — continue to POST
-				}
-			}
-
-			const created = (await this.request("POST", "/lol-perks/v1/pages", {
-				name: this.runePageName(page, championName),
-				primaryStyleId: page.primaryStyleId,
-				subStyleId: page.subStyleId,
-				selectedPerkIds: page.selectedPerkIds,
-				current: true,
-			})) as { id?: number } | null
-			if (created?.id != null) setLockinRunePageId(created.id)
-			return { ok: true }
-		} catch (error) {
-			console.error("[lcu] applyRunePage failed:", error)
-			return { ok: false, error: "Couldn't apply runes — too late to swap rune pages." }
-		}
-	}
-
-	private runePageName(page: RunePageRec, championName?: string): string {
-		// keep it short + lockin-namespaced so we only ever touch our own page;
-		// include the champion when known: "lockin: Ezreal (Precision)"
-		return championName
-			? `lockin: ${championName} (${page.primaryName})`
-			: `lockin: ${page.primaryName}`
+		return applyRunePageImpl(
+			{
+				request: (method, url, body) => this.request(method, url, body),
+				getTrackedPageId: getLockinRunePageId,
+				setTrackedPageId: setLockinRunePageId,
+			},
+			page,
+			championName,
+		)
 	}
 
 	async startQueue(queueId: number): Promise<{ ok: boolean; error?: string }> {
@@ -532,6 +487,26 @@ class LcuService {
 		)
 		return out
 	}
+
+	async getNamesForPuuids(puuids: string[]): Promise<Record<string, SummonerName | null>> {
+		const out: Record<string, SummonerName | null> = {}
+		const credentials = this.credentials
+		const targets = puuids.filter(Boolean)
+		if (!credentials) {
+			for (const puuid of targets) out[puuid] = null
+			return out
+		}
+		await Promise.all(
+			targets.map(async (puuid) => {
+				const raw = await this.fetchJson<RawSummonerByPuuid>(
+					`/lol-summoner/v2/summoners/puuid/${puuid}`,
+					credentials,
+				)
+				out[puuid] = raw ? toSummonerName(raw) : null
+			}),
+		)
+		return out
+	}
 }
 
 function sleep(ms: number): Promise<void> {
@@ -571,6 +546,13 @@ export async function getRanksForPuuids(
 ): Promise<Record<string, RankInfo | null>> {
 	if (!service) return Object.fromEntries(puuids.filter(Boolean).map((p) => [p, null]))
 	return service.getRanksForPuuids(puuids)
+}
+
+export async function getNamesForPuuids(
+	puuids: string[],
+): Promise<Record<string, SummonerName | null>> {
+	if (!service) return Object.fromEntries(puuids.filter(Boolean).map((p) => [p, null]))
+	return service.getNamesForPuuids(puuids)
 }
 
 export async function setSummonerSpells(spell1Id: number, spell2Id: number): Promise<void> {

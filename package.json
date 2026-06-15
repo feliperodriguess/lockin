@@ -1,6 +1,6 @@
 {
 	"name": "lockin",
-	"version": "1.1.5",
+	"version": "1.1.6",
 	"description": "Unofficial League companion — matchup notes, ban planning, and build guidance live in Champ Select",
 	"main": "./out/main/index.js",
 	"author": "Felipe Rodrigues <felipeaugustorodrigues1@gmail.com>",

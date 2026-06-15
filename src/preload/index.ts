@@ -48,6 +48,7 @@ const api: Partial<Api> = {
 	getBanList: () => ipcRenderer.invoke(IPC.BANLIST_GET),
 	setBanList: (entries) => ipcRenderer.invoke(IPC.BANLIST_SET, entries),
 	getRanksForPuuids: (puuids) => ipcRenderer.invoke(IPC.RANK_GET_FOR_PUUIDS, puuids),
+	getNamesForPuuids: (puuids) => ipcRenderer.invoke(IPC.NAME_GET_FOR_PUUIDS, puuids),
 	getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
 	setSettings: (partial) => ipcRenderer.invoke(IPC.SETTINGS_SET, partial),
 	getBuild: (championKey, position, tier) =>

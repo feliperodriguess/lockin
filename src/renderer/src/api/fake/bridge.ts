@@ -239,6 +239,11 @@ export const fakeBridge: Api = {
 		}
 		return out
 	},
+	async getNamesForPuuids() {
+		// the in-game fixtures already carry gameName on each player, so the UI's
+		// gameName fallback covers dev — no puuid → name lookup to simulate here
+		return {}
+	},
 	async getCounters(championKey, position): Promise<CounterTable | null> {
 		if (!scenario.countersAvailable) return null
 		const table = FIXTURE_COUNTERS[championKey]

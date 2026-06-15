@@ -10,6 +10,7 @@ import {
 	applyRunePage,
 	declineReadyCheck,
 	getLcuSnapshot,
+	getNamesForPuuids,
 	getRanksForPuuids,
 	setSummonerSpells,
 	startQueue,
@@ -46,6 +47,7 @@ ipcMain.handle(IPC.BANLIST_GET, () => getBanList())
 ipcMain.handle(IPC.BANLIST_SET, (_event, entries: BanListEntry[]) => setBanList(entries))
 
 ipcMain.handle(IPC.RANK_GET_FOR_PUUIDS, (_event, puuids: string[]) => getRanksForPuuids(puuids))
+ipcMain.handle(IPC.NAME_GET_FOR_PUUIDS, (_event, puuids: string[]) => getNamesForPuuids(puuids))
 
 ipcMain.handle(IPC.BUILD_GET, (_event, championKey: number, position: string, tier?: string) =>
 	getBuild(championKey, position, tier),

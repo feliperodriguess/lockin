@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { mergeRoster, resolveRankedPreferences, toInGameState, toInGameTeams } from "./lcu-mappers"
+import {
+	mergeRoster,
+	resolveRankedPreferences,
+	toInGameState,
+	toInGameTeams,
+	toSummonerName,
+} from "./lcu-mappers"
 
 const player = (over: Record<string, unknown>) => ({
 	cellId: 0,
@@ -177,5 +183,55 @@ describe("mergeRoster", () => {
 	it("falls back to the carry-over roster when the session gave none", () => {
 		const carry = [player({ puuid: "p-me", championId: 266 })]
 		expect(mergeRoster([], carry)).toEqual(carry)
+	})
+
+	it("re-adds an ally the gameflow roster came back short on (matched by puuid)", () => {
+		// real bug: the gameflow session listed four of five allies at game start,
+		// dropping the support — champ select remembered all five.
+		const fromSession = [
+			player({ puuid: "p-malph", championId: 54 }),
+			player({ puuid: "p-kindred", championId: 203 }),
+			player({ puuid: "p-gragas", championId: 79 }),
+			player({ puuid: "p-samira", championId: 360 }),
+		]
+		const fromCarry = [
+			player({ puuid: "p-malph", championId: 54, assignedPosition: "top" }),
+			player({ puuid: "p-kindred", championId: 203, assignedPosition: "jungle" }),
+			player({ puuid: "p-gragas", championId: 79, assignedPosition: "middle" }),
+			player({ puuid: "p-samira", championId: 360, assignedPosition: "bottom" }),
+			player({ puuid: "p-soraka", championId: 16, assignedPosition: "utility" }),
+		]
+		const merged = mergeRoster(fromSession, fromCarry)
+		expect(merged).toHaveLength(5)
+		const soraka = merged.find((p) => p.puuid === "p-soraka")
+		expect(soraka?.championId).toBe(16)
+		expect(soraka?.assignedPosition).toBe("utility")
+	})
+
+	it("never re-adds a puuid-less carry-over row (anonymized enemies stay session-only)", () => {
+		const fromSession = [player({ puuid: "p-enemy", championId: 114 })]
+		const fromCarry = [player({ puuid: "", championId: 114, assignedPosition: "top" })]
+		expect(mergeRoster(fromSession, fromCarry)).toHaveLength(1)
+	})
+})
+
+describe("toSummonerName", () => {
+	it("reads the Riot ID off a resolved summoner", () => {
+		expect(toSummonerName({ gameName: "Jorge Henrique", tagLine: "sccp" })).toEqual({
+			gameName: "Jorge Henrique",
+			tagLine: "sccp",
+		})
+	})
+
+	it("falls back to displayName and tolerates a missing tagLine", () => {
+		expect(toSummonerName({ displayName: "Legacy Name" })).toEqual({
+			gameName: "Legacy Name",
+			tagLine: "",
+		})
+	})
+
+	it("returns null when the client exposes no usable name (private profile)", () => {
+		expect(toSummonerName({ gameName: "", tagLine: "" })).toBeNull()
+		expect(toSummonerName({})).toBeNull()
 	})
 })

@@ -72,6 +72,15 @@ export function useTeamRanks(puuids: string[]) {
 	})
 }
 
+export function useTeamNames(puuids: string[]) {
+	return useQuery({
+		queryKey: ["names", ...[...puuids].sort()],
+		queryFn: () => api.getNamesForPuuids(puuids),
+		enabled: puuids.length > 0,
+		staleTime: Infinity,
+	})
+}
+
 export function useAcceptReadyCheck() {
 	return useMutation({ mutationFn: () => api.acceptReadyCheck() })
 }

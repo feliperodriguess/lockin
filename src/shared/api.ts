@@ -13,6 +13,7 @@ import type {
 	ReadyCheck,
 	RunePageRec,
 	SummonerIdentity,
+	SummonerName,
 } from "./types"
 
 export type Unsubscribe = () => void
@@ -30,6 +31,7 @@ export interface Api {
 	getBanList(): Promise<BanListEntry[]>
 	setBanList(entries: BanListEntry[]): Promise<BanListEntry[]>
 	getRanksForPuuids(puuids: string[]): Promise<Record<string, RankInfo | null>>
+	getNamesForPuuids(puuids: string[]): Promise<Record<string, SummonerName | null>>
 	getBuild(
 		championKey: number,
 		position: string,
