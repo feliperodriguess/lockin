@@ -23,6 +23,12 @@ lockin is an unofficial desktop companion for the League client. It sits quietly
 
 Everything is local. No account, no login, no telemetry, no backend. Your notes and settings live on your machine.
 
+## Demo
+
+[![Watch lockin demo](https://img.youtube.com/vi/g8SAUNbbEns/maxresdefault.jpg)](https://www.youtube.com/watch?v=g8SAUNbbEns)
+
+▶️ **[Watch the full demo on YouTube](https://www.youtube.com/watch?v=g8SAUNbbEns)**
+
 ## What it does
 
 ### Champ Select, with the prep done
